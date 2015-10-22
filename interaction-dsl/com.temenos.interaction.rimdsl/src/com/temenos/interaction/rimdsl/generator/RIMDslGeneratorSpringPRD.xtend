@@ -181,7 +181,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	
 	def produceResourceStateType(State state) '''«IF state.type.isCollection»com.temenos.interaction.core.hypermedia.CollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.ResourceState«ENDIF»'''
 
-	def produceLazyResourceStateType(State state) '''«IF state != null && state.type.isCollection»com.temenos.interaction.core.hypermedia.LazyCollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.LazyResourceState«ENDIF»'''
+	def produceLazyResourceStateType(State state) '''«IF state != null && state.type != null && state.type.isCollection»com.temenos.interaction.core.hypermedia.LazyCollectionResourceState«ELSE»com.temenos.interaction.core.hypermedia.LazyResourceState«ENDIF»'''
 	
 	def produceDynamicResourceStateType(State state) '''com.temenos.interaction.core.hypermedia.DynamicResourceState'''
 	

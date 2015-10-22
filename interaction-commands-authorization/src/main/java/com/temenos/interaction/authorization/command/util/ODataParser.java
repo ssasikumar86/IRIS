@@ -204,19 +204,24 @@ public class ODataParser {
 
 	private static String toFilter(RowFilter filter) {
 		String name = filter.getFieldName().getName();
-		if (name.contains(" ")) {
+		if (requiresQuotes(name)) {
 			// Need to quote it
 			name = new String("'" + name + "'");
 		}
 
 		String value = filter.getValue();
-		if (value.contains(" ")) {
+		if (requiresQuotes(value)) {
 			// Need to quote it
 			value = new String("'" + value + "'");
 		}
 
 		String filterStr = new String(name + " " + filter.getRelation().getoDataString() + " " + value);
 		return (filterStr);
+	}
+	
+	// Detects if a term needs quoted.
+	private static boolean requiresQuotes(String term) {
+		return (term.contains(" ") || term.contains("."));	
 	}
 
 	// Convert select to an oData parameter
@@ -231,7 +236,7 @@ public class ODataParser {
 				selectStr = selectStr.concat(",");
 			}
 			// If there are spaces need to quote it.
-			if (select.getName().contains(" ")) {
+			if (requiresQuotes(select.getName())) {
 				selectStr = selectStr.concat("'" + select.getName() + "'");
 			} else {
 				selectStr = selectStr.concat(select.getName());

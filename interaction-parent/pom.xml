@@ -4,7 +4,7 @@
 
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.7.0</version>
+	<version>0.7.1</version>
 	<packaging>pom</packaging>
 	<name>interaction-parent</name>
 
@@ -38,7 +38,9 @@
 		<module>../interaction-media-xhtml</module>
 		<module>../interaction-media-odata-xml</module>
 		<module>../interaction-dsl/interaction-springdsl</module>
-		<module>../interaction-dynamic-loader</module>						
+		<module>../interaction-dynamic-loader</module>	
+		<module>../interaction-commands-jdbc</module>
+		<module>../interaction-jdbc-producer</module>					
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>
@@ -366,6 +368,11 @@
 			<dependency>
 				<groupId>com.temenos.interaction</groupId>
 				<artifactId>useragent-javascript-tester</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.temenos.interaction</groupId>
+				<artifactId>interaction-jdbc-producer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

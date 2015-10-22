@@ -42,7 +42,6 @@ import org.odata4j.core.OLink;
 import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmProperty;
-import org.odata4j.format.Entry;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.xml.XmlFormatWriter;
 import org.odata4j.internal.InternalUtil;
@@ -67,25 +66,6 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	public AtomEntryFormatWriter(ResourceState serviceDocument) {
 		this.serviceDocument = serviceDocument;
 	}
-
-  public void writeRequestEntry(Writer w, Entry entry) {
-
-    DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
-    String updated = InternalUtil.toString(utc);
-
-    XMLWriter2 writer = XMLFactoryProvider2.getInstance().newXMLWriterFactory2().createXMLWriter(w);
-    writer.startDocument();
-
-    writer.startElement(new QName2("entry"), atom);
-    writer.writeNamespace("d", d);
-    writer.writeNamespace("m", m);
-    
-    OEntity entity = entry.getEntity();
-    writeEntry(writer, null, entity.getProperties(), entity.getLinks(),
-        null, updated, entity.getEntitySet(), false);
-    writer.endDocument();
-
-  }
 
   @Override
   public String getContentType() {

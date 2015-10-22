@@ -198,6 +198,7 @@ public class ResourceMetadataManager {
 		} else {
 			metadataFilename = "metadata-" + entityName + ".xml";
 		}
+		logger.debug("Loading " + metadataFilename + " for " + entityName);
 		
 		InputStream is = null;
 		try {

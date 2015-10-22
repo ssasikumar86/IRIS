@@ -35,8 +35,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.temenos.interaction.authorization.command.util.ODataParser;
-
 public class ODataParserFilterTest {
 
 	@Before
@@ -76,13 +74,21 @@ public class ODataParserFilterTest {
 	}
 
 	/*
-	 * Test filter containing quoted elements
+	 * Test filter containing quoted space elements.
 	 */
 	@Test
-	public void testQuotesfilter() {
+	public void testQuotesSpaceFilter() {
 		testValid("'a b' eq 'b c'");
 	}
 
+	/*
+	 * Test filter containing quoted dot elements.
+	 */
+	@Test
+	public void testQuotesDotFilter() {
+		testValid("'a.b' eq 'b.c'");
+	}
+	
 	/**
 	 * Test invalid filters throw.
 	 */
@@ -116,7 +122,7 @@ public class ODataParserFilterTest {
 
 		assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
 	}
-
+		
 	// Test round trip for a valid filter
 	private void testValid(String expected) {
 

@@ -35,6 +35,8 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.log.NullLogSystem;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.junit.Assert;
 import org.junit.Test;
@@ -279,10 +281,12 @@ public class TestRimDslGenerator {
 	 * Create a velocity engine which loads velocity 
 	 * templates from the classpath.
 	 */
+	@SuppressWarnings("deprecation")
 	private VelocityEngine createVelocityEngine() {
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
 		ve.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getName());
+		ve.setProperty(RuntimeConstants.RUNTIME_LOG_LOGSYSTEM, new NullLogSystem());
 		ve.init();
 		return ve;
 	}

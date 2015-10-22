@@ -30,6 +30,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.odata4j.core.ODataConstants;
@@ -109,6 +110,13 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
     for (OEntity entity : response.getEntities()) {
     	Collection<Link> link =  linkId.get(entity);
     	writer.startElement("entry");
+    	
+    	String etag = entity.getEntityTag();
+    	
+    	if(StringUtils.isNotEmpty(etag)) {
+    	    writer.writeAttribute("m:etag", etag);
+    	}
+    	
     	entryWriter.writeEntry(writer, entity, entity.getProperties(), entity.getLinks(), baseUri, updated, ees, true, link);
     	writer.endElement("entry");
     }

@@ -387,14 +387,18 @@ public class TestAtomXMLProvider {
 		Entity entity = new Entity(name, properties);
 		return new EntityResource<Entity>(name, entity);
 	}
-
+	
 	private EntityResource<OEntity> createMockEntityResourceOEntity(EdmEntitySet ees) {
+	    return createMockEntityResourceOEntity(ees, null);
+	}
+
+	private EntityResource<OEntity> createMockEntityResourceOEntity(EdmEntitySet ees, String etag) {
 		//Create an OEntity
 		OEntityKey entityKey = OEntityKey.create("1");
 		List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
 		properties.add(OProperties.string("id", "1"));
 		properties.add(OProperties.string("flight", "EI218"));
-		OEntity entity = OEntities.create(ees, entityKey, properties, new ArrayList<OLink>());
+		OEntity entity = OEntities.create(ees, null, entityKey, etag, properties, new ArrayList<OLink>());
 		return new EntityResource<OEntity>(entity);
 	}
 	
@@ -957,7 +961,7 @@ public class TestAtomXMLProvider {
 			+ "<title type=\"text\">Flight</title>"
 			+ "<id>http://localhost:8080/responder/rest/FundsTransfers</id>"
 			+ "<updated>2014-02-20T08:56:32Z</updated>"
-				+ "<entry><id>http://localhost:8080/responder/rest/Flight('1')</id>"
+				+ "<entry m:etag=\"07u1PAxpJ7RGGblAB8FicpJF18wtzngF71WGQUMlABE=\"><id>http://localhost:8080/responder/rest/Flight('1')</id>"
 				+ "<title type=\"text\" />"
 				+ "<updated>2014-02-20T08:56:32Z</updated>"
 				+ "<author><name /></author>"
@@ -1044,7 +1048,8 @@ public class TestAtomXMLProvider {
 
 		// Build up some entities
 		List<EntityResource<OEntity>> oentities = new ArrayList<EntityResource<OEntity>>();
-		EntityResource<OEntity> er = createMockEntityResourceOEntity(edmDataServices.findEdmEntitySet("Flights"));
+		EntityResource<OEntity> er = createMockEntityResourceOEntity(edmDataServices.findEdmEntitySet("Flights"), 
+		        "07u1PAxpJ7RGGblAB8FicpJF18wtzngF71WGQUMlABE=");
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));

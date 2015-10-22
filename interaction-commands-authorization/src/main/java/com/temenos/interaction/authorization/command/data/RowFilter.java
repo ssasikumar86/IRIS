@@ -30,22 +30,28 @@ public class RowFilter {
 	// Requested relation a fields and its values.
 	// Extend with additional relationships as they become available.
 	public enum Relation {
-		EQ("eq"),
-		NE("ne"),
-		LT("lt"),
-		GT("gt"),
-		LE("le"),
-		GE("ge");
+		EQ("eq","="),
+		NE("ne", "<>"),
+		LT("lt", "<"),
+		GT("gt", ">"),
+		LE("le", "<="),
+		GE("ge", ">=");
 		
 		// OData equivalent
 		private final String oDataString;
+		private String sqlSymbol;
 		
-		Relation(String oDataString) {
+		Relation(String oDataString, String sqlSymbol) {
 			this.oDataString = oDataString;
+			this.sqlSymbol = sqlSymbol;
 		}
 
 		public String getoDataString() {
 			return (oDataString);
+		}
+		
+		public String getSqlSymbol() {
+			return (sqlSymbol);
 		}
 	}
 
@@ -78,4 +84,5 @@ public class RowFilter {
 	public String getValue() {
 		return (value);
 	}
+	
 }

@@ -237,7 +237,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 					OEntity tempEntity = collectionEntity.getEntity();
 					List<OLink> olinks = formOLinks(collectionEntity);
 					Collection<Link> links = collectionEntity.getLinks();
-	            	OEntity entity = OEntities.create(entitySet, tempEntity.getEntityKey(), tempEntity.getProperties(), olinks);
+	            	OEntity entity = OEntities.create(entitySet, null, tempEntity.getEntityKey(), tempEntity.getEntityTag(), tempEntity.getProperties(), olinks);
 					entities.add(entity);
 					linkId.put(entity, links);
 				}

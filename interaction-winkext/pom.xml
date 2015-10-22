@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>interaction-parent</artifactId>
-		<version>0.7.0</version>
+		<version>0.7.1</version>
 		<relativePath>../interaction-parent/pom.xml</relativePath>
 	</parent>
 
@@ -74,25 +74,12 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.temenos.interaction</groupId>
-			<artifactId>interaction-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>

@@ -6,7 +6,7 @@
 		<groupId>com.temenos.interaction</groupId>
 		<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
 		<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
-		<version>0.7.0</version>
+		<version>0.7.1</version>
 		<relativePath>../com.temenos.interaction.rimdsl.parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>com.temenos.interaction.rimdsl.generator</artifactId>
@@ -186,18 +186,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.xtend</groupId>
-            <artifactId>org.eclipse.xtend.lib</artifactId>
-            <version>${xtend-version}</version>
-        </dependency>
-        <dependency>
         	<groupId>org.eclipse.xtext</groupId>
         	<artifactId>org.eclipse.xtext.common.types</artifactId>
-        	<version>${xtend-version}</version>
-        </dependency>
-        <dependency>
-        	<groupId>org.eclipse.xtext</groupId>
-        	<artifactId>org.eclipse.xtext.xbase.lib</artifactId>
         	<version>${xtend-version}</version>
         </dependency>
 		<dependency>
@@ -210,25 +200,8 @@
 			<artifactId>commons-cli</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.antlr</groupId>
-			<artifactId>antlr-runtime</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.inject</groupId>
-			<artifactId>javax.inject</artifactId>
-			<version>1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>

@@ -1,3 +1,4 @@
+
 package com.temenos.interaction.core.entity;
 
 /*
@@ -28,6 +29,8 @@ import java.util.Stack;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -41,6 +44,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
  * Parser to read metadata from an XML file.
  */
 public class MetadataParser extends DefaultHandler {
+	private static final Logger logger = LoggerFactory.getLogger(MetadataParser.class);
 	TermFactory termFactory;
 
 	Metadata metadata = null;
@@ -73,6 +77,7 @@ public class MetadataParser extends DefaultHandler {
 			e.printStackTrace();
 			return null;
 		}
+		logger.debug("parsed, element count = " + entityMetadata.getPropertyVocabularyKeySet().size() );
 		return metadata;
 	}
 	
@@ -121,6 +126,9 @@ public class MetadataParser extends DefaultHandler {
 				catch(Exception e) {
 					throw new SAXException(e);
 				}
+			}
+			if ( name == null ) {
+				throw new SAXException("Parse error: Property without name in Entity " + entityMetadata.getEntityName());
 			}
 			entityMetadata.setPropertyVocabulary(name, voc, propertyName.elements());
 			isComplexProperty = (propertyName.size() > 0);

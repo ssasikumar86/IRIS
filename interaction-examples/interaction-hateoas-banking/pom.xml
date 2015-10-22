@@ -5,7 +5,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.7.0</version>
+	<version>0.7.1</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -150,7 +150,7 @@
     									interaction-sdk-rim-plugin
     								</artifactId>
     								<versionRange>
-    									[0.7.0,)
+    									[0.7.1,)
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>
@@ -307,6 +307,11 @@
     	<artifactId>ehcache-core</artifactId>
     </dependency>
 
+    <dependency>
+    	<groupId>org.codehaus.jettison</groupId>
+    	<artifactId>jettison</artifactId>
+    	<version>1.0.1</version>
+    </dependency>
   </dependencies>
   
 </project>

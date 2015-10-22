@@ -291,7 +291,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 	
 	private Response handleRequest(@Context HttpHeaders headers, @Context UriInfo uriInfo, Event event, EntityResource<?> resource) {
-    	long begin = System.currentTimeMillis();
+    	long begin = System.nanoTime();
 		// determine action
     	InteractionCommand action = hypermediaEngine.determineAction(event, getFQResourcePath());
     			
@@ -313,10 +313,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else {
 	    	response = handleRequest(headers, ctx, event, action, resource, null);
 		}
-    	long end = System.currentTimeMillis();
+    	long end = System.nanoTime();
     	
 		logger.info("iris_request EntityName=" +  getFQResourcePath() + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri() + 
-				" RequestTime=" + String.valueOf(end-begin) + (cached != null ? " (cached response)" : ""));
+				" startTime(ns)=" + String.valueOf(begin) + " endTime(ns)=" + String.valueOf(end) + 
+				" timeTaken(ns)=" + String.valueOf(end-begin) + (cached != null ? " (cached response)" : ""));
 		
 		return response;
 	}
@@ -338,7 +339,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	// execute action
     	InteractionCommand.Result result = null;
     	try {
+    		long begin = System.nanoTime();
     		result = action.execute(ctx);
+    		long end = System.nanoTime();
+    		logger.info("iris_request_command EntityName=" +  getFQResourcePath() + " startTime(ns)=" + String.valueOf(begin) + 
+    				" endTime(ns)=" + String.valueOf(end) +	" timeTaken(ns)=" + String.valueOf(end-begin));
         	assert(result != null) : "InteractionCommand must return a result";
         	status = determineStatus(headers, event, ctx, result);
     	}

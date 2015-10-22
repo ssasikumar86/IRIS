@@ -35,6 +35,8 @@ import java.util.Properties;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.log.NullLogSystem;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
@@ -131,6 +133,7 @@ public class JPAResponderGen {
 		initialise(props);		
 	}
 
+	@SuppressWarnings("deprecation")
 	protected void initialise(Properties props) {
 		strictOData = isKeyTrue(props.get(PROPERTY_KEY_ROOT + "." + STRICT_ODATA_KEY));
 		overwriteAllOutput = isKeyTrue(props.get(PROPERTY_KEY_ROOT + "." + REGENERATE_OUTPUT_KEY));
@@ -138,6 +141,7 @@ public class JPAResponderGen {
 		// load .vm templates using classloader
 		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
 		ve.setProperty("classpath." + VelocityEngine.RESOURCE_LOADER + ".class", ClasspathResourceLoader.class.getName());
+		ve.setProperty(RuntimeConstants.RUNTIME_LOG_LOGSYSTEM, new NullLogSystem());
 		ve.init();
 	}
 	

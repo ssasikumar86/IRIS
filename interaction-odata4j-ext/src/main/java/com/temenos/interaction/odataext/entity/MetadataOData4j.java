@@ -411,6 +411,9 @@ public class MetadataOData4j {
 			EdmEntityType.Builder bEntityType = getEdmTypeBuilder(entityMetadata, bComplexTypeMap, true);
 			if (bEntityType != null) {
 				bEntityTypeMap.put(state.getEntityName(), bEntityType);					
+			} else {
+				logger.warn("Entity name '" + state.getEntityName() + "' does not have type. " +
+							"entityMetadata=" + entityMetadata);
 			}
 		}
 					
@@ -548,6 +551,7 @@ public class MetadataOData4j {
 		
 		String complexTypePrefix = new StringBuilder(entityMetadata.getEntityName()).append("_").toString();
 		for(String propertyName : entityMetadata.getPropertyVocabularyKeySet()) {
+			logger.debug("EdmTypeBuilder["+entityMetadata.getEntityName()+"] - " + propertyName);
 			//Entity properties, lets gather some information about the property
 			String termComplex = entityMetadata.getTermValue(propertyName, TermComplexType.TERM_NAME);							// Is vocabulary a group (Complex Type)
 			boolean termList = Boolean.parseBoolean(entityMetadata.getTermValue(propertyName, TermListType.TERM_NAME));	// Is vocabulary a List of (Complex Types)

@@ -40,7 +40,7 @@
 		<module>../interaction-dsl/interaction-springdsl</module>
 		<module>../interaction-dynamic-loader</module>	
 		<module>../interaction-commands-jdbc</module>
-		<module>../interaction-jdbc-producer</module>					
+		<!--<module>../interaction-jdbc-producer</module>-->
 		<module>../interaction-dsl/com.temenos.interaction.rimdsl.parent</module>
 		<module>../useragent-examples/useragent-odata-html5</module>
 		<module>../useragent-examples/useragent-generic-javascript</module>

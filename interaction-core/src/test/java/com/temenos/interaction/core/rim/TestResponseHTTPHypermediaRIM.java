@@ -532,7 +532,7 @@ public class TestResponseHTTPHypermediaRIM {
 		mockPathParameters.add("id", "2");
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
-		when(uriInfo.getQueryParameters(true)).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -586,7 +586,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(true)).thenReturn(mockPathParameters);
 		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
 		mockQueryParameters.add("test", "123");
-		when(uriInfo.getQueryParameters(true)).thenReturn(mockQueryParameters);
+		when(uriInfo.getQueryParameters(false)).thenReturn(mockQueryParameters);
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -632,7 +632,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(true)).thenReturn(new MultivaluedMapImpl<String>());
 		MultivaluedMap<String, String> mockQueryParameters = new MultivaluedMapImpl<String>();
 		mockQueryParameters.add("id", "123");
-		when(uriInfo.getQueryParameters(true)).thenReturn(mockQueryParameters);
+		when(uriInfo.getQueryParameters(false)).thenReturn(mockQueryParameters);
 		Response response = existsStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 		
 		// null resource
@@ -865,7 +865,7 @@ public class TestResponseHTTPHypermediaRIM {
 		when(uriInfo.getPathParameters(true)).thenReturn(new MultivaluedMapImpl<String>());
 		MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl<String>();
 		queryParameters.add("mytestparam", "123");
-		when(uriInfo.getQueryParameters(true)).thenReturn(queryParameters);
+		when(uriInfo.getQueryParameters(false)).thenReturn(queryParameters);
 		Response response = conditionStateRIM.get(mock(HttpHeaders.class), "id", uriInfo);
 
 		@SuppressWarnings("rawtypes")
@@ -972,7 +972,7 @@ public class TestResponseHTTPHypermediaRIM {
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
-		when(uriInfo.getQueryParameters(true)).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		return uriInfo;
 	}
 	

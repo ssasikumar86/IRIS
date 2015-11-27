@@ -315,9 +315,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		}
     	long end = System.nanoTime();
     	
-		logger.info("iris_request EntityName=" +  getFQResourcePath() + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri() + 
-				" startTime(ns)=" + String.valueOf(begin) + " endTime(ns)=" + String.valueOf(end) + 
-				" timeTaken(ns)=" + String.valueOf(end-begin) + (cached != null ? " (cached response)" : ""));
+		logger.info("iris_request IRIS Service RequestTime(ns)=" + String.valueOf(end-begin) +" startTime(ns)=" + String.valueOf(begin) + " endTime(ns)=" + String.valueOf(end) + 
+		            "EntityName=" +  getFQResourcePath() + " MethodType=" + event.getMethod() + " URI=" + uriInfo.getRequestUri() + (cached != null ? " (cached response)" : ""));
 		
 		return response;
 	}
@@ -342,8 +341,8 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		long begin = System.nanoTime();
     		result = action.execute(ctx);
     		long end = System.nanoTime();
-    		logger.info("iris_request_command EntityName=" +  getFQResourcePath() + " startTime(ns)=" + String.valueOf(begin) + 
-    				" endTime(ns)=" + String.valueOf(end) +	" timeTaken(ns)=" + String.valueOf(end-begin));
+    		logger.info("iris_request_command CommandExecution RequestTime(ns)=" + String.valueOf(end-begin) + " startTime(ns)=" + String.valueOf(begin) + 
+    				" endTime(ns)=" + String.valueOf(end) +	" EntityName=" +  getFQResourcePath());
         	assert(result != null) : "InteractionCommand must return a result";
         	status = determineStatus(headers, event, ctx, result);
     	}
@@ -379,7 +378,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
         		/*
         		 * Add hypermedia information to this resource
         		 */
-        		hypermediaEngine.injectLinks(this, ctx, ctx.getResource(), selfTransition);
+        		hypermediaEngine.injectLinks(this, ctx, ctx.getResource(), selfTransition, headers, metadata);
     		}
     		
     		if (embedResources) {
@@ -537,7 +536,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	}
 	
 	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {
-    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
+    	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(false) : null;
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
     	decodeQueryParams(queryParameters);

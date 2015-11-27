@@ -79,6 +79,7 @@ public class TransitionCommandSpec {
 	public String getLinkId() {
 		return linkId;
 	}
+
 	/**
 	 * Is this transition command to be applied to each item in a collection?
 	 * @return
@@ -86,6 +87,14 @@ public class TransitionCommandSpec {
 	public boolean isForEach() {
 		return ((flags & Transition.FOR_EACH) == Transition.FOR_EACH);
 	}
+	
+    /**
+     * Is this embedded transition command to be applied to each item in a collection?
+     * @return
+     */
+    public boolean isEmbeddedForEach() {
+        return ((flags & Transition.FOR_EACH_EMBEDDED) == Transition.FOR_EACH_EMBEDDED);
+    }	
 	
 	/**
 	 * Is this transition an auto transition?

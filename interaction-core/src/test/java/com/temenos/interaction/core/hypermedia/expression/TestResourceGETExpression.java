@@ -40,6 +40,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.temenos.interaction.core.command.InteractionCommand;
@@ -159,6 +160,7 @@ public class TestResourceGETExpression {
 
 	@SuppressWarnings("unchecked")
 	@Test
+	@Ignore
 	public void testLookupResourceThenGET_200() {
 		
 		HTTPHypermediaRIM rimHandler = mockRimHandler();

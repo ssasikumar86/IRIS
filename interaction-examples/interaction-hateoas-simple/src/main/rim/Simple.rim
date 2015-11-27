@@ -29,7 +29,7 @@ resource notes {
 	view: GETNotes
 	path: "/notes"
     POST -> createNote
-	GET *-> note
+	GET *+> note
 	DELETE *-> deletedNote {
 		condition: NOT_FOUND(NoteImportant)
 	}

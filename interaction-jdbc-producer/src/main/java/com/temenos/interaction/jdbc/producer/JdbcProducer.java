@@ -27,12 +27,15 @@ package com.temenos.interaction.jdbc.producer;
  * #L%
  */
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.producer.EntityQueryInfo;
@@ -44,6 +47,7 @@ import org.springframework.jndi.JndiTemplate;
 
 import com.temenos.interaction.authorization.command.data.AccessProfile;
 import com.temenos.interaction.authorization.command.data.FieldName;
+import com.temenos.interaction.authorization.command.data.OrderBy;
 import com.temenos.interaction.authorization.command.data.RowFilter;
 import com.temenos.interaction.authorization.command.util.ODataParser;
 import com.temenos.interaction.authorization.command.util.ODataParser.UnsupportedQueryOperationException;
@@ -54,187 +58,268 @@ import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
+import com.temenos.interaction.jdbc.producer.SqlCommandBuilder.ServerMode;
 
 public class JdbcProducer {
-	// Somewhere to store connection
-	private JdbcTemplate template;
+    // Somewhere to store connection
+    private JdbcTemplate template;
 
-	private final static Logger logger = LoggerFactory.getLogger(JdbcProducer.class);
+    // Current compatibility mode.
+    private ServerMode serverMode;
+    private ServerMode h2ServerMode = null;
 
-	/*
-	 * Constructor called when a DataSource object to be obtained from Jndi.
-	 */
-	public JdbcProducer(JndiTemplate jndiTemplate, String dataSourceName) throws ClassNotFoundException, JdbcException,
-			NamingException {
-		this((DataSource) jndiTemplate.lookup(dataSourceName));
-	}
+    private final static Logger logger = LoggerFactory.getLogger(JdbcProducer.class);
 
-	/*
-	 * Constructor called when a DataSource object is available.
-	 */
-	public JdbcProducer(DataSource dataSource) throws ClassNotFoundException, JdbcException {
-		template = new JdbcTemplate(dataSource);
-	}
+    /*
+     * Constructor called when a DataSource object to be obtained from Jndi.
+     */
+    public JdbcProducer(JndiTemplate jndiTemplate, String dataSourceName) throws ClassNotFoundException, JdbcException,
+            NamingException {
+        this((DataSource) jndiTemplate.lookup(dataSourceName));
+    }
 
-	/*
-	 * Query method for raw SQL commands
-	 */
-	public SqlRowSet query(String command) {
-		return template.queryForRowSet(command);
-	}
+    /*
+     * Constructor called when a DataSource object is available.
+     */
+    public JdbcProducer(DataSource dataSource) throws ClassNotFoundException, JdbcException {
+        template = new JdbcTemplate(dataSource);
+        serverMode = getServerMode();
+    }
 
-	/*
-	 * Query method for interaction context parameters returning collection of
-	 * entities.
-	 */
-	public CollectionResource<Entity> queryEntities(String tableName, InteractionContext ctx, String returnEntityType)
-			throws UnsupportedQueryOperationException, JdbcException, Exception {
-		SqlRowSet rowSet = query(tableName, null, ctx);
-		return buildCollectionResource(returnEntityType, rowSet);
-	}
+    /*
+     * Constructor USED IN TESTING.
+     * 
+     * When using H2 there does not appear to be any way to read the server's
+     * current compatibility mode. So enable the test to pass this as a
+     * parameter. If it turns out that this information can be read from the
+     * server remove this constructor and add the read to getServerMode().
+     */
+    public JdbcProducer(DataSource dataSource, ServerMode h2ServerMode) throws ClassNotFoundException, JdbcException {
+        template = new JdbcTemplate(dataSource);
+        this.h2ServerMode = h2ServerMode;
+        serverMode = getServerMode();
+    }
 
-	/*
-	 * Query method for interaction context parameters returning a single
-	 * entity.
-	 */
-	public EntityResource<Entity> queryEntity(String tableName, String key, InteractionContext ctx,
-			String returnEntityType) throws UnsupportedQueryOperationException, JdbcException, Exception {
-		SqlRowSet rowSet = query(tableName, key, ctx);
-		return createEntityResource(returnEntityType, rowSet);
-	}
+    /*
+     * Query method for raw SQL commands
+     */
+    public SqlRowSet query(String command) {
+        return template.queryForRowSet(command);
+    }
 
-	/*
-	 * Query method for interaction context parameters returning raw sql data.
-	 * 
-	 * If given a key will return a single row.
-	 * 
-	 * If given a null key will return all rows.
-	 */
-	public SqlRowSet query(String tableName, String key, InteractionContext ctx)
-			throws UnsupportedQueryOperationException, JdbcException, Exception {
-		// Not much point selecting from a null table
-		if (null == tableName) {
-			logger.error("Jdbc producer cannot select from null table.");
-			throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Null table name"));
-		}
+    /*
+     * Query method for interaction context parameters returning collection of
+     * entities.
+     */
+    public CollectionResource<Entity> queryEntities(String tableName, InteractionContext ctx, String returnEntityType)
+            throws UnsupportedQueryOperationException, JdbcException, Exception {
+        SqlRowSet rowSet = query(tableName, null, ctx);
+        return buildCollectionResource(returnEntityType, rowSet);
+    }
 
-		// Get column types from Jdbc. We need these both for constructing the
-		// command and processing it's result set.
-		// TODO Eventually this should be cached.
-		ColumnTypesMap colTypesMap = new ColumnTypesMap(this, tableName, (null != key));
+    /*
+     * Query method for interaction context parameters returning a single
+     * entity.
+     */
+    public EntityResource<Entity> queryEntity(String tableName, String key, InteractionContext ctx,
+            String returnEntityType) throws UnsupportedQueryOperationException, JdbcException, Exception {
+        SqlRowSet rowSet = query(tableName, key, ctx);
+        return createEntityResource(returnEntityType, rowSet);
+    }
 
-		// Unpack the commands $filter and $select terms.
-		AccessProfile accessProfile = getAccessProfile(ctx);
+    /*
+     * Query method for interaction context parameters returning raw sql data.
+     * 
+     * If given a key will return a single row.
+     * 
+     * If given a null key will return all rows.
+     */
+    public SqlRowSet query(String tableName, String key, InteractionContext ctx)
+            throws UnsupportedQueryOperationException, JdbcException, Exception {
+        // Not much point selecting from a null table
+        if (null == tableName) {
+            logger.error("Jdbc producer cannot select from null table.");
+            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Null table name"));
+        }
 
-		// Build an SQL command
-		SqlCommandBuilder sqlBuilder = new SqlCommandBuilder(tableName, key, accessProfile, colTypesMap);
-		String sqlCommand = sqlBuilder.getCommand();
+        // Get column types from Jdbc. We need these both for constructing the
+        // command and processing it's result set.
+        // We need the primary key for row ordering.
+        // TODO Eventually this should be cached.
+        ColumnTypesMap colTypesMap = new ColumnTypesMap(this, tableName, true);
 
-		logger.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
+        // Unpack the commands $filter and $select terms.
+        AccessProfile accessProfile = getAccessProfile(ctx);
 
-		// Execute the SQL command
-		return query(sqlCommand);
-	}
+        // Get top and skip parameters (null if not specified).
+        MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
+        String top = queryParams.getFirst(ODataParser.TOP_KEY);
+        String skip = queryParams.getFirst(ODataParser.SKIP_KEY);
 
-	public DataSource getDataSource() {
-		return template.getDataSource();
-	}
+        List<OrderBy> orderBy = ODataParser.parseOrderBy(queryParams.getFirst(ODataParser.ORDERBY_KEY));
 
-	/*
-	 * Method to unpack a contexts $filter and $select terms. For now use the
-	 * parser from authorization module.
-	 * 
-	 * TODO At some point the parser should probably be moved into it's own
-	 * module.
-	 */
-	private AccessProfile getAccessProfile(InteractionContext ctx) throws UnsupportedQueryOperationException {
-		EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
-		List<RowFilter> filters = ODataParser.parseFilter(queryInfo.filter);
-		Set<FieldName> selects = ODataParser.parseSelect(queryInfo.select);
-		return new AccessProfile(filters, selects);
-	}
+        // Build an SQL command
+        SqlCommandBuilder sqlBuilder = new SqlCommandBuilder(tableName, key, accessProfile, colTypesMap, top, skip,
+                orderBy, serverMode);
+        String sqlCommand = sqlBuilder.getCommand();
 
-	/*
-	 * Convert result to a single entry.
-	 */
-	EntityResource<Entity> createEntityResource(String entityType, SqlRowSet rowSet) throws JdbcException {
+        logger.info("Jdbc producer about to execute \"" + sqlCommand + "\"");
 
-		// Extract the returned column names. May be a subset of the ones
-		// requested.
-		String[] columnNames = rowSet.getMetaData().getColumnNames();
+        // Execute the SQL command
+        return query(sqlCommand);
+    }
 
-		// Set cursor to first row
-		if (!rowSet.next()) {
-			throw (new JdbcException(Status.NOT_FOUND, "Row not found. Entry with given key possibly not present."));
-		}
+    public DataSource getDataSource() {
+        return template.getDataSource();
+    }
 
-		// Build up properties for this row
-		EntityProperties properties = new EntityProperties();
+    /*
+     * Method to unpack a contexts $filter and $select terms. For now use the
+     * parser from authorization module.
+     * 
+     * TODO At some point the parser should probably be moved into it's own
+     * module.
+     */
+    private AccessProfile getAccessProfile(InteractionContext ctx) throws UnsupportedQueryOperationException {
+        EntityQueryInfo queryInfo = ODataParser.getEntityQueryInfo(ctx);
+        List<RowFilter> filters = ODataParser.parseFilter(queryInfo.filter);
+        Set<FieldName> selects = ODataParser.parseSelect(queryInfo.select);
+        return new AccessProfile(filters, selects);
+    }
 
-		// For all columns in this row.
-		for (String columnName : columnNames) {
-			Object value = rowSet.getObject(columnName);
+    /*
+     * Convert result to a single entry.
+     */
+    EntityResource<Entity> createEntityResource(String entityType, SqlRowSet rowSet) throws JdbcException {
 
-			// Only return non null values
-			if (null != value) {
-				// Add object to the property. getObject() returns an object
-				// with the correct java type for each sql type. So we don't
-				// need to cast.
-				properties.setProperty(new EntityProperty(columnName, value));
-			}
-		}
+        // Extract the returned column names. May be a subset of the ones
+        // requested.
+        String[] columnNames = rowSet.getMetaData().getColumnNames();
 
-		// Make an entity
-		Entity entity = new Entity(entityType, properties);
+        // Set cursor to first row
+        if (!rowSet.next()) {
+            throw (new JdbcException(Status.NOT_FOUND, "Row not found. Entry with given key possibly not present."));
+        }
 
-		// Make an entity resource
-		EntityResource<Entity> entityResource = new EntityResource<Entity>(entityType, entity);
+        // Build up properties for this row
+        EntityProperties properties = new EntityProperties();
 
-		// Check for additional rows. Not expected for a 'single'
-		// command.
-		if (rowSet.next()) {
-			throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Multiple rows returned for a single entity"));
-		}
+        // For all columns in this row.
+        for (String columnName : columnNames) {
+            Object value = rowSet.getObject(columnName);
 
-		return entityResource;
-	}
+            // Only return non null values
+            if (null != value) {
+                // Add object to the property. getObject() returns an object
+                // with the correct java type for each sql type. So we don't
+                // need to cast.
+                properties.setProperty(new EntityProperty(columnName, value));
+            }
+        }
 
-	/*
-	 * Convert result set into a collection of entities.
-	 */
-	private CollectionResource<Entity> buildCollectionResource(String entityType, SqlRowSet rowSet) {
-		List<EntityResource<Entity>> results = new ArrayList<EntityResource<Entity>>();
+        // Make an entity
+        Entity entity = new Entity(entityType, properties);
 
-		// Extract the returned column names. May be a subset of the ones
-		// requested.
-		String[] columnNames = rowSet.getMetaData().getColumnNames();
+        // Make an entity resource
+        EntityResource<Entity> entityResource = new EntityResource<Entity>(entityType, entity);
 
-		// For all rows returned add an entity to the collection.
-		while (rowSet.next()) {
-			EntityProperties properties = new EntityProperties();
+        // Check for additional rows. Not expected for a 'single'
+        // command.
+        if (rowSet.next()) {
+            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Multiple rows returned for a single entity"));
+        }
 
-			// For all columns in this row.
-			for (String columnName : columnNames) {
-				Object value = rowSet.getObject(columnName);
+        return entityResource;
+    }
 
-				// Only return non null values
-				if (null != value) {
-					// Add object to the property. getObject() returns an object
-					// with the correct java type for each sql type. So we don't
-					// need to cast.
-					properties.setProperty(new EntityProperty(columnName, value));
-				}
-			}
+    /*
+     * Convert result set into a collection of entities.
+     */
+    private CollectionResource<Entity> buildCollectionResource(String entityType, SqlRowSet rowSet) {
+        List<EntityResource<Entity>> results = new ArrayList<EntityResource<Entity>>();
 
-			// Create entity.
-			// Note: Despite the variable name the first arg of both these is
-			// the entity type name. Not it's key.
-			Entity entity = new Entity(entityType, properties);
-			results.add(new EntityResource<Entity>(entity.getName(), entity));
-		}
+        // Extract the returned column names. May be a subset of the ones
+        // requested.
+        String[] columnNames = rowSet.getMetaData().getColumnNames();
 
-		// Note: This line looks a bit odd but the {} at the end is required.
-		return new CollectionResource<Entity>(results) {
-		};
-	}
+        // For all rows returned add an entity to the collection.
+        while (rowSet.next()) {
+            EntityProperties properties = new EntityProperties();
+
+            // For all columns in this row.
+            for (String columnName : columnNames) {
+                Object value = rowSet.getObject(columnName);
+
+                // Only return non null values
+                if (null != value) {
+                    // Add object to the property. getObject() returns an object
+                    // with the correct java type for each sql type. So we don't
+                    // need to cast.
+                    properties.setProperty(new EntityProperty(columnName, value));
+                }
+            }
+
+            // Create entity.
+            // Note: Despite the variable name the first arg of both these is
+            // the entity type name. Not it's key.
+            Entity entity = new Entity(entityType, properties);
+            results.add(new EntityResource<Entity>(entity.getName(), entity));
+        }
+
+        // Note: This line looks a bit odd but the {} at the end is required.
+        return new CollectionResource<Entity>(results) {
+        };
+    }
+
+    /*
+     * Utility to work out the current server mode.
+     * 
+     * This is probably untestable.
+     */
+    private ServerMode getServerMode() throws JdbcException {
+        // If a server compatability mode has been passed use it.
+        if (null != h2ServerMode) {
+            return h2ServerMode;
+        }
+
+        // Look for real servers
+        String url = null;
+
+        // Get the connection URL
+        Connection connection = null;
+        try {
+            connection = template.getDataSource().getConnection();
+        } catch (SQLException ex) {
+            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could get connection to datasource. ", ex));
+        }
+
+        try {
+            url = connection.getMetaData().getURL();
+        } catch (SQLException ex) {
+            throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not get server URL. ", ex));
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Could not close connection to datasource. ", ex));
+            }
+        }
+
+        // Extract server type from URL
+        String[] tokens = url.split(":");
+        if (tokens[1].equals("oracle")) {
+            return ServerMode.ORACLE;
+        }
+
+        if (tokens[1].equals("mssql")) {
+            return ServerMode.MSSQL;
+        }
+
+        if (tokens[1].equals("h2")) {
+            logger.warn("Running under H2 but no server compatibility mode specified. Defaulting to emulated MSSQL mode.");
+            return ServerMode.H2_MSSQL;
+        }
+
+        throw (new JdbcException(Status.INTERNAL_SERVER_ERROR, "Unknown serveer type \"" + tokens[1] + "\"."));
+    }
 }

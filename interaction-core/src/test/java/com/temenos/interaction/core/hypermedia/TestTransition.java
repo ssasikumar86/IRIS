@@ -34,6 +34,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+
 public class TestTransition {
 
 	@Test
@@ -404,6 +406,37 @@ public class TestTransition {
 		Transition tb = tbb.build();
 		assertEquals("123456", tb.getLinkId());
 	}
+	
+	@Test
+	public void testResourceLocator() {
+        ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+        ResourceLocator locator = mock(ResourceLocator.class);
+
+        Transition.Builder tba = new Transition.Builder();
+        tba.source(begin)
+            .locator(locator)
+            .method("GET")
+            .label("A")
+            .linkId("123456");
+        Transition t = tba.build();
+        assertEquals(locator, t.getLocator());
+	}
+	
+    @Test
+    public void testEvaluation() {
+        ResourceState begin = new ResourceState("entity", "begin", new ArrayList<Action>(), "{id}");
+        ResourceState end = new ResourceState("entity", "end", new ArrayList<Action>(), "{id}");
+        Expression expression = mock(Expression.class);
+        Transition.Builder tba = new Transition.Builder();
+        tba.source(begin)
+            .target(end)
+            .method("GET")
+            .evaluation(expression)
+            .label("A")
+            .linkId("123456");
+        Transition t = tba.build();
+        assertEquals(expression, t.getCommand().getEvaluation());
+    }	
 	
 	@Test 
 	public void testEqualityLinkId() {

@@ -27,6 +27,7 @@ import com.temenos.interaction.rimdsl.rim.TransitionEmbedded
 import com.temenos.interaction.rimdsl.rim.TransitionRedirect
 import com.temenos.interaction.rimdsl.rim.TransitionRef
 import com.temenos.interaction.rimdsl.rim.MethodRef
+import com.temenos.interaction.rimdsl.rim.TransitionEmbeddedForEach
 
 class RIMDslGeneratorSpringPRD implements IGenerator {
 	
@@ -112,6 +113,9 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 					«ENDIF»
 					«IF t instanceof TransitionEmbedded»                
 					«produceTransitionsEmbedded(rim, state, t as TransitionEmbedded)»
+					«ENDIF»
+					«IF t instanceof TransitionEmbeddedForEach»
+					«produceTransitionsEmbeddedForEach(rim, state, t as TransitionEmbeddedForEach)»
 					«ENDIF»
 					<!-- end transition : «IF (t.locator != null)»«t.locator.name»«ELSE»«transitionTargetStateVariableName(t)»«ENDIF» -->
 				«ENDIF» 				
@@ -386,6 +390,27 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 			<property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />
 		</bean>
 	'''
+	
+    def produceTransitionsEmbeddedForEach(ResourceInteractionModel rim, State fromState, TransitionEmbeddedForEach transition) '''
+        <bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">
+            <property name="flags"><util:constant static-field="com.temenos.interaction.core.hypermedia.Transition.FOR_EACH_EMBEDDED"/></property>
+            <property name="method" value="« transition.event.httpMethod»" />
+            <property name="target">«produceTransitionTarget(fromState, transition)»</property>
+            
+            «IF transition.spec != null»
+            <property name="uriParameters">«addUriMapValues(transition.spec.uriLinks)»</property>
+            <property name="evaluation">
+                «produceEvaluation(rim, fromState, transition.spec.eval)»
+            </property>
+            «ENDIF»
+            «IF transition.spec == null»
+            <property name="uriParameters"><util:map></util:map></property>
+            «ENDIF»
+            <property name="label" value="«RIMDslGenerator::getTransitionLabel(transition)»" />
+            <property name="linkId" value="«RIMDslGenerator::getTransitionLinkId(transition)»" />            
+        </bean>
+    '''
+	
 		
 	def produceTransitionsAuto(ResourceInteractionModel rim, State fromState, TransitionAuto transition) '''
 		<bean class="com.temenos.interaction.springdsl.TransitionFactoryBean">

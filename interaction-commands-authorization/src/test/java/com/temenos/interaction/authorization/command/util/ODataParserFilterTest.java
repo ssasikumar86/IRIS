@@ -30,124 +30,144 @@ package com.temenos.interaction.authorization.command.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.temenos.interaction.authorization.command.data.RowFilter;
+
 public class ODataParserFilterTest {
 
-	@Before
-	public void setUp() throws Exception {
-	}
+    @Before
+    public void setUp() throws Exception {
+    }
 
-	@After
-	public void tearDown() {
-	}
+    @After
+    public void tearDown() {
+    }
 
-	/**
-	 * Test valid filters work
-	 */
-	@Test
-	public void testSimpleFilter() {
-		testValid("a eq b");
+    /**
+     * Test valid filters work
+     */
+    @Test
+    public void testSimpleFilter() {
+        testValid("a eq b");
+        testValid("a ne b");
+        testValid("a lt b");
+        testValid("a gt b");
+        testValid("a le b");
+        testValid("a ge b");
+    }
 
-		// Add more conditions as they are implemented
-		// testValidFilter("a ne b");
-		// ...
-	}
+    /**
+     * Test gel Sql symbol
+     */
+    @Test
+    public void testGetSqlSymbolFilter() {
+        List<RowFilter> filter = null;
+        try {
+            filter = ODataParser.parseFilter("a eq b");
+        } catch (Exception e) {
+            fail();
+        }     
+        assertEquals("=", filter.get(0).getRelation().getSqlSymbol());
+    }
 
-	/**
-	 * Test empty filters.
-	 */
-	@Test
-	public void testEmptyFilter() {
-		testValid("");
-	}
+    /**
+     * Test empty filters.
+     */
+    @Test
+    public void testEmptyFilter() {
+        testValid("");
+    }
 
-	/*
-	 * Test filter containing multiple terms
-	 */
-	@Test
-	public void testMultipleFilter() {
-		testValid("a eq b and bb eq cc");
-	}
+    /*
+     * Test filter containing multiple terms
+     */
+    @Test
+    public void testMultipleFilter() {
+        testValid("a eq b and bb eq cc");
+    }
 
-	/*
-	 * Test filter containing quoted space elements.
-	 */
-	@Test
-	public void testQuotesSpaceFilter() {
-		testValid("'a b' eq 'b c'");
-	}
+    /*
+     * Test filter containing quoted space elements.
+     */
+    @Test
+    public void testQuotesSpaceFilter() {
+        testValid("'a b' eq 'b c'");
+    }
 
-	/*
-	 * Test filter containing quoted dot elements.
-	 */
-	@Test
-	public void testQuotesDotFilter() {
-		testValid("'a.b' eq 'b.c'");
-	}
-	
-	/**
-	 * Test invalid filters throw.
-	 */
-	@Test
-	public void testBadFilter() {
-		// Bad condition
-		testInvalid("a xx b");
+    /*
+     * Test filter containing quoted dot elements.
+     */
+    @Test
+    public void testQuotesDotFilter() {
+        testValid("'a.b' eq 'b.c'");
+    }
 
-		// Can't parse a null string.
-		testInvalid(null);
+    /**
+     * Test invalid filters throw.
+     */
+    @Test
+    public void testBadFilter() {
+        // Bad condition
+        testInvalid("a xx b");
 
-		// Wrong number of element
-		testInvalid("a");
-		testInvalid("a b");
-		testInvalid("a b c");
-	}
+        // Can't parse a null string.
+        testInvalid(null);
 
-	/**
-	 * Test null intermediate filter.
-	 */
-	@Test
-	public void testNullFilter() {
+        // Wrong number of element
+        testInvalid("a");
+        testInvalid("a b");
+        testInvalid("a b c");
+    }
 
-		String actual = null;
-		boolean threw = false;
-		try {
-			actual = ODataParser.toFilter(null);
-		} catch (Exception e) {
-			threw = true;
-		}
+    /**
+     * Test null intermediate filter.
+     */
+    @Test
+    public void testNullFilter() {
 
-		assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
-	}
-		
-	// Test round trip for a valid filter
-	private void testValid(String expected) {
+        String actual = null;
+        boolean threw = false;
+        try {
+            actual = ODataParser.toFilter(null);
+        } catch (Exception e) {
+            threw = true;
+        }
 
-		String actual = null;
-		boolean threw = false;
-		try {
-			actual = ODataParser.toFilter(ODataParser.parseFilter(expected));
-		} catch (Exception e) {
-			threw = true;
-		}
+        assertTrue("Didn't throw. Expected \"" + null + "\"Actual is \"" + actual + "\"", threw);
+    }
 
-		assertFalse(threw);
-		assertEquals(expected, actual);
-	}
+    // Test round trip for a valid filter
+    private void testValid(String expected) {
 
-	// Test invalid filter throws
-	private void testInvalid(String expected) {
-		String actual = null;
-		boolean threw = false;
-		try {
-			actual = ODataParser.toFilter(ODataParser.parseFilter(expected));
-		} catch (Exception e) {
-			threw = true;
-		}
-		assertTrue("Didn't throw. Expected \"" + expected + "\"Actual is \"" + actual + "\"", threw);
-	}
+        String actual = null;
+        boolean threw = false;
+        try {
+            actual = ODataParser.toFilter(ODataParser.parseFilter(expected));
+        } catch (Exception e) {
+            threw = true;
+        }
+
+        assertFalse(threw);
+        assertEquals(expected, actual);
+    }
+
+    // Test invalid filter throws
+    private void testInvalid(String expected) {
+        String actual = null;
+        boolean threw = false;
+        try {
+            actual = ODataParser.toFilter(ODataParser.parseFilter(expected));
+        } catch (Exception e) {
+            threw = true;
+        }
+        assertTrue("Didn't throw. Expected \"" + expected + "\"Actual is \"" + actual + "\"", threw);
+    }
 
 }

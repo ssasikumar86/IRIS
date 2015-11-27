@@ -32,8 +32,7 @@
     <author>
       <name />
     </author>
-    <link rel="edit" title="Supplier" href="Suppliers(10)" />
-    <link rel="http://schemas.microsoft.com/ado/2007/08/dataservices/related/Products" type="application/atom+xml;type=feed" title="Products" href="Suppliers(10)/Products" />
+    <link rel="self" title="supplier" href="Suppliers(10)" />
     <category term="NorthwindModel.Supplier" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" />
     <content type="application/xml">
       <m:properties>
@@ -46,7 +45,7 @@
         <d:Region m:null="true" />
         <d:PostalCode>5442</d:PostalCode>
         <d:Country>Brazil</d:Country>
-        <d:Phone>(11) 555 4640</d:Phone>
+        <d:Phone>+11 555 4640</d:Phone>
         <d:Fax m:null="true" />
         <d:HomePage m:null="true" />
       </m:properties>

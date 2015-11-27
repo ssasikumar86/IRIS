@@ -78,7 +78,7 @@ public class GeneratorSpringPRDTest {
 			+ "	command UpdateEntity" + LINE_SEP +
 			"initial resource A {" + LINE_SEP + "	type: collection" + LINE_SEP + "	entity: ENTITY" + LINE_SEP
 			+ "	view: GetEntity" + LINE_SEP
-			+ "GET *-> locator findsource(\"{reference}\"){" + LINE_SEP + "parameters [ id = \"{id}\" ]" + LINE_SEP + "title: \"Who\"" + LINE_SEP + "}"
+			+ "GET *-> locator findsource(\"{reference}\"){" + LINE_SEP + "parameters [ id = \"{id}\" ]" + LINE_SEP + "title: \"Who & Why\"" + LINE_SEP + "}"
 			+ LINE_SEP + "}" + LINE_SEP
 			+ "resource B {" + "	type: item" + LINE_SEP + "	entity: ENTITY" + LINE_SEP + "	actions [ UpdateEntity ]"
 			+ LINE_SEP + "}" + LINE_SEP + "}" + LINE_SEP + "";	
@@ -986,6 +986,7 @@ public class GeneratorSpringPRDTest {
 		assertTrue(transitionFindSource.contains("<constructor-arg name=\"resourceLocatorName\" value=\"findsource\" />"));
 		assertTrue(transitionFindSource.contains("<constructor-arg name=\"resourceLocatorArgs\">"));
 		assertTrue(transitionFindSource.contains("<value type=\"java.lang.String[]\">{reference}</value>"));		
+		assertTrue(transitionFindSource.contains("<property name=\"label\" value=\"Who &amp; Why\" />"));		
 		assertTrue(transitionFindSource.contains("</constructor-arg>"));
 		assertTrue(transitionFindSource.contains("</bean>"));		
 	}	

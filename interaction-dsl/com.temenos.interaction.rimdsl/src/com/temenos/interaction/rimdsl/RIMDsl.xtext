@@ -127,7 +127,7 @@ MethodRef:
 
 // Order of transitions should be non deterministic
 TransitionRef:
-    Transition | TransitionForEach | TransitionAuto | TransitionRedirect | TransitionEmbedded
+    Transition | TransitionForEach | TransitionAuto | TransitionRedirect | TransitionEmbedded | TransitionEmbeddedForEach
 ;
 
 // |Locator=ResourceLocator
@@ -143,6 +143,11 @@ Transition:
 // create foreach transitions
 TransitionForEach:
     (event=[Event] | 'LINK') '*->' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
+;
+
+// create foreach embedded transitions
+TransitionEmbeddedForEach:
+    (event=[Event] | 'LINK') '*+>' (state=[State|QualifiedName]|locator=ResourceLocator|name=DQ_STRING) (spec=TransitionSpec)?
 ;
 
 // create AUTO transitions

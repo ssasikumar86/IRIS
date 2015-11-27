@@ -61,7 +61,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 		for (Transition t : config.getTransitions()) {
 			String method = t.getCommand().getMethod();
 			if ((t.getCommand().getFlags() & Transition.AUTO) == Transition.AUTO) {
-				method = "GET";
+				method = t.getCommand().getMethod();
 			}
 	    	Event event = new Event("", method);
 			// determine action

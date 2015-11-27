@@ -675,7 +675,7 @@ public class TestHTTPHypermediaRIM {
 	private UriInfo mockEmptyUriInfo() {
 		UriInfo uriInfo = mock(UriInfo.class);
 		when(uriInfo.getPathParameters(true)).thenReturn(mock(MultivaluedMap.class));
-		when(uriInfo.getQueryParameters(true)).thenReturn(mock(MultivaluedMap.class));
+		when(uriInfo.getQueryParameters(false)).thenReturn(mock(MultivaluedMap.class));
 		return uriInfo;
 	}
 

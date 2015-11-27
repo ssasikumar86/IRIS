@@ -57,6 +57,11 @@ public class Transition {
 	 * in a 303 Redirect HTTP status at runtime.
 	 */
 	public static final int REDIRECT = 16;
+	
+    /**
+     * Add a sub resource to every item in collection
+     */	
+	public static final int FOR_EACH_EMBEDDED = 32;
 
 	private ResourceState source, target;
 	private ResourceLocator locator;

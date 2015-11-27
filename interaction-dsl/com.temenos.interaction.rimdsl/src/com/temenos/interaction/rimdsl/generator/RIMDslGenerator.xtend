@@ -27,6 +27,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.naming.IQualifiedNameProvider
+import org.apache.commons.lang.StringEscapeUtils
 
 class RIMDslGenerator implements IGenerator {
 	
@@ -437,10 +438,16 @@ class RIMDslGenerator implements IGenerator {
 		} else {
 			return true;			
 		}
-	}	
-
+	}
+	
+	def private static escapeXml(String input) {
+	    return  StringEscapeUtils.escapeXml(input)
+	}
+	
     def static getTransitionLabel(TransitionRef transition) {
-    	return if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }
+        val unescapedLabel = if (transition.spec != null && transition.spec.title != null) { transition.spec.title.name } else { if (transition.state != null) { transition.state.name } else { transition.name } }
+        
+    	return escapeXml(unescapedLabel)
     }
     
     def static getTransitionLinkId(TransitionRef transition) {

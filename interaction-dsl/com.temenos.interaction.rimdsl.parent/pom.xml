@@ -5,7 +5,7 @@
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>com.temenos.interaction.rimdsl.parent</artifactId>
 	<!-- You should change this and the MANIFEST.MF to your versioning scheme -->
-	<version>0.7.1</version>
+	<version>0.7.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>com.temenos.interaction.rimdsl.RimDsl - Parent</name>
 
@@ -354,6 +354,11 @@
 				<artifactId>commons-cli</artifactId>
 				<version>1.1</version>
 			</dependency>
+			<dependency>
+				<groupId>commons-lang</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>2.6</version>
+			</dependency>					
 			<dependency>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>org.eclipse.xtend.lib</artifactId>

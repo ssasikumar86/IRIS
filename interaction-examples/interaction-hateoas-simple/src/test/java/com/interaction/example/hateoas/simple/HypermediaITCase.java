@@ -155,6 +155,16 @@ public class HypermediaITCase extends JerseyTest {
 		 * subresources here.
 		 */
 		assertTrue(subresources.size() > 0);
+		boolean beveragesBody = false;
+		boolean condimentsBody = false;
+    	boolean confectionsBody = false;
+    	boolean dairyProductsBody = false;
+    	boolean grainsCerealsBody = false;
+    	boolean meatPoultryBody = false;
+    	boolean produceBody = false;
+    	boolean seafoodBody = false;
+    	boolean importantBody = false;
+		
 		for (Map.Entry<String, ReadableRepresentation> entry : subresources) {
 			ReadableRepresentation item = entry.getValue();
 			List<Link> itemLinks = item.getLinks();
@@ -172,7 +182,47 @@ public class HypermediaITCase extends JerseyTest {
 					fail("unexpected link [" + link.getName() + "]");
 				}
 			}
+			
+			if(entryBodyMatches(entry.getValue(), "Beverages"))
+			    beveragesBody = true;
+			if(entryBodyMatches(entry.getValue(), "Condiments"))
+			    condimentsBody = true;
+			
+			if(entryBodyMatches(entry.getValue(), "Confections"))
+			    confectionsBody = true;
+			
+			if(entryBodyMatches(entry.getValue(), "Dairy Products"))
+			    dairyProductsBody = true;
+			
+			if(entryBodyMatches(entry.getValue(), "Grains/Cereals"))
+			    grainsCerealsBody = true;
+			
+			if(entryBodyMatches(entry.getValue(), "Meat/Poultry"))
+			    meatPoultryBody =  true;
+			
+			if(entryBodyMatches(entry.getValue(), "Produce"))
+			    produceBody = true;
+			
+			if(entryBodyMatches(entry.getValue(), "Seafood"))
+			    seafoodBody = true;
+			
+			if(entryBodyMatches(entry.getValue(), "IMPORTANT"))
+			    importantBody = true;
 		}
+				
+        assertTrue(beveragesBody);
+        assertTrue(condimentsBody);
+        assertTrue(confectionsBody);
+        assertTrue(dairyProductsBody);
+        assertTrue(grainsCerealsBody);
+        assertTrue(meatPoultryBody);
+        assertTrue(produceBody);
+        assertTrue(seafoodBody);
+        assertTrue(importantBody);
+	}
+	
+	private boolean entryBodyMatches(ReadableRepresentation representation, String valueToMatch) {
+        return valueToMatch.equals(representation.getValue("body"));
 	}
 
 	@Test

@@ -29,21 +29,21 @@
 
   <!-- Log debug information about links -->
   <logger name="com.temenos.interaction.core.hypermedia">
-    <level value="DEBUG" />
+    <level value="WARN" />
   </logger>
   <!-- Log debug information about resource interactions -->
   <logger name="com.temenos.interaction.core.rim">
-    <level value="INFO" />
+    <level value="WARN" />
   </logger>
 
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">
-    <level value="DEBUG" />
+    <level value="WARN" />
     <appender-ref ref="STDOUT"/>
   </logger>
   <!-- Log all requests -->
   <logger name="org.apache.wink.server.internal.log.Requests">
-    <level value="DEBUG" />
+    <level value="WARN" />
     <appender-ref ref="STDOUT"/>
   </logger>
 
@@ -54,7 +54,7 @@
 
   <!-- Log all SQL DML statements as they are executed -->
   <logger name="org.hibernate.SQL">
-    <level value="INFO" />
+    <level value="WARN" />
     <appender-ref ref="STDOUT"/>
   </logger>  
   

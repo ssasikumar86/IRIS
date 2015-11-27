@@ -44,6 +44,19 @@ public class TestTransitionCommandSpec {
 		assertTrue(cs.isForEach());
 	}
 
+    @Test
+    public void testForEachEmbedded() {
+        TransitionCommandSpec cs = new TransitionCommandSpec("GET", Transition.FOR_EACH_EMBEDDED);
+        assertTrue(cs.isEmbeddedForEach());
+    }
+    
+    @Test
+    public void testRedirect() {
+        TransitionCommandSpec cs = new TransitionCommandSpec("GET", Transition.REDIRECT);
+        assertTrue(cs.isRedirectTransition());
+    }
+    
+	
 	@Test
 	public void testAutoForEach() {
 		TransitionCommandSpec cs = new TransitionCommandSpec("GET", Transition.AUTO | Transition.FOR_EACH);

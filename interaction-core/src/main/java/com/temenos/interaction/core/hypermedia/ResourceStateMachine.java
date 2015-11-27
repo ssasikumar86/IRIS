@@ -21,6 +21,7 @@ package com.temenos.interaction.core.hypermedia;
  * #L%
  */
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,6 +42,8 @@ import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriBuilderException;
 
+import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +53,10 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.NewCommandController;
+import com.temenos.interaction.core.entity.Entity;
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.EntityProperty;
+import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
@@ -159,9 +166,9 @@ public class ResourceStateMachine {
 			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
 			for (Action action : actions) {
 				assert (action != null && event != null);
-				if (action.getMethod() == null || action.getMethod().equals(event.getMethod())) {
+				//if (action.getMethod() == null || action.getMethod().equals(event.getMethod())) {
 					workflow.addCommand(getCommandController().fetchCommand(action.getName()));
-				}
+				//}
 			}
 			return workflow;
 		}
@@ -293,6 +300,10 @@ public class ResourceStateMachine {
 			
 			if(tmpTransition.isType(Transition.FOR_EACH)) {
 				register(tmpTransition.getTarget(), tmpTransition.getCommand().getMethod());
+			}
+			
+			if(tmpTransition.isType(Transition.FOR_EACH_EMBEDDED)) {
+			    register(tmpTransition.getTarget(), tmpTransition.getCommand().getMethod());
 			}
 		}
 	}
@@ -841,8 +852,8 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHandler, InteractionContext ctx,
-			RESTResource resourceEntity) {
-		return injectLinks(rimHandler, ctx, resourceEntity, null);
+			RESTResource resourceEntity, HttpHeaders headers, Metadata metadata) {
+		return injectLinks(rimHandler, ctx, resourceEntity, null, headers, metadata);
 	}
 
 	/**
@@ -862,7 +873,7 @@ public class ResourceStateMachine {
 	 * @return
 	 */
 	public Collection<Link> injectLinks(HTTPHypermediaRIM rimHander, InteractionContext ctx,
-			RESTResource resourceEntity, Transition selfTransition) {
+			RESTResource resourceEntity, Transition selfTransition, HttpHeaders headers, Metadata metadata) {
 		// Add path and query parameters to the list of resource properties
 		MultivaluedMap<String, String> resourceProperties = new MultivaluedMapImpl<String>();
 		resourceProperties.putAll(ctx.getPathParameters());
@@ -915,7 +926,7 @@ public class ResourceStateMachine {
 			/*
 			 * build link and add to list of links
 			 */
-			if (cs.isForEach()) {
+			if (cs.isForEach() || cs.isEmbeddedForEach()) {
 				if (collectionResource != null) {
 					for (EntityResource<?> er : collectionResource.getEntities()) {
 						Collection<Link> eLinks = er.getLinks();
@@ -935,6 +946,39 @@ public class ResourceStateMachine {
 							}
 						}
 						er.setLinks(eLinks);
+			
+						if(cs.isEmbeddedForEach()) {
+                            // Embedded resource
+				            MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
+				            newPathParameters.putAll(ctx.getPathParameters());
+				            
+				            EntityMetadata entityMetadata = metadata.getEntityMetadata(collectionResource.getEntityName());
+				            List<String> ids = new ArrayList<String>();
+
+				            Object tmpObj = er.getEntity();
+				            
+				            if(tmpObj instanceof Entity) {
+				                EntityProperty prop = ((Entity)tmpObj).getProperties().getProperty(ids.get(0));
+				                ids.add(prop.getValue().toString());
+				            } else if(tmpObj instanceof OEntity) {
+				                OEntityKey entityKey = ((OEntity)tmpObj).getEntityKey();
+				                ids.add(entityKey.toKeyStringWithoutParentheses().replaceAll("'", ""));
+				            } else {				            
+    				            try {				                    				                
+    				                String fieldName = entityMetadata.getIdFields().get(0);
+    				                String methodName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                                    Method method = tmpObj.getClass().getMethod(methodName);
+                                    ids.add(method.invoke(tmpObj).toString());
+                                } catch (Exception e) {
+                                    logger.warn( "Failed to add record id while trying to embed current collection resource", e);
+                                }
+				            }
+				            
+				            newPathParameters.put("id", ids);				            
+				            
+						    InteractionContext tmpCtx = new InteractionContext(ctx, headers, newPathParameters, ctx.getQueryParameters(), transition.getTarget());
+                            embedResources(rimHander, headers, tmpCtx, er);
+						}
 					}
 				}
 			} else {
@@ -991,9 +1035,14 @@ public class ResourceStateMachine {
 						 * ourselves we only want to embed the 'EMBEDDED'
 						 * transitions
 						 */
-						if (t.getSource() != t.getTarget()
-								&& (t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
-							configBuilder.transition(t);
+						if (t.getSource() != t.getTarget()) {
+							if((t.getCommand().getFlags() & Transition.EMBEDDED) == Transition.EMBEDDED) {
+							    configBuilder.transition(t);
+							}
+							
+                            if((t.getCommand().getFlags() & Transition.FOR_EACH_EMBEDDED) == Transition.FOR_EACH_EMBEDDED) {
+                                configBuilder.transition(t);
+                            }							
 						}
 					}
 				}

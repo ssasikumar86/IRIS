@@ -47,19 +47,14 @@ class ColumnTypesMap {
 	private static String DEFAULT_PRIMARY_KEY = "RECID";
 
 	// Somewhere to cache mapping information.
-	Map<String, Integer> typesMap;
+	private Map<String, Integer> typesMap;
 
 	// Somewhere to store primary key.
-	String primaryKeyName;
-
-	// A producer that can be used to query the table.
-	JdbcProducer producer;
+	private String primaryKeyName;
 
 	private final static Logger logger = LoggerFactory.getLogger(ColumnTypesMap.class);
 
 	public ColumnTypesMap(JdbcProducer producer, String tableName, boolean primaryKeyNameRequired) throws Exception {
-		this.producer = producer;
-
 		// This will open a new connection. Remember to close it latter.
 		DataSource ds = producer.getDataSource();
 		Connection conn = ds.getConnection();
@@ -93,7 +88,6 @@ class ColumnTypesMap {
 	 * USE THIS CONSTRUCTOR ONLY FOR UNIT TESTING.
 	 */
 	public ColumnTypesMap(Map<String, Integer> typesMap, String primaryKeyName) {
-		this.producer = null;
 		this.typesMap = typesMap;
 		this.primaryKeyName = primaryKeyName;
 	}

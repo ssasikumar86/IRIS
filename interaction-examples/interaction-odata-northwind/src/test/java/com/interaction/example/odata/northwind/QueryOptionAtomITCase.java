@@ -94,10 +94,17 @@ public class QueryOptionAtomITCase extends AbstractNorthwindRuntimeTest {
    testAtomResult(endpointUri, uri, inp);
   }
 
-  //@Test
+  @Test
   public void SystemQueryOptionFilterEqualTest() {
     String inp = "SystemQueryOptionFilterEqualTest";
     String uri = "Suppliers?$filter=Country eq 'Brazil'";
+   testAtomResult(endpointUri, uri, inp);
+  }
+
+  @Test
+  public void SystemQueryOptionFilterEqualPlusTest() {
+    String inp = "SystemQueryOptionFilterEqualTest";
+    String uri = "Suppliers?$filter=Phone eq '%2B11 555 4640'";
    testAtomResult(endpointUri, uri, inp);
   }
 

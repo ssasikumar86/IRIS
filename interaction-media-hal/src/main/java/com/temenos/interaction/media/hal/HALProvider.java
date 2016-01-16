@@ -110,6 +110,11 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		this.resourceStateProvider = resourceStateProvider;
 	}
 
+	public HALProvider(Metadata metadata, ResourceStateProvider resourceStateProvider, RepresentationFactory representationFactory) {
+		this(metadata, representationFactory);
+		this.resourceStateProvider = resourceStateProvider;
+	}			
+
 	@Deprecated
 	public HALProvider(Metadata metadata, ResourceStateMachine rsm) {
 		this(metadata);
@@ -117,8 +122,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 
 	public HALProvider(Metadata metadata) {
+		this(metadata, new StandardRepresentationFactory());
 		this.metadata = metadata;
 		assert(metadata != null);
+	}
+
+	public HALProvider(Metadata metadata, RepresentationFactory representationFactory) {
+		this.metadata = metadata;
+		this.representationFactory = representationFactory;
 	}
 	
 	@Override
@@ -571,21 +582,15 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 
-		// check media type can be handled, isReadable must have been called
-		assert(ResourceTypeHelper.isType(type, genericType, EntityResource.class) 
-				&& (mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE) 
-						|| mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)));
-
 		//Parse hal+json into an Entity object
 		Entity entity = buildEntityFromHal(entityStream, mediaType);
 		return new EntityResource<Entity>(entity);
 	}
-	
+
 	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) {
 		try {
 			// create the hal resource
 			String baseUri = uriInfo.getBaseUri().toASCIIString();
-			RepresentationFactory representationFactory = new StandardRepresentationFactory();
 			ReadableRepresentation halResource = representationFactory.readRepresentation(mediaType.toString(), new InputStreamReader(entityStream));
 			// assume the client providing the representation knows something we don't
 			String resourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;

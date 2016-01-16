@@ -150,6 +150,7 @@ public class TestHALProvider {
 		assertEquals(new Long(2), entity.getProperties().getProperty("age").getValue());
 	}
 	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testDeserialiseResolveEntityName() throws IOException, URISyntaxException {
@@ -187,6 +188,29 @@ public class TestHALProvider {
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
 		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
+		assertNotNull(er.getEntity());
+		Entity entity = er.getEntity();
+		assertEquals("Children", entity.getName());
+	}
+        
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testDeserialisePlainJSON() throws IOException, URISyntaxException {
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), "/children"));
+		HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm),
+										 new com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory().withReader(javax.ws.rs.core.MediaType.APPLICATION_JSON, com.theoryinpractise.halbuilder.json.JsonRepresentationReader.class)
+										 );
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		Request requestContext = mock(Request.class);
+		when(requestContext.getMethod()).thenReturn("GET");
+		hp.setRequestContext(requestContext);
+
+		String strEntityStream = "{ \"_links\": { \"self\": { \"href\": \"http://www.temenos.com/rest.svc/children\" } }, \"name\": \"noah\", \"age\": 2 }";
+		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
+		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());

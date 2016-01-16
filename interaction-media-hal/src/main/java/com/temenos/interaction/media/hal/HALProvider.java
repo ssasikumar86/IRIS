@@ -89,11 +89,13 @@ import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
 import com.theoryinpractise.halbuilder.api.RepresentationException;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
+import com.theoryinpractise.halbuilder.json.JsonRepresentationReader;
+import com.theoryinpractise.halbuilder.json.JsonRepresentationWriter;
 import com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory;
 
 @Provider
-@Consumes({com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON, MediaType.APPLICATION_JSON})
-@Produces({com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON, MediaType.APPLICATION_JSON})
+@Consumes({HALMediaType.APPLICATION_HAL_XML, HALMediaType.APPLICATION_HAL_JSON, MediaType.APPLICATION_JSON})
+@Produces({HALMediaType.APPLICATION_HAL_XML, HALMediaType.APPLICATION_HAL_JSON, MediaType.APPLICATION_JSON})
 public class HALProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(HALProvider.class);
 
@@ -103,7 +105,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	private Request requestContext;
 	private Metadata metadata = null;
 	private ResourceStateProvider resourceStateProvider;
-    private RepresentationFactory representationFactory = new StandardRepresentationFactory();
+    private RepresentationFactory representationFactory;
 
 	public HALProvider(Metadata metadata, ResourceStateProvider resourceStateProvider) {
 		this(metadata);
@@ -122,7 +124,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 
 	public HALProvider(Metadata metadata) {
-		this(metadata, new StandardRepresentationFactory());
+		this(metadata, irisRepresentationFactory());
 		this.metadata = metadata;
 		assert(metadata != null);
 	}
@@ -131,12 +133,18 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		this.metadata = metadata;
 		this.representationFactory = representationFactory;
 	}
+
+	private static RepresentationFactory irisRepresentationFactory() {
+		return new StandardRepresentationFactory().
+			withReader(MediaType.APPLICATION_JSON, JsonRepresentationReader.class).
+			withRenderer(MediaType.APPLICATION_JSON, JsonRepresentationWriter.class);
+	}
 	
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		if (mediaType.equals(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)
-				|| mediaType.equals(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)
+		if (mediaType.equals(HALMediaType.APPLICATION_HAL_XML_TYPE)
+				|| mediaType.equals(HALMediaType.APPLICATION_HAL_JSON_TYPE)
 				|| mediaType.equals(MediaType.APPLICATION_JSON_TYPE)) {
 			return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
 					|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
@@ -232,7 +240,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
-			WebApplicationException{
+			WebApplicationException {
 		logger.debug("Writing " + mediaType);
 		Representation halResource;
 		try {
@@ -242,20 +250,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			logger.error("Invalid link syntax", e);
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
-		String representation = null;
-		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
-			representation = halResource.toString(RepresentationFactory.HAL_XML);
-		} else if (halResource != null && mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
-			representation = halResource.toString(RepresentationFactory.HAL_JSON);
-		} else if (halResource != null && mediaType.isCompatible(MediaType.APPLICATION_JSON_TYPE)) {
-			representation = halResource.toString(RepresentationFactory.HAL_JSON);
-		} else {
-			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-		}
+		String baseMediaType = HALMediaType.baseMediaType( mediaType );
+		String representation = halResource.toString(baseMediaType);
+		String charset = HALMediaType.charset( mediaType, "UTF-8" );
 
 		logger.debug("Produced [" + representation + "]");
-		// TODO handle requested encoding?
-		entityStream.write(representation.getBytes("UTF-8"));
+
+		entityStream.write(representation.getBytes(charset));
 	}
 
 	private Link findLinkByTransition(Collection<Link> links, Transition transition) {

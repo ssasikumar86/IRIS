@@ -394,21 +394,50 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 
 	/** populate a Map from an Entity
-	 *  TODO implement nested structures and collections
 	 */
-	protected void buildFromEntity(Map<String, Object> map, Entity entity) {
-
-		EntityProperties entityProperties = entity.getProperties();
+	protected void buildFromEntity(Map<String, Object> map, Entity entity, String entityName) {
+		logger.debug("Serialising entity " + entityName);
+		EntityMetadata entityMetadata = metadata.getEntityMetadata(entityName);
+		if (entityMetadata == null)
+			throw new IllegalStateException("Entity metadata could not be found [" + entityName + "]");
+ 
+		buildFromEntityProperties(entityMetadata, "", map, entity.getProperties());
+	}
+		
+	protected void buildFromEntityProperties(EntityMetadata entityMetadata, String prefix, Map<String, Object> map, EntityProperties entityProperties) {
 		Map<String, EntityProperty> properties = entityProperties.getProperties();
 				
-		for (Map.Entry<String, EntityProperty> property : properties.entrySet()) 
-		{
+		for (Map.Entry<String, EntityProperty> property : properties.entrySet()) {
 			String propertyName = property.getKey(); 
-			EntityProperty propertyValue = (EntityProperty) property.getValue();
-	   		map.put(propertyName, propertyValue.getValue());	
+			logger.debug("property key " + propertyName + " name " + property.getValue().getName());
+      String qualifiedName = lengthenPrefix(prefix, propertyName);
+      
+      if (entityMetadata.getPropertyVocabulary(qualifiedName) != null )
+        map.put( propertyName, entityPropertyValueToPOJO(entityMetadata, qualifiedName, property.getValue().getValue()));
 		}
 	}
-	
+
+	protected Object entityPropertyValueToPOJO(EntityMetadata entityMetadata, String prefix, Object propertyValue) {
+		logger.debug("property value: " + propertyValue);
+		if ( propertyValue == null ) return "";
+		logger.debug("property value has type " + propertyValue.getClass());
+		if ( propertyValue instanceof EntityProperties ) {
+			Map<String,Object> newMap = new HashMap<String,Object>();
+			buildFromEntityProperties(entityMetadata, prefix, newMap, (EntityProperties)propertyValue);
+			return newMap;
+		} else if ( propertyValue instanceof Collection ) {
+			List newList = new ArrayList<EntityProperties>();
+			for (Object element : (Collection<?>) propertyValue ) {
+				newList.add(entityPropertyValueToPOJO(entityMetadata, prefix, element));
+			}
+			return newList;
+		} else if ( propertyValue instanceof EntityProperty ) {
+			return ((EntityProperty)propertyValue).getValue();
+		} else {
+			return propertyValue;
+		}
+	}
+
 	/** populate a Map from a java bean
 	 *  TODO implement nested structures and collections
 	 */
@@ -458,10 +487,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				halResource.withProperty(key, propertyMap.get(key));
 			}
 		} else if (ResourceTypeHelper.isType(type, genericType, EntityResource.class, Entity.class)) {
-				@SuppressWarnings("unchecked")
+			logger.debug("transforming EntityResource<Entity>");
 				EntityResource<Entity> entityResource = (EntityResource<Entity>) resource;
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
-				buildFromEntity(propertyMap, entityResource.getEntity());
+				buildFromEntity(propertyMap, entityResource.getEntity(), entityResource.getEntityName());
 				// add properties to HAL resource
 				for (String key : propertyMap.keySet()) {
 					halResource.withProperty(key, propertyMap.get(key));

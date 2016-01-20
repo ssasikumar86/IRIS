@@ -47,7 +47,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.media.hal.MediaType;
+import com.temenos.interaction.media.hal.HALMediaType;
 import com.theoryinpractise.halbuilder.api.Link;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
@@ -77,11 +77,11 @@ public class HypermediaITCase extends JerseyTest {
 
 	@Test
 	public void testGetEntryPointLinks() {
-		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(2, links.size());
@@ -100,16 +100,16 @@ public class HypermediaITCase extends JerseyTest {
 	public void testFollowRelsToProfileImage() throws IOException, UniformInterfaceException, URISyntaxException {
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
 
-		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
-		ReadableRepresentation homeResource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation homeResource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 		Link profileLink = homeResource.getLinkByRel("http://relations.rimdsl.org/profile");
 		assertNotNull(profileLink);
 		response.close();
 
-		ClientResponse profileResponse = webResource.uri(new URI(profileLink.getHref())).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse profileResponse = webResource.uri(new URI(profileLink.getHref())).accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(profileResponse.getStatus()).getFamily());
-		ReadableRepresentation profileResource = representationFactory.readRepresentation(new InputStreamReader(profileResponse.getEntityInputStream()));
+		ReadableRepresentation profileResource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(profileResponse.getEntityInputStream()));
 		assertEquals("someone@somewhere.com", profileResource.getProperties().get("email"));
 		Link profileImageLink = profileResource.getLinkByRel("http://relations.rimdsl.org/image");
 		assertNotNull(profileImageLink);

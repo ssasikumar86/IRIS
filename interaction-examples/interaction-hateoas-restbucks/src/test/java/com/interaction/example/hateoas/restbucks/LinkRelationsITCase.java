@@ -39,7 +39,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.media.hal.MediaType;
+import com.temenos.interaction.media.hal.HALMediaType;
 import com.theoryinpractise.halbuilder.api.Link;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
@@ -90,7 +90,7 @@ public class LinkRelationsITCase extends JerseyTest {
 		Link order = rootResource.getLinkByRel("http://relations.restbucks.com/order");
 		assertNotNull("'order' link relation", order);
 		Representation orderRequest = buildOrderRequest();
-		ReadableRepresentation orderResource = post(webResource.uri(new URI(order.getHref())), orderRequest.toString(MediaType.APPLICATION_HAL_JSON));
+		ReadableRepresentation orderResource = post(webResource.uri(new URI(order.getHref())), orderRequest.toString(HALMediaType.APPLICATION_HAL_JSON));
 	    
 		// make the payment
 		Link payment = orderResource.getLinkByRel("http://relations.restbucks.com/payment");
@@ -107,11 +107,11 @@ public class LinkRelationsITCase extends JerseyTest {
         ClientResponse response = null;
 		try {
 			response = resource
-					.accept(MediaType.APPLICATION_HAL_JSON)
+					.accept(HALMediaType.APPLICATION_HAL_JSON)
 					.get(ClientResponse.class);
 			assertEquals(Status.Family.SUCCESSFUL, response.getClientResponseStatus().getFamily());
 			reader = new InputStreamReader(response.getEntityInputStream());
-			representation = representationFactory.readRepresentation(reader);
+			representation = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(),reader);
 		} finally {
 			if (reader != null)
 				reader.close();
@@ -127,12 +127,12 @@ public class LinkRelationsITCase extends JerseyTest {
         ClientResponse response = null;
 		try {
 			response = resource
-					.accept(MediaType.APPLICATION_HAL_JSON)
-					.type(MediaType.APPLICATION_HAL_JSON)
+					.accept(HALMediaType.APPLICATION_HAL_JSON)
+					.type(HALMediaType.APPLICATION_HAL_JSON)
 					.post(ClientResponse.class, payload);
 			assertEquals(Status.Family.SUCCESSFUL, response.getClientResponseStatus().getFamily());
 			reader = new InputStreamReader(response.getEntityInputStream());
-			representation = representationFactory.readRepresentation(reader);
+			representation = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), reader);
 		} finally {
 			if (reader != null)
 				reader.close();

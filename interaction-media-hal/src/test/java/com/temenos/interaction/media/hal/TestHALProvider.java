@@ -43,6 +43,7 @@ import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
@@ -107,7 +108,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource href=\"/children\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -134,7 +135,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource href=\"/children\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -155,7 +156,7 @@ public class TestHALProvider {
 		String strEntityStream = "{ \"_links\": { \"self\": { \"href\": \"http://www.temenos.com/rest.svc/children\" } }, \"name\": \"noah\", \"age\": 2 }";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -179,7 +180,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource href=\"/children/123\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -203,7 +204,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource href=\"/children(123)/updated\"><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -225,7 +226,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -247,7 +248,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -272,7 +273,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -297,7 +298,7 @@ public class TestHALProvider {
 		String strEntityStream = "<resource><name>noah</name><age>2</age></resource>";
 		InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
 		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
-		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, entityStream);
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("Children", entity.getName());
@@ -317,11 +318,14 @@ public class TestHALProvider {
 	}
 	
 	@Test(expected = WebApplicationException.class)
-	public void testAttemptToSerialiseNonEntityResource() throws IOException {
+	public void testAttemptToSerialiseNonEntityResource() throws Exception {
 		EntityResource<?> mdr = mock(EntityResource.class);
 
 		HALProvider hp = new HALProvider(mock(Metadata.class));
-		hp.writeTo(mdr, MetaDataResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		hp.setUriInfo(mockUriInfo);
+		hp.writeTo(mdr, MetaDataResource.class, null, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 	
 	@Test
@@ -342,7 +346,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, OEntity.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
@@ -374,7 +378,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, CollectionResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, CollectionResource.class, OEntity.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><resource href=\"http://www.temenos.com/rest.svc/children/1\" rel=\"item\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/2\" rel=\"item\"><age>2</age><name>noah</name></resource><resource href=\"http://www.temenos.com/rest.svc/children/3\" rel=\"item\"><age>2</age><name>noah</name></resource></resource>";
 		String responseString = createFlatXML(bos);
@@ -427,9 +431,9 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(childEntityResource, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
+		hp.writeTo(childEntityResource, EntityResource.class, OEntity.class, null, HALMediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
 
-		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"/child/123\"},\"person\":{\"href\":\"/parent/333\",\"name\":\"parent\",\"title\":\"parent\"}},\"age\":\"2\",\"name\":\"noah\",\"_embedded\":{\"person\":{\"_links\":{\"self\":{\"href\":\"/parent/333\"}},\"age\":\"30\",\"name\":\"aaron\"}}}";
+		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"/child/123\"},\"person\":[{\"href\":\"/parent/333\",\"name\":\"parent\",\"title\":\"parent\"}]},\"age\":\"2\",\"name\":\"noah\",\"_embedded\":{\"person\":[{\"_links\":{\"self\":{\"href\":\"/parent/333\"}},\"age\":\"30\",\"name\":\"aaron\"}]}}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		responseString = responseString.replaceAll(System.getProperty("line.separator"), "");
 		assertEquals(expectedXML, responseString);
@@ -456,7 +460,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, Children.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, Children.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
@@ -475,7 +479,7 @@ public class TestHALProvider {
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
-		hp.writeTo(er, EntityResource.class, Object.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
+		hp.writeTo(er, EntityResource.class, Object.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, new ByteArrayOutputStream());
 	}
 
 	private String createFlatXML(ByteArrayOutputStream bos) throws Exception {
@@ -505,7 +509,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, null, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com\"></resource>";
 		String responseString = createFlatXML(bos);
@@ -523,7 +527,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, null, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, null, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"></resource>";
 		String responseString = createFlatXML(bos);
@@ -531,7 +535,7 @@ public class TestHALProvider {
 	}
 
 	@Test
-	public void testJSONMediaTypeWithCharset() throws Exception {
+	public void testJSONHALMediaTypeWithCharset() throws Exception {
 		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getEntity()).thenReturn(null);
 		
@@ -541,7 +545,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, null, null, javax.ws.rs.core.MediaType.valueOf("application/hal+json; charset=utf-8"), null, bos);
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.valueOf("application/hal+json; charset=utf-8"), null, bos);
 
 		String expectedXML = "{\"_links\":{\"self\":{\"href\":\"http://www.temenos.com/rest.svc/\"}}}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
@@ -550,7 +554,7 @@ public class TestHALProvider {
 	}
 
 	@Test
-	public void testXMLMediaTypeWithCharset() throws Exception {
+	public void testXMLHALMediaTypeWithCharset() throws Exception {
 		EntityResource<?> er = mock(EntityResource.class);
 		when(er.getEntity()).thenReturn(null);
 		
@@ -560,7 +564,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, null, null, javax.ws.rs.core.MediaType.valueOf("application/hal+xml; charset=utf-8"), null, bos);
+		hp.writeTo(er, EntityResource.class, null, null, MediaType.valueOf("application/hal+xml; charset=utf-8"), null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"></resource>";
 		String responseString = createFlatXML(bos);
@@ -590,7 +594,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, OEntity.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"/rest.svc/humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
@@ -629,7 +633,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, OEntity.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\"><link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/><name>noah</name><age>2</age></resource>";
 		String responseString = createFlatXML(bos);
@@ -668,7 +672,7 @@ public class TestHALProvider {
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		hp.setUriInfo(mockUriInfo);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		hp.writeTo(er, EntityResource.class, OEntity.class, null, MediaType.APPLICATION_HAL_XML_TYPE, null, bos);
+		hp.writeTo(er, EntityResource.class, OEntity.class, null, HALMediaType.APPLICATION_HAL_XML_TYPE, null, bos);
 
 		String expectedXML = "<resource href=\"http://www.temenos.com/rest.svc/\">"
 				+ "<link href=\"humans/phetheans\" rel=\"_family\" name=\"siblings\" title=\"siblings\"/><link href=\"humans/31\" rel=\"_person\" name=\"father\" title=\"father\"/><link href=\"humans/32\" rel=\"_person\" name=\"mother\" title=\"mother\"/>"

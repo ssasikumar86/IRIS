@@ -42,7 +42,7 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.media.hal.MediaType;
+import com.temenos.interaction.media.hal.HALMediaType;
 import com.theoryinpractise.halbuilder.api.Link;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
@@ -67,11 +67,11 @@ public class HypermediaITCase extends JerseyTest {
 
 	@Test
 	public void testGetEntryPointLinks() {
-		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(5, links.size());
@@ -94,11 +94,11 @@ public class HypermediaITCase extends JerseyTest {
 	
 	@Test
 	public void testCollectionLinks() {
-		ClientResponse response = webResource.path("/fundtransfers").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/fundtransfers").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -154,10 +154,10 @@ public class HypermediaITCase extends JerseyTest {
 		String resourceUri = "/fundtransfers/" + id;
 		String halRequest = buildHalResource(resourceUri, id).toString(RepresentationFactory.HAL_XML);
 
-		ClientResponse response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_XML).type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
+		ClientResponse response = webResource.path(resourceUri).accept(HALMediaType.APPLICATION_HAL_XML).type(HALMediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
         assertEquals(200, response.getStatus());
 
-		response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		response = webResource.path(resourceUri).accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 	}
 
@@ -171,10 +171,10 @@ public class HypermediaITCase extends JerseyTest {
 		String resourceUri = "/fundtransfers/" + id;
 		String halRequest = buildHalResource(resourceUri, id).toString(RepresentationFactory.HAL_JSON);
 
-		ClientResponse response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
+		ClientResponse response = webResource.path(resourceUri).accept(HALMediaType.APPLICATION_HAL_JSON).type(HALMediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
         assertEquals(200, response.getStatus());
 
-		response = webResource.path("/fundtransfers/" + id).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		response = webResource.path("/fundtransfers/" + id).accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 	}
 	
@@ -196,7 +196,7 @@ public class HypermediaITCase extends JerseyTest {
 		String halRequest = r.toString(RepresentationFactory.HAL_XML);
 		
 		// attempt to put to the notes collection, rather than an individual
-		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
+		ClientResponse response = webResource.path("/fundtransfers").type(HALMediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
         assertEquals(405, response.getStatus());
 
         assertEquals(3, response.getAllow().size());
@@ -215,7 +215,7 @@ public class HypermediaITCase extends JerseyTest {
 		String halRequest = r.toString(RepresentationFactory.HAL_XML);
 		
 		// attempt to put to the notes collection, rather than an individual
-		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
+		ClientResponse response = webResource.path("/fundtransfers").type(HALMediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
         assertEquals(400, response.getStatus());
 	}
 

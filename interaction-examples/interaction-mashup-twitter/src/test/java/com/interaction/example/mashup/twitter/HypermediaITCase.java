@@ -41,7 +41,7 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.media.hal.MediaType;
+import com.temenos.interaction.media.hal.HALMediaType;
 import com.temenos.interaction.example.mashup.twitter.OAuthRequestor;
 import com.temenos.interaction.example.mashup.twitter.Twitter4JConsumer;
 import com.theoryinpractise.halbuilder.api.Link;
@@ -74,11 +74,11 @@ public class HypermediaITCase extends JerseyTest {
 
 	@Test
 	public void testGetEntryPointLinks() {
-		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(2, links.size());
@@ -95,11 +95,11 @@ public class HypermediaITCase extends JerseyTest {
 	
 	@Test
 	public void testUsers() {
-		ClientResponse response = webResource.path("/users").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/users").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -138,11 +138,11 @@ public class HypermediaITCase extends JerseyTest {
  */
 //	@Test
 	public void testTweets() {
-		ClientResponse response = webResource.path("/tweets/aphethean").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/tweets/aphethean").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();

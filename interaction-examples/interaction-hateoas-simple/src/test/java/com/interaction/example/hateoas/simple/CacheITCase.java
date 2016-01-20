@@ -35,7 +35,7 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.media.hal.MediaType;
+import com.temenos.interaction.media.hal.HALMediaType;
 
 /**
  * This test checks that queries are returned from cache when appropriate
@@ -61,7 +61,7 @@ public class CacheITCase extends JerseyTest {
 	@Test
 	public void testNoteCollectionCaching() {
 		// The collection is defined not to be cacheable
-		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON)
+		ClientResponse response = webResource.path("/notes").accept(HALMediaType.APPLICATION_HAL_JSON)
 				.get(ClientResponse.class);
 		assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus())
 				.getFamily());
@@ -72,7 +72,7 @@ public class CacheITCase extends JerseyTest {
 	@Test
 	public void testNoteCaching() {
 		// individual notes are defined to have a max-age.
-		ClientResponse itemResponse = webResource.path("/notes/4").accept(MediaType.APPLICATION_HAL_JSON)
+		ClientResponse itemResponse = webResource.path("/notes/4").accept(HALMediaType.APPLICATION_HAL_JSON)
 				.get(ClientResponse.class);
 		assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(itemResponse.getStatus())
 				.getFamily());
@@ -82,7 +82,7 @@ public class CacheITCase extends JerseyTest {
 		
 		// re-requesting the same note should not hit the backend (which has a 2000ms delay baked in).
 		long start = System.currentTimeMillis();
-		ClientResponse repeatedResponse = webResource.path("/notes/4").accept(MediaType.APPLICATION_HAL_JSON)
+		ClientResponse repeatedResponse = webResource.path("/notes/4").accept(HALMediaType.APPLICATION_HAL_JSON)
 				.get(ClientResponse.class);
 		assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(repeatedResponse.getStatus())
 				.getFamily());
@@ -94,7 +94,7 @@ public class CacheITCase extends JerseyTest {
 	@Test
 	public void testProfile() {
 		// The profile is cacheable
-		ClientResponse response = webResource.path("/profile").accept(MediaType.APPLICATION_HAL_JSON)
+		ClientResponse response = webResource.path("/profile").accept(HALMediaType.APPLICATION_HAL_JSON)
 				.get(ClientResponse.class);
 		assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus())
 				.getFamily());

@@ -41,7 +41,7 @@ import org.junit.Test;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import com.temenos.interaction.media.hal.MediaType;
+import com.temenos.interaction.media.hal.HALMediaType;
 import com.theoryinpractise.halbuilder.api.Link;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
@@ -71,11 +71,11 @@ public class HypermediaITCase extends JerseyTest {
 
 	@Test
 	public void testGetEntryPointLinks() {
-		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		List<Link> links = resource.getLinks();
 		assertEquals(4, links.size());
@@ -96,11 +96,11 @@ public class HypermediaITCase extends JerseyTest {
 	
 	@Test
 	public void testGetEntryPointEmbeddedPreferences() {
-		ClientResponse response = webResource.path("/").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		// the embedded resources
 		Map<String, Collection<ReadableRepresentation>> subresources = resource.getResourceMap();
@@ -119,11 +119,11 @@ public class HypermediaITCase extends JerseyTest {
 	
 	@Test
 	public void testCollectionLinks() {
-		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/notes").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 
 		// the links from the collection
 		List<Link> links = resource.getLinks();
@@ -168,17 +168,17 @@ public class HypermediaITCase extends JerseyTest {
 	 */
 	@Test
 	public void testGET404() {
-		ClientResponse response = webResource.path("/notes/666").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/notes/666").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
 	}
 
 	@Test
 	public void testFollowDeleteItemLink() {
-		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/notes").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		Collection<Map.Entry<String, ReadableRepresentation>> subresources = resource.getResources();
@@ -204,7 +204,7 @@ public class HypermediaITCase extends JerseyTest {
 			// do not follow the Location redirect
 			client.setFollowRedirects(false);
 			// execute delete without custom link relation, will find the only DELETE transition from entity
-			ClientResponse deleteResponse = client.resource(deleteLink.getHref()).accept(MediaType.APPLICATION_HAL_JSON)
+			ClientResponse deleteResponse = client.resource(deleteLink.getHref()).accept(HALMediaType.APPLICATION_HAL_JSON)
 					.delete(ClientResponse.class);
 	        // 303 "See Other" instructs user agent to fetch another resource as specified by the 'Location' header
 	        assertEquals(303, deleteResponse.getStatus());
@@ -214,11 +214,11 @@ public class HypermediaITCase extends JerseyTest {
 
 	@Test
 	public void testFollowDeleteItemLinkRelation() {
-		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/notes").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		Collection<Map.Entry<String, ReadableRepresentation>> subresources = resource.getResources();
@@ -242,7 +242,7 @@ public class HypermediaITCase extends JerseyTest {
 			// execute delete with custom link relation (see rfc5988)
 			ClientResponse deleteResponse = Client.create().resource(deleteLink.getHref())
 					.header("Link", "<" + deleteLink.getHref() + ">; rel=\"" + deleteLink.getName() + "\"")
-					.accept(MediaType.APPLICATION_HAL_JSON)
+					.accept(HALMediaType.APPLICATION_HAL_JSON)
 					.delete(ClientResponse.class);
 	        // 205 "Reset Content" instructs user agent to reload the resource that contained this link
 	        assertEquals(205, deleteResponse.getStatus());
@@ -251,11 +251,11 @@ public class HypermediaITCase extends JerseyTest {
 	
 	@Test
 	public void testFollowDeleteLinkWithLinkRel() {
-		ClientResponse response = webResource.path("/notes").accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+		ClientResponse response = webResource.path("/notes").accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
         assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 
 		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation resource = representationFactory.readRepresentation(new InputStreamReader(response.getEntityInputStream()));
+		ReadableRepresentation resource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
 		
 		// the items in the collection
 		Collection<Map.Entry<String, ReadableRepresentation>> subresources = resource.getResources();
@@ -278,10 +278,10 @@ public class HypermediaITCase extends JerseyTest {
 			}
 			// follow GET item link
 			assertNotNull(getLink);
-			ClientResponse getResponse = Client.create().resource(getLink.getHref()).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+			ClientResponse getResponse = Client.create().resource(getLink.getHref()).accept(HALMediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
 	        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(getResponse.getStatus()).getFamily());
 			// the item
-			ReadableRepresentation itemResource = representationFactory.readRepresentation(new InputStreamReader(getResponse.getEntityInputStream()));
+			ReadableRepresentation itemResource = representationFactory.readRepresentation(HALMediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(getResponse.getEntityInputStream()));
 			List<Link> links = itemResource.getLinks();
 			assertNotNull(links);
 			/*
@@ -308,7 +308,7 @@ public class HypermediaITCase extends JerseyTest {
 			// execute delete with custom link relation (see rfc5988)
 			ClientResponse deleteResponse = client.resource(uri)
 					.header("Link", "<" + uri + ">; rel=\"" + deleteLink.getName() + "\"")
-					.accept(MediaType.APPLICATION_HAL_JSON)
+					.accept(HALMediaType.APPLICATION_HAL_JSON)
 					.delete(ClientResponse.class);
 	        // 303 "See Other" instructs user agent to fetch another resource as specified by the 'Location' header
 	        assertEquals(303, deleteResponse.getStatus());
@@ -339,7 +339,7 @@ public class HypermediaITCase extends JerseyTest {
 	public void putNoteToCollection() throws Exception {
 		String halRequest = "{}";
 		// attempt to put to the notes collection, rather than an individual
-		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
+		ClientResponse response = webResource.path("/notes").type(HALMediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
         assertEquals(405, response.getStatus());
 	}
 
@@ -350,7 +350,7 @@ public class HypermediaITCase extends JerseyTest {
 	public void putNoteBadRequest() throws Exception {
 		String halRequest = "{{";
 		// attempt to put to the notes collection, rather than an individual
-		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).post(ClientResponse.class, halRequest);
+		ClientResponse response = webResource.path("/notes").type(HALMediaType.APPLICATION_HAL_JSON).post(ClientResponse.class, halRequest);
         assertEquals(400, response.getStatus());
 	}
 

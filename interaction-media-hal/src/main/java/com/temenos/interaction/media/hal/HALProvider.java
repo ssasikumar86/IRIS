@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -611,10 +612,23 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
+			/* To detect if the stream is empty (a valid case since an input entity is
+			 * sometimes optional), wrap in a PushbackInputStream before passing on
+			 */
+			PushbackInputStream wrappedStream = new PushbackInputStream(entityStream);
+			int firstByte = wrappedStream.read();
+			if ( firstByte == -1 ) {
+					// No data provided
+					return null;
+			} else {
+					// There is something in the body, so we will parse it. It is required
+					// to be a valid JSON object. First replace the byte we borrowed.
+					wrappedStream.unread(firstByte);
 
-		//Parse hal+json into an Entity object
-		Entity entity = buildEntityFromHal(entityStream, mediaType);
-		return new EntityResource<Entity>(entity);
+					//Parse hal+json into an Entity object
+					Entity entity = buildEntityFromHal(wrappedStream, mediaType);
+					return new EntityResource<Entity>(entity);
+			}
 	}
 
 	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) {

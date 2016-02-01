@@ -40,6 +40,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.core.resource.MetaDataResource;
+import com.temenos.interaction.media.hal.HALMediaType;
 
 public class TestMetadataProvider {
 
@@ -56,7 +57,7 @@ public class TestMetadataProvider {
 		//Serialize metadata resource
 		MetaDataProvider p = new MetaDataProvider();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		p.writeTo(mr, MetaDataResource.class, Metadata.class, null, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
+		p.writeTo(mr, MetaDataResource.class, Metadata.class, null, HALMediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
 
 		String expected = "{  \"_links\" : {    \"self\" : { \"href\" : \"http://localhost:8080/example/api/$metadata\" }  },  \"modelName\" : \"Customers\",  \"entities\" : \"Customer\"}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
@@ -79,7 +80,7 @@ public class TestMetadataProvider {
 		//Serialize metadata resource
 		MetaDataProvider p = new MetaDataProvider();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
+		p.writeTo(ge.getEntity(), ge.getRawType(), ge.getType(), null, HALMediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
 
 		String expected = "{  \"_links\" : {    \"self\" : { \"href\" : \"http://localhost:8080/example/api/$metadata\" }  },  \"modelName\" : \"Customers\",  \"entities\" : \"Customer\"}";
 		String responseString = new String(bos.toByteArray(), "UTF-8");

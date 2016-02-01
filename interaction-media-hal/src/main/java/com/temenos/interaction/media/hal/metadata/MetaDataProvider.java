@@ -48,13 +48,14 @@ import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.resource.MetaDataResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
+import com.temenos.interaction.media.hal.HALMediaType;
 
 /**
  * JAX-RS Provider class for marshalling metadata resources.
  */
 @Provider
 @Consumes({MediaType.WILDCARD})
-@Produces({MediaType.APPLICATION_JSON, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON})
+@Produces({MediaType.APPLICATION_JSON, HALMediaType.APPLICATION_HAL_JSON})
 public class MetaDataProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(MetaDataProvider.class);
 
@@ -96,7 +97,7 @@ public class MetaDataProvider implements MessageBodyReader<RESTResource>, Messag
 		String outputString = "";
 		if(ResourceTypeHelper.isType(type, genericType, MetaDataResource.class, Metadata.class)) {
 			MetaDataResource<Metadata> metadataResource = (MetaDataResource<Metadata>) resource;
-			if (mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+			if (mediaType.isCompatible(HALMediaType.APPLICATION_HAL_JSON_TYPE)) {
 				outputString = renderHalJSON(metadataResource.getMetadata());
 			} else {
 				throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

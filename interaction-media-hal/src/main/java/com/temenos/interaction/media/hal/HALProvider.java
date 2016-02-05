@@ -469,6 +469,32 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 
+  // Populate a Representation with the links and properties
+  void collectLinksAndProperties(Representation resource, Iterable<Link> links,
+                                 Map<String, Object> propertyMap) {
+        if (links != null) {
+          for (Link l : links) {
+            logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() +
+                   "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
+            String[] rels = new String[0];
+            if (l.getRel() != null) {
+              rels = l.getRel().split(" ");
+            }
+            
+            if (rels != null) {
+              for (int i = 0 ; i < rels.length; i++) {
+                resource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
+              }
+            }
+          }
+        }
+
+        // add properties to HAL sub resource
+        for (String key : propertyMap.keySet()) {
+          resource.withProperty(key, propertyMap.get(key));
+        }
+  }
+  
 	private Representation buildRepresentation(Representation halResource,
 											   RESTResource resource,
 											   Class<?> type,
@@ -524,32 +550,10 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				// the properties
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
 				buildFromOEntity(propertyMap, entity, cr.getEntityName());
+
 				// create hal resource and add link for self - if there is one
 				Representation subResource = representationFactory.newRepresentation();
-	
-				
-				Collection<Link> links = er.getLinks();
-				if (links != null) {
-					for (Link l : links) {
-						logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() +
-									 "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
-						String[] rels = new String[0];
-						if (l.getRel() != null) {
-							rels = l.getRel().split(" ");
-						}
-						
-						if (rels != null) {
-							for (int i = 0 ; i < rels.length; i++) {
-								subResource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
-							}
-						}
-					}
-				}
-		
-				// add properties to HAL sub resource
-				for (String key : propertyMap.keySet()) {
-					subResource.withProperty(key, propertyMap.get(key));
-				}
+				collectLinksAndProperties(subResource, er.getLinks(), propertyMap);
 				halResource.withRepresentation(rel, subResource);
 			}
 		} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
@@ -558,39 +562,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			CollectionResource<Entity> cr = (CollectionResource<Entity>) resource;
 			List<EntityResource<Entity>> entities = (List<EntityResource<Entity>>) cr.getEntities();
 			for (EntityResource<Entity> er : entities) {
-				Entity entity = er.getEntity();
-				// the subresource is an item of the collection (http://tools.ietf.org/html/rfc6573)
-				String rel = "item";
-				// the properties
+				// Make property Map
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
-				buildFromEntity(propertyMap, entity, cr.getEntityName());
-				// create hal resource and add link for self - if there is one
+				buildFromEntity(propertyMap, er.getEntity(), cr.getEntityName());
+
+				// Make Representation
 				Representation subResource = representationFactory.newRepresentation();
-	
-				
-				Collection<Link> links = er.getLinks();
-				if (links != null) {
-					for (Link l : links) {
-						logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() +
-									 "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
-						String[] rels = new String[0];
-						if (l.getRel() != null) {
-							rels = l.getRel().split(" ");
-						}
-						
-						if (rels != null) {
-							for (int i = 0 ; i < rels.length; i++) {
-								subResource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
-							}
-						}
-					}
-				}
-		
-				// add properties to HAL sub resource
-				for (String key : propertyMap.keySet()) {
-					subResource.withProperty(key, propertyMap.get(key));
-				}
-				halResource.withRepresentation(rel, subResource);
+				collectLinksAndProperties(subResource, er.getLinks(), propertyMap);
+				halResource.withRepresentation("item", subResource);
 			}
 		} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
 			@SuppressWarnings("unchecked")

@@ -160,7 +160,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 	
 	private Representation buildHalResource(URI id, RESTResource resource, Class<?> type, Type genericType) throws URISyntaxException {
-		
+		logger.debug("buildHalResource({})", id);
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class)
 				&& !ResourceTypeHelper.isType(type, genericType, CollectionResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -207,7 +207,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					// Check link for null before using it
 					if(link!=null) {
 						String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
-						logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
+						logger.debug("Embedded resource: rel=[" + rel + "] href=[" + link.getHref() + "]");
 
 						Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
 																											embeddedResource,
@@ -221,6 +221,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add contents of supplied entity to the representation
 			buildRepresentation(halResource, resource, type, genericType);
 
+		} else {
+			logger.warn("Resource with URI {} has null genericEntity--no output produced", id);
 		}
 				
 		return halResource;
@@ -522,6 +524,46 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				// the properties
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
 				buildFromOEntity(propertyMap, entity, cr.getEntityName());
+				// create hal resource and add link for self - if there is one
+				Representation subResource = representationFactory.newRepresentation();
+	
+				
+				Collection<Link> links = er.getLinks();
+				if (links != null) {
+					for (Link l : links) {
+						logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() +
+									 "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
+						String[] rels = new String[0];
+						if (l.getRel() != null) {
+							rels = l.getRel().split(" ");
+						}
+						
+						if (rels != null) {
+							for (int i = 0 ; i < rels.length; i++) {
+								subResource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
+							}
+						}
+					}
+				}
+		
+				// add properties to HAL sub resource
+				for (String key : propertyMap.keySet()) {
+					subResource.withProperty(key, propertyMap.get(key));
+				}
+				halResource.withRepresentation(rel, subResource);
+			}
+		} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+      logger.debug("Transforming CollectionResource<Entity>");
+			@SuppressWarnings("unchecked")
+			CollectionResource<Entity> cr = (CollectionResource<Entity>) resource;
+			List<EntityResource<Entity>> entities = (List<EntityResource<Entity>>) cr.getEntities();
+			for (EntityResource<Entity> er : entities) {
+				Entity entity = er.getEntity();
+				// the subresource is an item of the collection (http://tools.ietf.org/html/rfc6573)
+				String rel = "item";
+				// the properties
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
+				buildFromEntity(propertyMap, entity, cr.getEntityName());
 				// create hal resource and add link for self - if there is one
 				Representation subResource = representationFactory.newRepresentation();
 	

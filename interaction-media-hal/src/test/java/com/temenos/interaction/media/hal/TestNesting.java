@@ -80,6 +80,7 @@ import com.temenos.interaction.core.hypermedia.DefaultResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
+import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 
@@ -322,6 +323,48 @@ public class TestNesting {
 
 		
 		String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/'}},'age':13,'name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}".replace('\'','\"');
+		String responseString = makeSingleLineString(bos);
+		System.err.println(responseString);
+
+		Map<String,Object> expectedData = parseJson(expectedJSON);
+		Map<String,Object> actualData   = parseJson(responseString);
+
+		assertEquals(expectedData, actualData);
+	}
+
+	@Test
+	public void testSerialiseEntityCollection() throws Exception {
+		Metadata vocab = createMockRiderVocabMetadata();
+		ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Riders", "initial", new ArrayList<Action>(), "/riders"));
+		HALProvider hp = new HALProvider(vocab, new DefaultResourceStateProvider(sm));
+
+		UriInfo mockUriInfo = mock(UriInfo.class);
+		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
+		when(mockUriInfo.getPath()).thenReturn("riders/123");
+		hp.setUriInfo(mockUriInfo);
+
+		Request requestContext = mock(Request.class);
+		when(requestContext.getMethod()).thenReturn("GET");
+		hp.setRequestContext(requestContext);
+
+		String inputContent = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/riders'}},'age':'13','name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}}".replace('\'','\"');
+		InputStream entityStream = new ByteArrayInputStream(inputContent.getBytes());
+		GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
+		EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, MediaType.APPLICATION_HAL_JSON_TYPE, null, entityStream);
+        er.setEntityName("Riders");
+
+		//wrap this entity in a collection
+		CollectionResource<Entity> collection = new CollectionResource<Entity>("Riders", Collections.singletonList(er));
+
+		
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		hp.writeTo(collection, CollectionResource.class, Entity.class, null, MediaType.APPLICATION_HAL_JSON_TYPE, null, bos);
+
+		
+		//String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/'}},'age':13,'name':'Huw','rides':[{'HorseSize':'14.1','HorseName':'Molly'}]}".replace('\'','\"');
+
+		String expectedJSON = "{'_links':{'self':{'href':'http://www.temenos.com/rest.svc/'}},'_embedded':{'item':[{'age':13, 'name':'Huw', 'rides':[{'HorseSize':'14.1', 'HorseName':'Molly'}]}]}}".replace('\'','\"');
+
 		String responseString = makeSingleLineString(bos);
 		System.err.println(responseString);
 

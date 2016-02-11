@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -159,7 +160,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	}
 	
 	private Representation buildHalResource(URI id, RESTResource resource, Class<?> type, Type genericType) throws URISyntaxException {
-		
+		logger.debug("buildHalResource({})", id);
 		if (!ResourceTypeHelper.isType(type, genericType, EntityResource.class)
 				&& !ResourceTypeHelper.isType(type, genericType, CollectionResource.class))
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
@@ -206,7 +207,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 					// Check link for null before using it
 					if(link!=null) {
 						String rel = (link.getRel() != null ? link.getRel() : "embedded/" + embeddedResource.getEntityName());
-						logger.debug("Embedded: rel=[" + rel + "] href=[" + link.getHref() + "]");
+						logger.debug("Embedded resource: rel=[" + rel + "] href=[" + link.getHref() + "]");
 
 						Representation embeddedRepresentation = buildHalResource(new URI(link.getHref()),
 																											embeddedResource,
@@ -220,6 +221,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			// add contents of supplied entity to the representation
 			buildRepresentation(halResource, resource, type, genericType);
 
+		} else {
+			logger.warn("Resource with URI {} has null genericEntity--no output produced", id);
 		}
 				
 		return halResource;
@@ -466,6 +469,32 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 	}
 
+  // Populate a Representation with the links and properties
+  void collectLinksAndProperties(Representation resource, Iterable<Link> links,
+                                 Map<String, Object> propertyMap) {
+        if (links != null) {
+          for (Link l : links) {
+            logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() +
+                   "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
+            String[] rels = new String[0];
+            if (l.getRel() != null) {
+              rels = l.getRel().split(" ");
+            }
+            
+            if (rels != null) {
+              for (int i = 0 ; i < rels.length; i++) {
+                resource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
+              }
+            }
+          }
+        }
+
+        // add properties to HAL sub resource
+        for (String key : propertyMap.keySet()) {
+          resource.withProperty(key, propertyMap.get(key));
+        }
+  }
+  
 	private Representation buildRepresentation(Representation halResource,
 											   RESTResource resource,
 											   Class<?> type,
@@ -521,33 +550,26 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				// the properties
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
 				buildFromOEntity(propertyMap, entity, cr.getEntityName());
+
 				// create hal resource and add link for self - if there is one
 				Representation subResource = representationFactory.newRepresentation();
-	
-				
-				Collection<Link> links = er.getLinks();
-				if (links != null) {
-					for (Link l : links) {
-						logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() +
-									 "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
-						String[] rels = new String[0];
-						if (l.getRel() != null) {
-							rels = l.getRel().split(" ");
-						}
-						
-						if (rels != null) {
-							for (int i = 0 ; i < rels.length; i++) {
-								subResource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
-							}
-						}
-					}
-				}
-		
-				// add properties to HAL sub resource
-				for (String key : propertyMap.keySet()) {
-					subResource.withProperty(key, propertyMap.get(key));
-				}
+				collectLinksAndProperties(subResource, er.getLinks(), propertyMap);
 				halResource.withRepresentation(rel, subResource);
+			}
+		} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
+      logger.debug("Transforming CollectionResource<Entity>");
+			@SuppressWarnings("unchecked")
+			CollectionResource<Entity> cr = (CollectionResource<Entity>) resource;
+			List<EntityResource<Entity>> entities = (List<EntityResource<Entity>>) cr.getEntities();
+			for (EntityResource<Entity> er : entities) {
+				// Make property Map
+				Map<String, Object> propertyMap = new HashMap<String, Object>();
+				buildFromEntity(propertyMap, er.getEntity(), cr.getEntityName());
+
+				// Make Representation
+				Representation subResource = representationFactory.newRepresentation();
+				collectLinksAndProperties(subResource, er.getLinks(), propertyMap);
+				halResource.withRepresentation("item", subResource);
 			}
 		} else if (ResourceTypeHelper.isType(type, genericType, CollectionResource.class)) {
 			@SuppressWarnings("unchecked")
@@ -611,10 +633,23 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
+			/* To detect if the stream is empty (a valid case since an input entity is
+			 * sometimes optional), wrap in a PushbackInputStream before passing on
+			 */
+			PushbackInputStream wrappedStream = new PushbackInputStream(entityStream);
+			int firstByte = wrappedStream.read();
+			if ( firstByte == -1 ) {
+					// No data provided
+					return null;
+			} else {
+					// There is something in the body, so we will parse it. It is required
+					// to be a valid JSON object. First replace the byte we borrowed.
+					wrappedStream.unread(firstByte);
 
-		//Parse hal+json into an Entity object
-		Entity entity = buildEntityFromHal(entityStream, mediaType);
-		return new EntityResource<Entity>(entity);
+					//Parse hal+json into an Entity object
+					Entity entity = buildEntityFromHal(wrappedStream, mediaType);
+					return new EntityResource<Entity>(entity);
+			}
 	}
 
 	private Entity buildEntityFromHal(InputStream entityStream, MediaType mediaType) {

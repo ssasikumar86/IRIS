@@ -81,35 +81,26 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		}
 		catch(ODataProducerException ope) {
             logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
+            // Check for T24 fields errors, if success create an Error entity and return the errors to user-agent
             try {
-                if (ope.getOError().getMessage().contains(Character.toString((char) 10))) {
-                    
-                    String entitySetName = "Errors";
-                    
+                if (ope.getOError().getMessage().contains(Character.toString((char) 10))) {                    
+                    String entitySetName = "Errors";                    
                     List<EntityResource<Entity>> errors = new ArrayList<EntityResource<Entity>>();
-                    String[] errorMessagesArray = ope.getOError().getMessage().split(Character.toString((char) 10));
-                    
-                    for (String errorCode : errorMessagesArray) {
-                        
+                    String[] errorMessagesArray = ope.getOError().getMessage().split(Character.toString((char) 10));                    
+                    for (String errorCode : errorMessagesArray) {                        
                         EntityProperties props = new EntityProperties();
-                        props.setProperty(new EntityProperty("Id", errorCode));
-                        
-                        Entity entity = new Entity(entitySetName, props) {};
-                        
+                        props.setProperty(new EntityProperty("Id", errorCode));                        
+                        Entity entity = new Entity(entitySetName, props) {};                        
                         EntityResource<Entity> entityResource = new EntityResource<Entity>(entity) {};
-                        entityResource.setEntityName(entitySetName);
-                        
+                        entityResource.setEntityName(entitySetName);                        
                         errors.add(entityResource);
                     }
-
                     CollectionResource<Entity> errorsCollection = new CollectionResource<Entity>(entitySetName,errors) {};
                     ctx.setResource(errorsCollection);
                 }
-
             } catch (Exception e) {
                 throw new InteractionException(ope.getHttpStatus(), ope);
             }
-
 			throw new InteractionException(ope.getHttpStatus(), ope);
 		} catch (InteractionException e) {
 			throw e;

@@ -185,10 +185,7 @@ public class TestGETEntitiesCommand {
         when(mockEntityResponse.getEntity()).thenReturn(oe);
         when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
         
-        //EntitiesResponse mockEntityResponse2 = mock(EntitiesResponse.class);
-        //when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenReturn(mockEntityResponse2);
-        
-	    ODataProducerException mockErrorProducer = mock(ODataProducerException.class); 
+        ODataProducerException mockErrorProducer = mock(ODataProducerException.class); 
 	    OError oError = mock(OError.class);
 	    
 	    StringBuilder errorsT24 = new StringBuilder();        

@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
@@ -78,29 +79,29 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			ctx.setResource(cr);
-		}
-		catch(ODataProducerException ope) {
-            logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
-            // Check for T24 fields errors, if success create an Error entity and return the errors to user-agent
-            try {
-                if (ope.getOError().getMessage().contains(Character.toString((char) 10))) {                    
-                    String entitySetName = "Errors";                    
-                    List<EntityResource<Entity>> errors = new ArrayList<EntityResource<Entity>>();
-                    String[] errorMessagesArray = ope.getOError().getMessage().split(Character.toString((char) 10));                    
-                    for (String errorCode : errorMessagesArray) {                        
-                        EntityProperties props = new EntityProperties();
-                        props.setProperty(new EntityProperty("Id", errorCode));                        
-                        Entity entity = new Entity(entitySetName, props) {};                        
-                        EntityResource<Entity> entityResource = new EntityResource<Entity>(entity) {};
-                        entityResource.setEntityName(entitySetName);                        
-                        errors.add(entityResource);
-                    }
-                    CollectionResource<Entity> errorsCollection = new CollectionResource<Entity>(entitySetName,errors) {};
-                    ctx.setResource(errorsCollection);
-                }
-            } catch (Exception e) {
-                throw new InteractionException(ope.getHttpStatus(), ope);
-            }
+		} catch (InteractionProducerException ipe) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ipe.getMessage());
+			}
+
+			if (ipe.getProducerMessages().size() > 0) {
+				String entitySetName = "Errors";
+				List<EntityResource<Entity>> errors = new ArrayList<EntityResource<Entity>>();
+
+				for (String errorCode : ipe.getProducerMessages()) {
+					EntityProperties props = new EntityProperties();
+					props.setProperty(new EntityProperty("Id", errorCode));
+					Entity entity = new Entity(entitySetName, props) {};
+					EntityResource<Entity> entityResource = new EntityResource<Entity>(entity) {};
+					entityResource.setEntityName(entitySetName);
+					errors.add(entityResource);
+				}
+				CollectionResource<Entity> errorsCollection = new CollectionResource<Entity>(entitySetName, errors) {};
+				ctx.setResource(errorsCollection);
+			}
+			throw new InteractionException(ipe.getHttpStatus(), ipe);
+		} catch (ODataProducerException ope) {
+			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);
 			throw new InteractionException(ope.getHttpStatus(), ope);
 		} catch (InteractionException e) {
 			throw e;

@@ -47,14 +47,12 @@ import org.mockito.ArgumentMatcher;
 import org.odata4j.core.ImmutableList;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.core.OError;
 import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSchema;
 import org.odata4j.edm.EdmType;
-import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.EntityQueryInfo;
 import org.odata4j.producer.EntityResponse;
@@ -64,6 +62,7 @@ import org.odata4j.producer.QueryInfo;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
@@ -134,70 +133,58 @@ public class TestGETEntitiesCommand {
 		}));	
 	}
 	
-	
-	
 	@Test
-    public void testExecuteQueryNoMandatoryInputs() {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
-        InteractionContext mockContext = createInteractionContext("MyEntity", queryParams);
-        ODataProducer mockProducer = createMockODataProducerException("MyEntity", "Edm.String");
-        GETEntitiesCommand command = new GETEntitiesCommand(mockProducer);
-        
-        try {
-            command.execute(mockContext);
-            fail("InteractionException must be thrown");
-        } catch (InteractionException e) {
-            assertEquals(Status.OK,e.getHttpStatus());
-            assertNotNull(mockContext.getResource());
-            assertEquals(mockContext.getResource().getEntityName(), "Errors");
-        }
-    }
-	
+	public void testExecuteQueryNoMandatoryInputs() {
+		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
+		InteractionContext mockContext = createInteractionContext("MyEntity", queryParams);
+		ODataProducer mockProducer = createMockODataProducerException("MyEntity", "Edm.String");
+		GETEntitiesCommand command = new GETEntitiesCommand(mockProducer);
+
+		try {
+			command.execute(mockContext);
+			fail("InteractionException must be thrown");
+		} catch (InteractionException e) {
+			assertEquals(Status.OK, e.getHttpStatus());
+			assertNotNull(mockContext.getResource());
+			assertEquals(mockContext.getResource().getEntityName(), "Errors");
+		}
+	}
+
 	private ODataProducer createMockODataProducerException(String entityName, String keyTypeName) {
-	    
-	    ODataProducer mockProducer = mock(ODataProducer.class);
-        List<String> keys = new ArrayList<String>();
-        keys.add("MyId");
-        List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
-        EdmProperty.Builder ep = EdmProperty.newBuilder("MyId").setType(new MyEdmType(keyTypeName));
-        properties.add(ep);
-        EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName(entityName).addKeys(keys).addProperties(properties);
-        EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName(entityName).setEntityType(eet);
-        EdmSchema.Builder es = EdmSchema.newBuilder().setNamespace("MyNamespace");
-
-        List<EdmEntityType> mockEntityTypes = new ArrayList<EdmEntityType>();
-        mockEntityTypes.add(eet.build());
-        List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
-        mockSchemas.add(es.build());
-        ImmutableList<EdmSchema> mockSchemaList = ImmutableList.copyOf(mockSchemas);
-
-        EdmDataServices mockEDS = mock(EdmDataServices.class);
-        when(mockEDS.getEdmEntitySet((EdmEntityType) any())).thenReturn(ees.build());
-        when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
-        when(mockEDS.findEdmEntityType(anyString())).thenReturn(eet.build());
-        when(mockEDS.getSchemas()).thenReturn(mockSchemaList);
-        when(mockProducer.getMetadata()).thenReturn(mockEDS);
-        
-        EntityResponse mockEntityResponse = mock(EntityResponse.class);
-        OEntity oe = mock(OEntity.class);
-        when(oe.getEntityType()).thenReturn(eet.build());
-        when(oe.getEntitySetName()).thenReturn(ees.build().getName());
-        when(mockEntityResponse.getEntity()).thenReturn(oe);
-        when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
-        
-        ODataProducerException mockErrorProducer = mock(ODataProducerException.class); 
-	    OError oError = mock(OError.class);
-	    
-	    StringBuilder errorsT24 = new StringBuilder();        
-        errorsT24.append("MANDATORY INPUT").append(Character.toString((char) 10));
-	    when(mockErrorProducer.getOError()).thenReturn(oError);
-	    when(mockErrorProducer.getHttpStatus()).thenReturn(Status.OK);
-	    when(oError.getMessage()).thenReturn(errorsT24.toString());
-        
-	    when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenThrow(mockErrorProducer);      
-        
-        return mockProducer;
-    }
+		ODataProducer mockProducer = mock(ODataProducer.class);
+		List<String> keys = new ArrayList<String>();
+		keys.add("MyId");
+		List<EdmProperty.Builder> properties = new ArrayList<EdmProperty.Builder>();
+		EdmProperty.Builder ep = EdmProperty.newBuilder("MyId").setType(new MyEdmType(keyTypeName));
+		properties.add(ep);
+		EdmEntityType.Builder eet = EdmEntityType.newBuilder().setNamespace("MyNamespace").setAlias("MyAlias").setName(entityName).addKeys(keys).addProperties(properties);
+		EdmEntitySet.Builder ees = EdmEntitySet.newBuilder().setName(entityName).setEntityType(eet);
+		EdmSchema.Builder es = EdmSchema.newBuilder().setNamespace("MyNamespace");
+		List<EdmEntityType> mockEntityTypes = new ArrayList<EdmEntityType>();
+		mockEntityTypes.add(eet.build());
+		List<EdmSchema> mockSchemas = new ArrayList<EdmSchema>();
+		mockSchemas.add(es.build());
+		ImmutableList<EdmSchema> mockSchemaList = ImmutableList.copyOf(mockSchemas);
+		EdmDataServices mockEDS = mock(EdmDataServices.class);
+		when(mockEDS.getEdmEntitySet((EdmEntityType) any())).thenReturn(ees.build());
+		when(mockEDS.getEntityTypes()).thenReturn(mockEntityTypes);
+		when(mockEDS.findEdmEntityType(anyString())).thenReturn(eet.build());
+		when(mockEDS.getSchemas()).thenReturn(mockSchemaList);
+		when(mockProducer.getMetadata()).thenReturn(mockEDS);
+		EntityResponse mockEntityResponse = mock(EntityResponse.class);
+		OEntity oe = mock(OEntity.class);
+		when(oe.getEntityType()).thenReturn(eet.build());
+		when(oe.getEntitySetName()).thenReturn(ees.build().getName());
+		when(mockEntityResponse.getEntity()).thenReturn(oe);
+		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
+		InteractionProducerException mockErrorProducer = mock(InteractionProducerException.class);
+		List<String> producerMessages = new ArrayList<String>();
+		producerMessages.add("MANDATORY INPUT1");
+		when(mockErrorProducer.getProducerMessages()).thenReturn(producerMessages);
+		when(mockErrorProducer.getHttpStatus()).thenReturn(Status.OK);
+		when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenThrow(mockErrorProducer);
+		return mockProducer;
+	}
 
 	private ODataProducer createMockODataProducer(String entityName, String keyTypeName) {
 		ODataProducer mockProducer = mock(ODataProducer.class);

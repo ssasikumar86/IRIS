@@ -352,7 +352,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     		ctx.setException(ie);
     	}
     	
-    	if (ctx.getResource() != null) {
+    	if (ctx.getResource() != null && !"Errors".equals(ctx.getResource().getEntityName())) {
     		/*
     		 * Add entity information to this resource
     		 */

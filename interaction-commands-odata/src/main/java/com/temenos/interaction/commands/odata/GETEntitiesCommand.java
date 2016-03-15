@@ -84,7 +84,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 				logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ipe.getMessage());
 			}
 
-			if (ipe.getProducerMessages().size() > 0) {
+			if (!ipe.getProducerMessages().isEmpty()) {
 				String entitySetName = "Errors";
 				List<EntityResource<Entity>> errors = new ArrayList<EntityResource<Entity>>();
 

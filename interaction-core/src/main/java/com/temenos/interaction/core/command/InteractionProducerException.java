@@ -22,6 +22,7 @@ package com.temenos.interaction.core.command;
  */
 
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.ws.rs.core.Response.StatusType;
@@ -39,34 +40,44 @@ public class InteractionProducerException extends ODataProducerException {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	private List<String> producerMessages;
+	private String entitySetName;
+	private HashMap<String, List<String>> entityPropertiesValues;
 	private StatusType httpStatus;
 
 	/**
 	 * @param error
 	 */
-	public InteractionProducerException(StatusType httpStatus, OError error, List<String> producerMessages) {
+	public InteractionProducerException(StatusType httpStatus, OError error, String entitySetName, HashMap<String, List<String>> entityPropertiesValues) {
 		super(error);
-		this.producerMessages = producerMessages;
 		this.httpStatus = httpStatus;
+		this.entitySetName = entitySetName;
+		this.entityPropertiesValues = entityPropertiesValues;
 	}
 	
-	public InteractionProducerException(StatusType httpStatus, String message, List<String> producerMessages) {
+	public InteractionProducerException(StatusType httpStatus, String message, String entitySetName, HashMap<String, List<String>> entityPropertiesValues) {
 		super(message, null);
-		this.producerMessages = producerMessages;
 		this.httpStatus = httpStatus;
+		this.entitySetName = entitySetName;
+		this.entityPropertiesValues = entityPropertiesValues;
 	}
 
 	@Override
 	public StatusType getHttpStatus() {
 		return httpStatus;
 	}
-
+	
 	/**
-	 * @return the producerMessages
+	 * @return the entitySetName
 	 */
-	public List<String> getProducerMessages() {
-		return producerMessages;
+	public String getEntitySetName() {
+		return entitySetName;
+	}
+
+	
+	/**
+	 * @return the entityProperties
+	 */
+	public HashMap<String, List<String>> getEntityPropertiesValues() {
+		return entityPropertiesValues;
 	}
 }

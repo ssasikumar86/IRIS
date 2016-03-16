@@ -29,8 +29,14 @@ import java.util.Map;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
+import org.odata4j.core.OEntities;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OEntityKey;
+import org.odata4j.core.OLink;
+import org.odata4j.core.OProperties;
+import org.odata4j.core.OProperty;
 import org.odata4j.edm.EdmEntitySet;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntitiesResponse;
 import org.odata4j.producer.ODataProducer;
@@ -43,9 +49,6 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.InteractionProducerException;
-import com.temenos.interaction.core.entity.Entity;
-import com.temenos.interaction.core.entity.EntityProperties;
-import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
@@ -83,22 +86,32 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			if (logger.isDebugEnabled()) {
 				logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ipe.getMessage());
 			}
-
-			if (!ipe.getProducerMessages().isEmpty()) {
-				String entitySetName = "Errors";
-				List<EntityResource<Entity>> errors = new ArrayList<EntityResource<Entity>>();
-
-				for (String errorCode : ipe.getProducerMessages()) {
-					EntityProperties props = new EntityProperties();
-					props.setProperty(new EntityProperty("Id", errorCode));
-					Entity entity = new Entity(entitySetName, props) {};
-					EntityResource<Entity> entityResource = new EntityResource<Entity>(entity) {};
+	
+			String entitySetName = ipe.getEntitySetName();
+			EdmEntitySet entitySet = EdmEntitySet.newBuilder().setName(entitySetName).setEntityTypeName(entitySetName).build();			
+			List<EntityResource<OEntity>> errors = new ArrayList<EntityResource<OEntity>>();
+			
+			for (Map.Entry<String, List<String>> entry : ipe.getEntityPropertiesValues().entrySet())
+			{
+				String entityPropertyId = entry.getKey();
+				List<String> entityPropertyValues = entry.getValue();
+				
+				for (String value : entityPropertyValues) {
+					List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
+					properties.add(OProperties.parseSimple(entityPropertyId, EdmSimpleType.getSimple("Edm.String"), value));					
+					
+					OEntityKey entityKey = OEntityKey.create(entityPropertyId);
+					OEntity entity = OEntities.create(entitySet, entitySet.getType(), entityKey, "", properties, new ArrayList<OLink>());
+					
+					EntityResource<OEntity> entityResource = new EntityResource<OEntity>(entity) {};
 					entityResource.setEntityName(entitySetName);
 					errors.add(entityResource);
 				}
-				CollectionResource<Entity> errorsCollection = new CollectionResource<Entity>(entitySetName, errors) {};
-				ctx.setResource(errorsCollection);
 			}
+			
+			CollectionResource<OEntity> errorsCollection = new CollectionResource<OEntity>(entitySetName, errors) {};
+			ctx.setResource(errorsCollection);
+	
 			throw new InteractionException(ipe.getHttpStatus(), ipe);
 		} catch (ODataProducerException ope) {
 			logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);

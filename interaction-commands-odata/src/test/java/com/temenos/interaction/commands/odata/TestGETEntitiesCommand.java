@@ -34,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -178,10 +179,16 @@ public class TestGETEntitiesCommand {
 		when(mockEntityResponse.getEntity()).thenReturn(oe);
 		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 		InteractionProducerException mockErrorProducer = mock(InteractionProducerException.class);
+		
 		List<String> producerMessages = new ArrayList<String>();
 		producerMessages.add("MANDATORY INPUT1");
-		when(mockErrorProducer.getProducerMessages()).thenReturn(producerMessages);
+		//when(mockErrorProducer.getProducerMessages()).thenReturn(producerMessages);
+		
+		HashMap<String, List<String>> value = new HashMap<String, List<String>>();
+		value.put("Id", producerMessages);
+		when(mockErrorProducer.getEntityPropertiesValues()).thenReturn(value);
 		when(mockErrorProducer.getHttpStatus()).thenReturn(Status.OK);
+		when(mockErrorProducer.getEntitySetName()).thenReturn("Errors");
 		when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenThrow(mockErrorProducer);
 		return mockProducer;
 	}

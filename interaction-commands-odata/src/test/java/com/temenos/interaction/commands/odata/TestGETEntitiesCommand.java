@@ -145,7 +145,7 @@ public class TestGETEntitiesCommand {
 			command.execute(mockContext);
 			fail("InteractionException must be thrown");
 		} catch (InteractionException e) {
-			assertEquals(Status.OK, e.getHttpStatus());
+			assertEquals(Status.BAD_REQUEST, e.getHttpStatus());
 			assertNotNull(mockContext.getResource());
 			assertEquals(mockContext.getResource().getEntityName(), "Errors");
 		}
@@ -182,12 +182,11 @@ public class TestGETEntitiesCommand {
 		
 		List<String> producerMessages = new ArrayList<String>();
 		producerMessages.add("MANDATORY INPUT1");
-		//when(mockErrorProducer.getProducerMessages()).thenReturn(producerMessages);
 		
 		HashMap<String, List<String>> value = new HashMap<String, List<String>>();
 		value.put("Id", producerMessages);
 		when(mockErrorProducer.getEntityPropertiesValues()).thenReturn(value);
-		when(mockErrorProducer.getHttpStatus()).thenReturn(Status.OK);
+		when(mockErrorProducer.getHttpStatus()).thenReturn(Status.BAD_REQUEST);
 		when(mockErrorProducer.getEntitySetName()).thenReturn("Errors");
 		when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenThrow(mockErrorProducer);
 		return mockProducer;

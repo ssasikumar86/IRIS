@@ -89,7 +89,6 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 	
 			String entitySetName = ipe.getEntitySetName();
 			EdmEntitySet entitySet = EdmEntitySet.newBuilder().setName(entitySetName).setEntityTypeName(entitySetName).build();			
-			List<EntityResource<OEntity>> errors = new ArrayList<EntityResource<OEntity>>();
 			
 			for (Map.Entry<String, List<String>> entry : ipe.getEntityPropertiesValues().entrySet())
 			{
@@ -98,19 +97,17 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 				
 				for (String value : entityPropertyValues) {
 					List<OProperty<?>> properties = new ArrayList<OProperty<?>>();
-					properties.add(OProperties.parseSimple(entityPropertyId, EdmSimpleType.getSimple("Edm.String"), value));					
+					properties.add(OProperties.parseSimple(entityPropertyId, EdmSimpleType.getSimple("Edm.String"), value));
 					
 					OEntityKey entityKey = OEntityKey.create(entityPropertyId);
 					OEntity entity = OEntities.create(entitySet, entitySet.getType(), entityKey, "", properties, new ArrayList<OLink>());
 					
 					EntityResource<OEntity> entityResource = new EntityResource<OEntity>(entity) {};
 					entityResource.setEntityName(entitySetName);
-					errors.add(entityResource);
+					ctx.setResource(entityResource);
 				}
 			}
 			
-			CollectionResource<OEntity> errorsCollection = new CollectionResource<OEntity>(entitySetName, errors) {};
-			ctx.setResource(errorsCollection);
 	
 			throw new InteractionException(ipe.getHttpStatus(), ipe);
 		} catch (ODataProducerException ope) {

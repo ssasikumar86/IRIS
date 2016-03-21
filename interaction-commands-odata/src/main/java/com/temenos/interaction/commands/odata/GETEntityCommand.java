@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
@@ -82,6 +83,12 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 			EntityResource<OEntity> oer = CommandHelper.createEntityResource(entity);
 			oer.setEntityTag(entity.getEntityTag());		//Set the E-Tag
 			ctx.setResource(oer);		
+		} catch (InteractionProducerException ipe) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("GET entities on [" + entityName + ", " + ctx.getId() + "] failed: ", ipe.getMessage());
+			}			
+			ctx.setResource(ipe.getEntityResource());
+			throw new InteractionException(ipe.getHttpStatus(), ipe);
 		}
 		catch(ODataProducerException ope) {
 			logger.debug("GET entity on [" + entityName + ", " + ctx.getId() + "] failed: ", ope);

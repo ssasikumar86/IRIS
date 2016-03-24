@@ -22,13 +22,12 @@ package com.temenos.interaction.core.command;
  */
 
 
-import java.util.HashMap;
-import java.util.List;
-
 import javax.ws.rs.core.Response.StatusType;
 
 import org.odata4j.core.OError;
 import org.odata4j.exceptions.ODataProducerException;
+
+import com.temenos.interaction.core.resource.EntityResource;
 
 /**
  * Interaction Producer exception.
@@ -41,24 +40,24 @@ public class InteractionProducerException extends ODataProducerException {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String entitySetName;
-	private HashMap<String, List<String>> entityPropertiesValues;
+	private EntityResource<?> entityResource;
 	private StatusType httpStatus;
 
 	/**
 	 * @param error
 	 */
-	public InteractionProducerException(StatusType httpStatus, OError error, String entitySetName, HashMap<String, List<String>> entityPropertiesValues) {
+	public InteractionProducerException(StatusType httpStatus, OError error, String entitySetName, EntityResource<?> entityResource) {
 		super(error);
 		this.httpStatus = httpStatus;
 		this.entitySetName = entitySetName;
-		this.entityPropertiesValues = entityPropertiesValues;
+		this.entityResource = entityResource;
 	}
 	
-	public InteractionProducerException(StatusType httpStatus, String message, String entitySetName, HashMap<String, List<String>> entityPropertiesValues) {
+	public InteractionProducerException(StatusType httpStatus, String message, String entitySetName, EntityResource<?> entityResource) {
 		super(message, null);
 		this.httpStatus = httpStatus;
 		this.entitySetName = entitySetName;
-		this.entityPropertiesValues = entityPropertiesValues;
+		this.entityResource = entityResource;
 	}
 
 	@Override
@@ -77,7 +76,7 @@ public class InteractionProducerException extends ODataProducerException {
 	/**
 	 * @return the entityProperties
 	 */
-	public HashMap<String, List<String>> getEntityPropertiesValues() {
-		return entityPropertiesValues;
+	public EntityResource<?> getEntityResource() {
+		return entityResource; 
 	}
 }

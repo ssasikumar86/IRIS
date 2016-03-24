@@ -29,12 +29,12 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +66,7 @@ import com.temenos.interaction.core.command.InteractionException;
 import com.temenos.interaction.core.command.InteractionProducerException;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.resource.EntityResource;
 
 public class TestGETEntitiesCommand {
 
@@ -179,15 +180,10 @@ public class TestGETEntitiesCommand {
 		when(mockEntityResponse.getEntity()).thenReturn(oe);
 		when(mockProducer.getEntity(anyString(), any(OEntityKey.class), any(EntityQueryInfo.class))).thenReturn(mockEntityResponse);
 		InteractionProducerException mockErrorProducer = mock(InteractionProducerException.class);
-		
-		List<String> producerMessages = new ArrayList<String>();
-		producerMessages.add("MANDATORY INPUT1");
-		
-		HashMap<String, List<String>> value = new HashMap<String, List<String>>();
-		value.put("Id", producerMessages);
-		when(mockErrorProducer.getEntityPropertiesValues()).thenReturn(value);
+		EntityResource<?> entityResource1 = mock(EntityResource.class);
+		doReturn(entityResource1).when(mockErrorProducer).getEntityResource();
+		doReturn("Errors").when(entityResource1).getEntityName();
 		when(mockErrorProducer.getHttpStatus()).thenReturn(Status.BAD_REQUEST);
-		when(mockErrorProducer.getEntitySetName()).thenReturn("Errors");
 		when(mockProducer.getEntities(any(String.class), any(QueryInfo.class))).thenThrow(mockErrorProducer);
 		return mockProducer;
 	}

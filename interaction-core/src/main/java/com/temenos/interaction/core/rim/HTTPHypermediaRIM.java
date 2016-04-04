@@ -45,6 +45,8 @@ import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import com.temenos.interaction.core.hypermedia.LinkGenerator;
+import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.slf4j.Logger;
@@ -113,7 +115,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * 			All commands for all resources.
 	 * @param hypermediaEngine
 	 * 			All application states, responsible for creating links from one state to another.
-	 * @param currentState	
+	 * @param currentState
 	 * 			The current application state when accessing this resource.
 	 */
 	public HTTPHypermediaRIM(
@@ -129,7 +131,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	 * 			All commands for all resources.
 	 * @param hypermediaEngine
 	 * 			All application states, responsible for creating links from one state to another.
-	 * @param currentState	
+	 * @param currentState
 	 * 			The current application state when accessing this resource.
 	 */
 	public HTTPHypermediaRIM(
@@ -589,7 +591,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			} else {
 				ResourceState targetState = ctx.getTargetState();
 				Transition redirectTransition = targetState.getRedirectTransition();
-				Link target = hypermediaEngine.createLink(redirectTransition, entity, pathParameters, ctx.getQueryParameters(), true);
+
+				LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, redirectTransition, null).setAllQueryParameters(true);
+				Collection<Link> links = linkGenerator.createLink(pathParameters, ctx.getQueryParameters(), entity);
+				Link target = (!links.isEmpty()) ? links.iterator().next() : null;
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 			}
 		} else if (status.equals(Response.Status.CREATED)) {
@@ -601,8 +606,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				Transition autoTransition = autoTransitions.get(0);				
 				if (autoTransitions.size() > 1)
 					logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");				
-				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";				
-				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
+				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
+
+				LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, autoTransition, null);
+				Collection<Link> links = linkGenerator.createLink(pathParameters, null, ((EntityResource<?>)resource).getEntity());
+				Link target = (!links.isEmpty()) ? links.iterator().next() : null;
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 				Response autoResponse = getResource(headers, autoTransition, ctx);
 	        	if (autoResponse.getStatus() != Status.OK.getStatusCode()) {
@@ -633,8 +641,10 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				if(autoTransition != null) {
 					if (autoTransitions.size() > 1)
 						logger.warn("Resource state [" + currentState.getName() + "] has multiple auto-transitions. Using [" + autoTransition.getId() + "].");
-					
-					Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
+
+					LinkGenerator linkGenerator = new LinkGeneratorImpl(hypermediaEngine, autoTransition, null);
+					Collection<Link> links = linkGenerator.createLink(pathParameters, null, ((EntityResource<?>)resource).getEntity());
+					Link target = (!links.isEmpty()) ? links.iterator().next() : null;
 					responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 					Response autoResponse = getResource(headers, autoTransition, ctx);
 		        	if (autoResponse.getStatus() != Status.OK.getStatusCode()) {

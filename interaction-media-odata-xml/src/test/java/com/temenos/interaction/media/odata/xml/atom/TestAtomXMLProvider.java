@@ -62,6 +62,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
+import com.temenos.interaction.core.hypermedia.LinkGenerator;
+import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.DifferenceListener;
 import org.custommonkey.xmlunit.IgnoreTextAndAttributeValuesDifferenceListener;
@@ -797,7 +799,7 @@ public class TestAtomXMLProvider {
 		//Create collection resource
 		CollectionResource<Entity> cr = new CollectionResource<Entity>("FundsTransfers", new ArrayList<EntityResource<Entity>>());
 		List<Link> links = new ArrayList<Link>();
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, null));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, null, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
@@ -864,7 +866,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<Entity>> ge = new GenericEntity<CollectionResource<Entity>>(cr) {};
 
@@ -910,7 +912,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, pathParameters, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
@@ -1004,7 +1006,7 @@ public class TestAtomXMLProvider {
 		EntityResource<Entity> er = createMockEntityResourceEntity("Flight");
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		entities.add(er);
 		// Create collection resource
@@ -1054,7 +1056,7 @@ public class TestAtomXMLProvider {
 		        "07u1PAxpJ7RGGblAB8FicpJF18wtzngF71WGQUMlABE=");
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		oentities.add(er);
 		// Create collection resource
@@ -1150,7 +1152,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		entities.add(er);
 		// Create collection resource
@@ -1200,7 +1202,7 @@ public class TestAtomXMLProvider {
 		List<Link> links = new ArrayList<Link>();
 		MultivaluedMap<String, String> pathParameters = new MultivaluedMapImpl<String>();
 		pathParameters.add("companyid", "MockCompany001");
-		links.add(rsm.createLink(flights.getTransition(flight), er.getEntity(), pathParameters));
+		links.add(createLink(rsm, flights.getTransition(flight), er.getEntity(), pathParameters, null));
 		er.setLinks(links);
 		oentities.add(er);
 		// Create collection resource
@@ -1355,7 +1357,7 @@ public class TestAtomXMLProvider {
 		//Create collection resource
 		CollectionResource<OEntity> cr = new CollectionResource<OEntity>("FundsTransfers", new ArrayList<EntityResource<OEntity>>());
 		List<Link> links = new ArrayList<Link>();
-		links.add(rsm.createLink(fundsTransfers.getTransition(fundsTransfersIAuth), null, null));
+		links.add(createLink(rsm, fundsTransfers.getTransition(fundsTransfersIAuth), null, null, null));
 		cr.setLinks(links);
 		GenericEntity<CollectionResource<OEntity>> ge = new GenericEntity<CollectionResource<OEntity>>(cr) {};
 
@@ -1723,5 +1725,12 @@ public class TestAtomXMLProvider {
         absPath = AtomXMLProvider.getAbsolutePath(uriInfo);
         assertNotNull(absPath);
         assertEquals("null", absPath);
+	}
+
+	private Link createLink(ResourceStateMachine rsm, Transition transition, Object entity,
+			MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
+		LinkGenerator linkGenerator = new LinkGeneratorImpl(rsm, transition, null);
+		Collection<Link> links = linkGenerator.createLink(pathParameters, queryParameters, entity);
+		return (!links.isEmpty()) ? links.iterator().next() : null;
 	}
 }

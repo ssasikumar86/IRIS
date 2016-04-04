@@ -136,7 +136,7 @@ public class Transition {
 				&& source instanceof CollectionResourceState
 				&& (target instanceof ResourceState && !(target instanceof CollectionResourceState));
 	}
-	
+
 	/**
 	 * @return the locator
 	 */

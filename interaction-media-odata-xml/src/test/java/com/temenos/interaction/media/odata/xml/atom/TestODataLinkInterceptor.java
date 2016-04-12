@@ -41,6 +41,8 @@ import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.RESTResource;
+import org.odata4j.format.xml.XmlFormatWriter;
+
 
 public class TestODataLinkInterceptor {
 
@@ -182,7 +184,7 @@ public class TestODataLinkInterceptor {
 
 		ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
 		Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET));
-		assertEquals("http://www.temenos.com/rels/new", result.getRel());
+		assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers" + " " +  "http://www.temenos.com/rels/new", result.getRel());
 	}
 
 	@Test
@@ -525,8 +527,8 @@ public class TestODataLinkInterceptor {
                 createMockResourceState("FundsTransfersIHold", "FundsTransfer", true));
 
         ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
-        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "ABCD"));
-        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_ABCD/FundsTransfers", result.getRel());	            
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourceEntityValue"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourceEntityValue/FundsTransfers", result.getRel());	            
 	}
 	
 	@Test
@@ -539,14 +541,87 @@ public class TestODataLinkInterceptor {
         Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
         assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
     }
+	
+	@Test
+    public void testLinkRelCreationWithRelNotProvided()
+    {
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", null));
 
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers", result.getRel());
+    }
+	
+	@Test
+    public void testLinkRelCreationWithRelPartiallyProvided()
+    {        
+        String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+        String[] rels = new String[]{targetRel};
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers " + targetRel, result.getRel());
+    }
+	
+	@Test
+	public void testLinkRelCreationWithRelFullyProvided()
+	{
+	    String descriptionRel = XmlFormatWriter.related + "/DESCRIPTION";
+	    String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+	    String[] rels = new String[]{descriptionRel, targetRel};
+	    Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, null));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfers " + targetRel, result.getRel());
+	}
+	
+	@Test
+    public void testLinkRelCreationWithRelProvidedForMultivalue()
+    {
+        String descriptionRel = XmlFormatWriter.related + "/DESCRIPTION";
+        String targetRel = "http://temenostech.com/ado/2007/08/TARGET";
+        String[] rels = new String[]{descriptionRel, targetRel};
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", rels));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourceEntityValue"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourceEntityValue/FundsTransfers " + targetRel, result.getRel());
+    }
+	
+	@Test
+    public void testLinkRelCreationWithRelNotProvidedForMultivalue()
+    {
+        Transition t = createMockTransition(
+                createMockResourceState("FundsTransfersIAuth", "FundsTransfer", true), 
+                createMockCollectionResourceStateWithRel("FundsTransfersIHold", "FundsTransfer", null));
+
+        ODataLinkInterceptor linkInterceptor = new ODataLinkInterceptor(createMockProviderFundsTransfers());
+        Link result = linkInterceptor.addingLink(mock(RESTResource.class), new Link(t, t.getTarget().getRel(), "/FundsTransfers()?$filter=DebitAcctNo eq '123'", HttpMethod.GET, "SourceEntityValue"));
+        assertEquals("http://schemas.microsoft.com/ado/2007/08/dataservices/related/FundsTransfer_SourceEntityValue/FundsTransfers", result.getRel());
+    }
+	
 	private ResourceState createMockResourceState(String name, String entityName, boolean isCollection) {
-		ResourceState state = null;
-		if (isCollection) {
-			state = new CollectionResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
-		} else {
-			state = new ResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
-		}
+        ResourceState state = null;
+        if (isCollection) {
+            state = new CollectionResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
+        } else {
+            state = new ResourceState(entityName, name, new ArrayList<Action>(), "/"+name);
+        }
+        return state; 
+    }
+	
+	private ResourceState createMockCollectionResourceStateWithRel(String name, String entityName, String[] rels) {
+	    ResourceState state = new CollectionResourceState(entityName, name, new ArrayList<Action>(), "/"+name, rels , null);
 		return state; 
 	}
 
@@ -557,5 +632,4 @@ public class TestODataLinkInterceptor {
 		builder.method("GET");
 		return builder.build();
 	}
-
 }

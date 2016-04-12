@@ -33,6 +33,9 @@ import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.RESTResource;
 
 public class ODataLinkInterceptor implements LinkInterceptor {
+    
+    private static final String XML_REL_SEPARATOR = " ";
+    
 	private final Logger logger = LoggerFactory.getLogger(ODataLinkInterceptor.class);
 
 	// this class uses AtomXMLProvider as a helper
@@ -54,16 +57,8 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 		if(linkToAdd != null) {
 			logger.debug("Link rel["+linkToAdd.getRel()+"] title["+linkToAdd.getTitle()+"] href["+linkToAdd.getHref()+"]");
 			result = linkToAdd;						
-			String entitySetName = providerHelper.getEntitySet(result.getTransition().getTarget());
-			
-			if(linkToAdd.getSourceEntityValue()!=null)
-			{
-			    rel = getODataLinkRelation(result, linkToAdd.getTransition().getSource().getEntityName() + "_" + linkToAdd.getSourceEntityValue() + "/" + entitySetName);   
-			}
-			else
-			{
-			    rel = getODataLinkRelation(result, entitySetName);   
-			}
+			String entitySetName = providerHelper.getEntitySet(result.getTransition().getTarget());			
+			rel = getODataLinkRelation(result, entitySetName); 
 					
 		} else {
 			logger.warn("Link to add was null for " + resource.getEntityName());
@@ -129,36 +124,70 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 
 	/**
 	 * Return the OData link relation from the specified link.
+	 * 
+	 * rel = "item" => "relDesc"
+	 * rel = "collection" => "relDesc"
+	 * rel = "foo /new" => "relDesc /new"
+	 * rel = "/new" => "relDesc /new"
 	 * @param link link
 	 * @return odata link rel
 	 */
 	public String getODataLinkRelation(Link link, String entitySetName) {
+
 		String rel = link.getRel();
 		Transition transition = link.getTransition();
-		if(transition == null) {
+		if (transition == null) {
 			return rel;
 		}
+
 		// hack, just until we fix this up
 		rel = rel.replace("item", "");
 		rel = rel.replace("collection", "");
 
-		// don't change the link relations if they have been specified in the RIM
-		if (rel.length() > 0)
-			return rel;
-		
+		String relValue = getRelValue(rel);
+		rel = (relValue == null) ? "" : relValue;
+
 		if (transition.isGetFromCollectionToEntityResource() || (rel.equals("self") || rel.equals("edit"))) {
 			if (rel.length() == 0) {
 				//Links from collection to entity resource of an entity are considered 'self' links within an odata feed
 				rel = "self";
 			}
 		} else if (transition.getTarget() instanceof CollectionResourceState) {
-			rel = XmlFormatWriter.related + entitySetName + (rel != null && rel.length() > 0 ? " " : "") + rel;
+
+			if (link.getSourceEntityValue() != null) //For multivalue drilldown collection resource
+			{
+				entitySetName = link.getTransition().getSource().getEntityName() + "_" + link.getSourceEntityValue() + "/" + entitySetName;
+			}
+
+			rel = XmlFormatWriter.related + entitySetName + (rel != null && rel.length() > 0 ? XML_REL_SEPARATOR : "") + rel;
 		} else if (transition.getTarget() instanceof ResourceState) {
 			//entry type relations should use the entityType name
-			rel = XmlFormatWriter.related + transition.getTarget().getEntityName() + (rel != null && rel.length() > 0 ? " " : "") + rel;
+			rel = XmlFormatWriter.related + transition.getTarget().getEntityName() + (rel != null && rel.length() > 0 ? XML_REL_SEPARATOR : "") + rel;
 		}
 
 		return rel;
 	}
+
+	private String getRelValue(String rel) {
+		String relValue = null;
+		if (rel == null) {
+			return null;
+		}
+		for (String relItem : rel.split(ResourceState.REL_SEPARATOR)) {
+			if (isRelValue(relItem)) {
+				relValue = relItem;
+				break;
+			}
+		}
+		return relValue;
+	}
+
+	private boolean isRelValue(String relItem) {
+		if (relItem == null || relItem.isEmpty()) {
+			return false;
+		}
+		return !relItem.startsWith(XmlFormatWriter.related);
+	}
+
 
 }

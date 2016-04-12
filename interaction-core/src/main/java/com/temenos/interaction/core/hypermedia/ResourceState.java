@@ -34,6 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResourceState implements Comparable<ResourceState> {
+    
+    public static final String REL_SEPARATOR = " ";
+    
 	private final static Logger logger = LoggerFactory.getLogger(ResourceState.class);
     private static final String[] DEFAULT_ITEM_RELATIONS = new String[] { "item" };
 
@@ -251,8 +254,8 @@ public class ResourceState implements Comparable<ResourceState> {
 	public String getRel() {
 		StringBuffer sb = new StringBuffer();
 		for (String r : rels)
-			sb.append(r).append(" ");
-		return sb.deleteCharAt(sb.lastIndexOf(" ")).toString();
+			sb.append(r).append(REL_SEPARATOR);
+		return sb.deleteCharAt(sb.lastIndexOf(REL_SEPARATOR)).toString();
 	}
 	
 	public String[] getRels() {

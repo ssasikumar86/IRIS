@@ -5,7 +5,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.12.0-SNAPSHOT</version>
+	<version>${build.version}</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -18,6 +18,7 @@
 
   <properties>
     <jetty.version>9.0.5.v20130815</jetty.version>
+    <build.version.range>[${build.version},)</build.version.range>
   </properties>
 
   <build>
@@ -169,7 +170,7 @@
     									interaction-sdk-plugin
     								</artifactId>
     								<versionRange>
-    									[0.12.0-SNAPSHOT,)
+    									${build.version.range}
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>
@@ -188,7 +189,7 @@
     									interaction-sdk-rim-plugin
     								</artifactId>
     								<versionRange>
-    									[0.12.0-SNAPSHOT,)
+    									${build.version.range}
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>

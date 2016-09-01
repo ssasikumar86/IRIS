@@ -269,6 +269,7 @@ public class TestGETEntityCommand {
 	public void testExecuteWithQueryParams() throws InteractionException {
 		MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl<String>();
 		queryParams.add("$filter", "a eq 'b'");
+		queryParams.add("$select", "a");
 		queryParams.add("MYPARAM", "MYVALUE");
 		
 		InteractionContext mockContext = createInteractionContext("MyEntity", queryParams, "1");
@@ -289,9 +290,11 @@ public class TestGETEntityCommand {
 					Map<String,String> customOptions = queryInfo.customOptions;
 					
 					if("a eq 'b'".equals(customOptions.get("$filter"))) {
-						if("MYVALUE".equals(customOptions.get("MYPARAM"))) {
-							result = true;
-						}
+					    if("a".equals(customOptions.get("$select"))) {
+					        if("MYVALUE".equals(customOptions.get("MYPARAM"))) {
+	                            result = true;
+	                        }
+					    }
 					}
 				}
 				

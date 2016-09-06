@@ -23,7 +23,13 @@
 			<url>http://www.gnu.org/licenses/agpl-3.0.html</url>
 		</license>
 	</licenses>
-
+    
+    <scm>
+        <connection>scm:git:https://github.com/temenostech/IRIS.git</connection>
+        <developerConnection>scm:git:https://github.com/temenostech/IRIS.git</developerConnection>
+        <url>https://github.com/temenostech/IRIS</url>
+    </scm>
+    
 	<modules>
 		<module>../interaction-odata4j-ext</module>
 		<module>../interaction-core</module>
@@ -206,6 +212,32 @@
 					</reportPlugins>
 				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadoc</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 
 		<!-- Define the plugin versions used during the build -->

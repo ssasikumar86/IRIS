@@ -103,6 +103,8 @@ State:
                 & ('onerror' '-->' errorState=[State|QualifiedName])?
                 // MAY define a cache maxage
                 & ( 'cache:' cache=INT )?
+                // description
+                & ( 'description:' description=DQ_STRING )?
     	)
     '}'
 ;
@@ -206,6 +208,9 @@ RelationConstant:
     name=DQ_STRING    
 ;
 
+Description:
+    name=DQ_STRING
+;
 
 Path:
     'path:' name=URISTRING

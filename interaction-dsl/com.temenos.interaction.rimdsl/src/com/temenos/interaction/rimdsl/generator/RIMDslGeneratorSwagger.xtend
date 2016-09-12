@@ -69,7 +69,8 @@ class RIMDslGeneratorSwagger implements IGenerator {
           « var state = stateByMethodPath.get(path + method)»
    		  {
    		  "method": "«method»",
-   		  "nickname": "«IF state != null»«state.name»«ENDIF»"
+   		  "nickname": "«IF state != null»«state.name»«ENDIF»",
+   		  "summary": "«IF state != null»«state.description»«ENDIF»" 
    		  }
         «ENDFOR»
 	    ]

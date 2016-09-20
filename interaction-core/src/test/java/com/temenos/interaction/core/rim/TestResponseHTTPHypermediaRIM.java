@@ -37,6 +37,7 @@ import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -838,7 +839,8 @@ public class TestResponseHTTPHypermediaRIM {
         kitchen.addTransition(new Transition.Builder().method("GET").flags(Transition.EMBEDDED).target(lighting).build());
         kitchen.addTransition(new Transition.Builder().method("GET").target(sink).build());
 
-        //and {a locator that always returns the garage resource state when invoked}
+        //and {a locator that always returns the hallway resource state when invoked with 
+        //string "day" and the kitchen resource state when invoked with string "night"}
         ResourceLocatorProvider locatorProvider = mock(ResourceLocatorProvider.class);
         ResourceLocator locator = mock(ResourceLocator.class);
         when(locator.resolve(eq("day"))).thenReturn(hallway);
@@ -910,6 +912,196 @@ public class TestResponseHTTPHypermediaRIM {
         verify(increment, times(1)).execute(any(InteractionContext.class));
         verify(done, times(1)).execute(any(InteractionContext.class));
     }
+    
+    @Test
+    public void testPOSTWithTwoConditionalAutomaticTransitionsFalseEvaluationAndDynamicResourceStates() throws InteractionException {
+        //given {a graph of resource states comprising of an initial state,
+        //a middle state and a dynamic state that autotransitions to another resource state}
+        ResourceState entrance = new ResourceState("house", "entrance", mockSingleAction("DO", Action.TYPE.ENTRY, "POST"), "/entrance", new String[]{"http://temenostech.temenos.com/rels/input"});
+        ResourceState doorframe = new ResourceState("house", "doorframe", mockSingleAction("NEXT", Action.TYPE.VIEW, "GET"), "/doorframe", new String[]{"http://temenostech.temenos.com/rels/next"});
+        ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
+        ResourceState hallway = new ResourceState("house", "hallway", mockIncrementAction(), "/hallway", (String[])null);
+        ResourceState kitchen = new ResourceState("house", "kitchen", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), "/kitchen", new String[]{"http://temenostech.temenos.com/rels/new"});
+        ResourceState sink = new ResourceState("house", "sink", mockGetAction(), "/sink");
+        ResourceState lighting = new ResourceState("house", "lighting", mockSingleAction("SEE", Action.TYPE.ENTRY, "POST"), "/lighting");
+        entrance.addTransition(new Transition.Builder().flags(Transition.AUTO).target(doorframe).evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK)).build());
+        doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
+        hallway.addTransition(new Transition.Builder().flags(Transition.AUTO).target(kitchen).evaluation(new ResourceGETExpression(kitchen, ResourceGETExpression.Function.OK)).build());
+        kitchen.addTransition(new Transition.Builder().method("GET").flags(Transition.EMBEDDED).target(lighting).build());
+        kitchen.addTransition(new Transition.Builder().method("GET").target(sink).build());
+
+        //and {a locator that always returns the hallway resource state when invoked with 
+        //string "day"}
+        ResourceLocatorProvider locatorProvider = mock(ResourceLocatorProvider.class);
+        ResourceLocator locator = mock(ResourceLocator.class);
+        when(locator.resolve(eq("day"))).thenReturn(hallway);
+        when(locatorProvider.get(eq("locator"))).thenReturn(locator);
+
+        Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
+        InteractionCommand doSomething = mock(InteractionCommand.class),
+                getSomething = mock(InteractionCommand.class),
+                increment = mock(InteractionCommand.class),
+                next = mock(InteractionCommand.class),
+                see = mock(InteractionCommand.class),
+                notDoneYet = mock(InteractionCommand.class),
+                done = mock(InteractionCommand.class);
+        
+        //and {three InteractionCommands that execute successfully}
+        when(getSomething.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+        when(next.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+        when(done.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+        
+        //and {an InteractionCommand for embedding content that fails}
+        when(see.execute(any(InteractionContext.class))).thenReturn(Result.INVALID_REQUEST);
+        
+        //and {an InteractionCommand that sets up an alias for resolving a dynamic resource state}
+        doAnswer(new Answer<Result>() {
+            @Override
+            public Result answer(InvocationOnMock invocationOnMock) throws Throwable {
+                ((InteractionContext)invocationOnMock.getArguments()[0]).setAttribute("time", "day");
+                return Result.SUCCESS;
+            }
+        }).when(doSomething).execute(any(InteractionContext.class));
+        
+        //and {an InteractionCommand that always throws an InteractionException}
+        doThrow(new InteractionException(Status.INTERNAL_SERVER_ERROR))
+            .when(increment)
+            .execute(any(InteractionContext.class));
+        
+        commands.put("GET", getSomething);
+        commands.put("DO", doSomething);
+        commands.put("NOT_DONE_YET", notDoneYet);
+        commands.put("DONE", done);
+        commands.put("INCREMENT", increment);
+        commands.put("NEXT", next);
+        commands.put("SEE", see);
+        CommandController commandController = new MapBasedCommandController(commands);
+        
+        //when {the post method is invoked}
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, new ResourceStateMachine(entrance, new BeanTransformer(), locatorProvider), createMockMetadata(), locatorProvider);
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
+        
+        //then {the response must be HTTP 201 Created}
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        
+        //and {the response entity must not be null and must be an instance of/subtype RESTResource}
+        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
+        GenericEntity<?> responseEntity = (GenericEntity<?>) response.getEntity();
+        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+        
+        //and {the response entity must contain a link with a query parameter added by a command appended to it}
+        List<Link> links = new ArrayList<Link>(((RESTResource)responseEntity.getEntity()).getLinks());
+        assertThat(links.size(), equalTo(3));
+        assertThat(links.get(1).getHref(), equalTo("/baseuri/lighting"));
+        
+        //and {the location header must be set to the final resource resolved 
+        //in the sequence of autotransitions}
+        assertThat((String)response.getMetadata().get("Location").get(0), allOf(containsString("/baseuri/kitchen"), containsString("mode=walk")));
+        verify(doSomething, times(1)).execute(any(InteractionContext.class));
+        verify(increment, times(1)).execute(any(InteractionContext.class));
+        verify(done, times(2)).execute(any(InteractionContext.class));
+    }
+
+    
+    @Test
+    public void testPOSTWithOneConditionalAutomaticTransitionAndDynamicResourceState() throws InteractionException {
+        //given {a graph of resource states comprising of an initial state
+        //and a dynamic state that autotransitions to another resource state}
+        ResourceState entrance = new ResourceState(
+                "house", "entrance", mockSingleAction("DO", Action.TYPE.ENTRY, "POST"), 
+                "/entrance", new String[]{"http://temenostech.temenos.com/rels/input"}
+        );
+        ResourceState doorframe = new ResourceState(
+                "house", "doorframe", mockSingleAction("NEXT", Action.TYPE.VIEW, "GET"), 
+                "/doorframe", new String[]{"http://temenostech.temenos.com/rels/next"}
+        );
+        ResourceState door = new DynamicResourceState("house", "door", "locator", new String[]{"time"});
+        ResourceState hallway = new ResourceState(
+                "house", "hallway", mockSingleAction("DONE", Action.TYPE.ENTRY, "POST"), 
+                "/hallway", (String[])null
+        );
+        ResourceState curtains = new ResourceState("house", "curtains", mockGetAction(), "/curtains");
+        ResourceState lighting = new ResourceState("house", "lighting", mockGetAction(), "/lighting");
+        entrance.addTransition(
+                new Transition.Builder()
+                    .flags(Transition.AUTO)
+                    .target(doorframe)
+                    .evaluation(new ResourceGETExpression(doorframe, ResourceGETExpression.Function.OK))
+                    .build()
+        );
+        doorframe.addTransition(new Transition.Builder().flags(Transition.AUTO).target(door).build());
+        hallway.addTransition(new Transition.Builder().method("GET").target(curtains).build());
+        hallway.addTransition(new Transition.Builder().method("GET").target(lighting).build());
+
+        //and {a locator that always returns the hallway resource state when invoked with 
+        //string "day"}
+        ResourceLocatorProvider locatorProvider = mock(ResourceLocatorProvider.class);
+        ResourceLocator locator = mock(ResourceLocator.class);
+        when(locator.resolve(eq("day"))).thenReturn(hallway);
+        when(locatorProvider.get(eq("locator"))).thenReturn(locator);
+
+        Map<String, InteractionCommand> commands = new HashMap<String, InteractionCommand>();
+        InteractionCommand doSomething = mock(InteractionCommand.class),
+                getSomething = mock(InteractionCommand.class),
+                next = mock(InteractionCommand.class),
+                see = mock(InteractionCommand.class),
+                done = mock(InteractionCommand.class);
+        
+        //and {three InteractionCommands that execute successfully}
+        when(getSomething.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+        when(done.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+        when(next.execute(any(InteractionContext.class))).thenReturn(Result.SUCCESS);
+                
+        //and {an InteractionCommand that sets up an alias for resolving a 
+        //dynamic resource state and adds query parameters}
+        doAnswer(new Answer<Result>() {
+            @Override
+            public Result answer(InvocationOnMock invocationOnMock) throws Throwable {
+                InteractionContext ctx = ((InteractionContext)invocationOnMock.getArguments()[0]);
+                ctx.setAttribute("time", "day");
+                ctx.getOutQueryParameters().put("mode", new ArrayList<String>(
+                        Arrays.asList(new String[]{"run"}))
+                );
+                return Result.SUCCESS;
+            }
+        }).when(doSomething).execute(any(InteractionContext.class));
+        commands.put("GET", getSomething);
+        commands.put("DO", doSomething);
+        commands.put("DONE", done);
+        commands.put("NEXT", next);
+        commands.put("SEE", see);
+        CommandController commandController = new MapBasedCommandController(commands);
+        
+        //when {the post method is invoked}
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController, 
+            new ResourceStateMachine(
+                entrance, new BeanTransformer(), locatorProvider
+            ), 
+            createMockMetadata(), locatorProvider
+        );
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockUriInfoWithParams(), mockEntityResourceWithId("123"));
+        
+        //then {the response must be HTTP 201 Created}
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        
+        //and {the response entity must not be null and must be an instance of/subtype RESTResource}
+        assertNotNull(GenericEntity.class.isAssignableFrom(response.getEntity().getClass()));
+        GenericEntity<?> responseEntity = (GenericEntity<?>) response.getEntity();
+        assertTrue(RESTResource.class.isAssignableFrom(responseEntity.getEntity().getClass()));
+        
+        //and {the response entity must contain a link with a query parameter added by a command appended to it}
+        List<Link> links = new ArrayList<Link>(((RESTResource)responseEntity.getEntity()).getLinks());
+        assertThat(links.size(), equalTo(3));
+        assertThat(links.get(1).getHref(), equalTo("/baseuri/curtains?mode=run"));
+        
+        //and {the location header must be set to the final resource resolved 
+        //in the sequence of autotransitions}
+        assertThat((String)response.getMetadata().get("Location").get(0), 
+                allOf(containsString("/baseuri/hallway"), containsString("mode=run")));
+        verify(doSomething, times(1)).execute(any(InteractionContext.class));
+        verify(done, times(1)).execute(any(InteractionContext.class));
+    }
+
     
     /*
 	 * This test is for a POST request that creates a new resource, and uses

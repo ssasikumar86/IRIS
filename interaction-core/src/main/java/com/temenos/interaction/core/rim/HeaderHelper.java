@@ -122,15 +122,40 @@ public class HeaderHelper {
      * @return first header entry
      */
     public static String getFirstHeader(HttpHeaders headers, String header) {
-    	if (headers != null) {
-        	List<String> headerList = headers.getRequestHeader(header);
-        	if(headerList != null && headerList.size() > 0) {
-        		return headerList.get(0);
-        	}
+    	if (headers == null) {
+    	    return null;
     	}
+        List<String> headerList = headers.getRequestHeader(header);
+        if(headerList != null && headerList.size() > 0) {
+            return headerList.get(0);
+        }
     	return null;
     }
-    
+
+    /**
+     * Returns the first HTTP header entry for the specified header ignoring case,
+     * that is, it does a case insensitive search.
+     *
+     * @param headers HTTP headers
+     * @param header header to return
+     * @return first header entry
+     */
+    public static String getFirstHeaderCaseInsensitive(HttpHeaders headers, String header) {
+        if (headers == null) {
+            return null;
+        }
+        MultivaluedMap<String, String> headerMap = headers.getRequestHeaders();
+        if (headerMap == null) {
+            return null;
+        }
+        for (String key : headerMap.keySet()) {
+            if (key.equalsIgnoreCase(header)) {
+                return headerMap.getFirst(key);
+            }
+        }
+        return null;
+    }
+
     /**
      * Encode a MultivaluedMap as URL query parameters, omitting any duplicate
      * key/value pairings.

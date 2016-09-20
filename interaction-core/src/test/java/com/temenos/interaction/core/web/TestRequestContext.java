@@ -78,4 +78,39 @@ public class TestRequestContext {
         assertEquals("value2", ctx.getHeaders("header0").get(2));
         assertEquals("value0", ctx.getFirstHeader("header0"));
     }
+
+    @Test
+    public void testGetFirstHeader() {
+        Map<String, List<String>> headers = new HashMap<>();
+        List<String> list = new ArrayList<>();
+        list.add("value0");
+        list.add("value1");
+        list.add("value2");
+        headers.put("header0", list);
+
+        RequestContext ctx = new RequestContext("\basepath", "\requesturi", null, headers);
+
+        assertNull(ctx.getFirstHeader(null));
+        assertEquals("value0", ctx.getFirstHeader("header0"));
+        assertNull(ctx.getFirstHeader("HEADER0"));
+        assertNull(ctx.getFirstHeader("Header0"));
+    }
+
+    @Test
+    public void testGetFirstHeaderCaseInsensitive() {
+        Map<String, List<String>> headers = new HashMap<>();
+        List<String> list = new ArrayList<>();
+        list.add("value0");
+        list.add("value1");
+        list.add("value2");
+        headers.put("header0", list);
+
+        RequestContext ctx = new RequestContext("\basepath", "\requesturi", null, headers);
+
+        assertNull(ctx.getFirstHeaderCaseInsensitive(null));
+        assertEquals("value0", ctx.getFirstHeaderCaseInsensitive("header0"));
+        assertEquals("value0", ctx.getFirstHeaderCaseInsensitive("HEADER0"));
+        assertEquals("value0", ctx.getFirstHeaderCaseInsensitive("Header0"));
+    }
+
 }

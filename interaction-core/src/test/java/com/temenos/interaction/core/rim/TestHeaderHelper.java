@@ -28,6 +28,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -46,6 +48,9 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -64,7 +69,7 @@ public class TestHeaderHelper {
         RequestContext.setRequestContext(ctx);
 	}
 
-	@Test
+    @Test
 	public void testOptionsAllowHeader() {
 		SortedSet<String> validNextStates = new TreeSet<String>();
 		validNextStates.add("SEE");
@@ -227,4 +232,43 @@ public class TestHeaderHelper {
         assertThat(queryParam, containsString("item=apple"));
         assertThat(StringUtils.countMatches(queryParam, "&"), equalTo(3));
     }
+
+    @Test
+    public void testGetFirstHeader() {
+        HttpHeaders httpHeadersMock = Mockito.mock(HttpHeaders.class);
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                String header = (String)invocationOnMock.getArguments()[0];
+                return buildHeaders().get(header);
+            }
+        }).when(httpHeadersMock).getRequestHeader(anyString());
+
+        assertNull(HeaderHelper.getFirstHeader(null, null));
+        assertEquals("value0", HeaderHelper.getFirstHeader(httpHeadersMock, "header0"));
+        assertNull(HeaderHelper.getFirstHeader(httpHeadersMock, "HEADER0"));
+        assertNull(HeaderHelper.getFirstHeader(httpHeadersMock, "Header0"));
+    }
+
+    @Test
+    public void testGetFirstHeaderCaseInsensitive() {
+        HttpHeaders httpHeadersMock = Mockito.mock(HttpHeaders.class);
+        when(httpHeadersMock.getRequestHeaders()).thenReturn(buildHeaders());
+
+        assertNull(HeaderHelper.getFirstHeaderCaseInsensitive(null, null));
+        assertEquals("value0", HeaderHelper.getFirstHeaderCaseInsensitive(httpHeadersMock, "header0"));
+        assertEquals("value0", HeaderHelper.getFirstHeaderCaseInsensitive(httpHeadersMock, "HEADER0"));
+        assertEquals("value0", HeaderHelper.getFirstHeaderCaseInsensitive(httpHeadersMock, "Header0"));
+    }
+
+    private MultivaluedMap<String,String> buildHeaders() {
+        MultivaluedMap<String, String> headers = new MultivaluedMapImpl<>();
+        List<String> values = new ArrayList<>();
+        values.add("value0");
+        values.add("value1");
+        values.add("value2");
+        headers.put("header0", values);
+        return headers;
+    }
+
 }

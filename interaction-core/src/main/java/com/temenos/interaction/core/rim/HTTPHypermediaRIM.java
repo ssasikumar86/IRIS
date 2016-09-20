@@ -785,9 +785,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 LOGGER.warn("Resource state [{}] has multiple auto-transitions. Using [{}].", currentState.getName(), autoTransition.getId());
             autoResponse = getResource(headers, autoTransition, ctx);
             autoTransitions = getTransitions(ctx, autoResponse.getResolvedState(), Transition.AUTO);
-        }while(!autoTransitions.isEmpty() 
-            && autoTransition.isType(Transition.AUTO) 
-            && autoResponse.getResponse().getStatus() == Status.OK.getStatusCode());
+        }while(!autoTransitions.isEmpty() && autoTransition.isType(Transition.AUTO));
         if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
             LOGGER.warn("Auto transition target did not return HttpStatus.OK status [{}]", autoResponse.getResponse().getStatus());
             responseBuilder.status(autoResponse.getResponse().getStatus());

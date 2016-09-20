@@ -117,6 +117,13 @@ public final class RequestContext {
     	return this.userPrincipal;
     }
 
+    /**
+     * Returns header entries for the specified header name
+     * using case sensitive search.
+     *
+     * @param headerName header name to search
+     * @return first header entry
+     */
     public List<String> getHeaders(String headerName) {
         if (headers.containsKey(headerName)) {
             return Collections.unmodifiableList(headers.get(headerName));
@@ -125,8 +132,44 @@ public final class RequestContext {
         }
     }
 
+    /**
+     * Returns header entries for the specified header name
+     * ignoring case, that is, it does a case insensitive search.
+     *
+     * @param headerName header name to search
+     * @return first header entry
+     */
+    public List<String> getHeadersCaseInsensitive(String headerName) {
+        for (String key : headers.keySet()) {
+            if (key.equalsIgnoreCase(headerName)) {
+                return Collections.unmodifiableList(headers.get(key));
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * Returns the first header entry for the specified header name
+     * using case sensitive search.
+     *
+     * @param headerName header name to search
+     * @return first header entry
+     */
     public String getFirstHeader(String headerName) {
         List<String> headerValues = getHeaders(headerName);
         return headerValues.isEmpty() ? null : headerValues.get(0);
     }
+
+    /**
+     * Returns the first header entry for the specified header name
+     * ignoring case, that is, it does a case insensitive search.
+     *
+     * @param headerName header name to search
+     * @return first header entry
+     */
+    public String getFirstHeaderCaseInsensitive(String headerName) {
+        List<String> headerValues = getHeadersCaseInsensitive(headerName);
+        return headerValues.isEmpty() ? null : headerValues.get(0);
+    }
+
 }

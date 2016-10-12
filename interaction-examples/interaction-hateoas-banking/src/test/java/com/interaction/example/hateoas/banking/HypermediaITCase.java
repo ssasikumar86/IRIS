@@ -205,17 +205,20 @@ public class HypermediaITCase extends JerseyTest {
 	}
 
 	/**
-	 * Attempt to PUT an invalid resource representation.  The supplied self link is not correctly formed.
+	 * Test to ensure that having a different self link from the target resource does
+	 * not prevent successful processing.
+	 * @throws Exception
 	 */
 	@Test
-	public void putInvalidResource() throws Exception {
-		RepresentationFactory representationFactory = new StandardRepresentationFactory();
-		ReadableRepresentation r = representationFactory.newRepresentation("~/xyz/123");
-		String halRequest = r.toString(RepresentationFactory.HAL_XML);
-		
-		// attempt to put to the notes collection, rather than an individual
-		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_XML).put(ClientResponse.class, halRequest);
-        assertEquals(400, response.getStatus());
+	public void putFundTransferHalJSONWithDifferentSelfLink() throws Exception {		
+	    double d = Math.random() * 10000000;
+        String id = Integer.toString((int) d);
+        String halRequest = buildHalResource("DifferentSelfLink", id).toString(RepresentationFactory.HAL_JSON);
+        String resourceUri = "/fundtransfers/" + id;        
+        ClientResponse response = webResource.path(resourceUri).accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).put(ClientResponse.class, halRequest);
+        assertEquals(200, response.getStatus());
+        response = webResource.path("/fundtransfers/" + id).accept(MediaType.APPLICATION_HAL_JSON).get(ClientResponse.class);
+        assertEquals(Response.Status.Family.SUCCESSFUL, Response.Status.fromStatusCode(response.getStatus()).getFamily());
 	}
 
 }

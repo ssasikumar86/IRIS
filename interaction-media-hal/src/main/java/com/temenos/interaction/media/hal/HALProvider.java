@@ -680,9 +680,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		try {
 			// create the hal resource
 			String baseUri = uriInfo.getBaseUri().toString();
-			ReadableRepresentation halResource = representationFactory.readRepresentation(mediaType.toString(), new InputStreamReader(entityStream));
-			// assume the client providing the representation knows something we don't
-			String halresourcePath = halResource.getResourceLink() != null ? halResource.getResourceLink().getHref() : null;
+			ReadableRepresentation halResource = representationFactory.readRepresentation(mediaType.toString(), new InputStreamReader(entityStream));			
 			
 			String resourcePath = uriInfo.getPath();
 						
@@ -698,12 +696,6 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			 */
 			if (!resourcePath.startsWith("/")) {
 				resourcePath = "/" + resourcePath;
-			}
-			
-			if (halresourcePath != null) {
-				if(!halresourcePath.endsWith(resourcePath)) {
-					throw new IllegalStateException();
-				}
 			}
 			
 			// get the entity name

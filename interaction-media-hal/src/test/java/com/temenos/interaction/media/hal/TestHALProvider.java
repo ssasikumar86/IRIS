@@ -992,6 +992,41 @@ public class TestHALProvider {
 		// cannot decorate a streaming resource so should fail
 	}
 	
+	@Test
+    public void testDeserialiseResourceWithSelfLinkDifferentFromRequestedResourceLinkForApplicationJson() throws IOException, URISyntaxException {
+        EntityResource<Entity> er = runDeserialiseResourceWithLinks(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE, "http://www.temenos.com/rest.svc/name", "/children");
+        assertNotNull(er.getEntity());
+        Entity entity = er.getEntity();
+        assertEquals("Children", entity.getName());
+    }
+    
+    @Test
+    public void testDeserialiseResourceWithSelfLinkDifferentFromRequestedResourceLinkForApplicationHalJson() throws IOException, URISyntaxException {
+        EntityResource<Entity> er = runDeserialiseResourceWithLinks(MediaType.APPLICATION_HAL_JSON_TYPE, "http://www.temenos.com/rest.svc/name", "/children");
+        assertNotNull(er.getEntity());
+        Entity entity = er.getEntity();
+        assertEquals("Children", entity.getName());
+    }
+    
+    @SuppressWarnings("unchecked")
+    private EntityResource<Entity> runDeserialiseResourceWithLinks(javax.ws.rs.core.MediaType mediaType, String selfLink, String targetResource) throws IOException, URISyntaxException {
+        ResourceStateMachine sm = new ResourceStateMachine(new ResourceState("Children", "initial", new ArrayList<Action>(), targetResource));
+        HALProvider hp = new HALProvider(createMockChildVocabMetadata(), new DefaultResourceStateProvider(sm));
+        UriInfo mockUriInfo = mock(UriInfo.class);
+        when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc"));
+        when(mockUriInfo.getPath()).thenReturn(targetResource);        
+        hp.setUriInfo(mockUriInfo);
+        Request requestContext = mock(Request.class);
+        when(requestContext.getMethod()).thenReturn("GET");
+        hp.setRequestContext(requestContext);
+
+        String strEntityStream = "{ \"_links\": { \"self\": { \"href\": \"" + selfLink + "\" } }, \"name\": \"noah\", \"age\": 2 }";
+        InputStream entityStream = new ByteArrayInputStream(strEntityStream.getBytes());
+        GenericEntity<EntityResource<Entity>> ge = new GenericEntity<EntityResource<Entity>>(new EntityResource<Entity>()) {}; 
+        EntityResource<Entity> er = (EntityResource<Entity>) hp.readFrom(RESTResource.class, ge.getType(), null, mediaType, null, entityStream);
+        return er;
+    }
+	
 	private EdmEntitySet createMockChildrenEntitySet() {
 		// mock a simple entity (Children entity set)
 		List<EdmProperty.Builder> eprops = new ArrayList<EdmProperty.Builder>();

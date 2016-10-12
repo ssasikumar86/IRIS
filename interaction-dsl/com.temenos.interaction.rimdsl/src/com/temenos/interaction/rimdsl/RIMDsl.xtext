@@ -7,7 +7,7 @@ DomainModel:
 ;
 
 DomainDeclaration:
-    'domain' name = QualifiedName '{'
+    'domain' name = QualifiedName (annotations+=MdfAnnotation)* '{'
         (rims += Ref)*
     '}'
 ;
@@ -29,7 +29,7 @@ QualifiedNameWithWildcard:
 ;
 
 ResourceInteractionModel:
-    'rim' name = ID '{'
+    'rim' name = ID (annotations+=MdfAnnotation)* '{'
     	// elements can appear in any order
     	(
 	        (events += Event)*
@@ -41,9 +41,8 @@ ResourceInteractionModel:
        	)
     '}'
 ;
-
 Event:
-	'event' name=ID '{' 
+	'event' name=ID (annotations+=MdfAnnotation)* '{' 
      	'method:' httpMethod=ID
     '}'
 ;
@@ -84,7 +83,7 @@ Relation:
     '}'	
 ;
 State: 
-    (isInitial?='initial' | isException?='exception')? 'resource' name=ID '{'
+    (isInitial?='initial' | isException?='exception')? 'resource' name=ID (annotations+=MdfAnnotation)* '{'
     	// elements can appear in any order
     	(
             // MUST define a 'type:'
@@ -115,7 +114,7 @@ ImplRef:
 			// actions [ SomeCommand, AnotherCommand ]
 			| ('actions' '[' ((actions+=ResourceCommand) (',' actions+=ResourceCommand)* ) ']')
 			// commands [ GET: SomeCommand ]
-            | ('commands' '[' ((methods+=MethodRef) (',' methods+=MethodRef)* ) ']')
+            | ('commands' ':'? '[' ((methods+=MethodRef) (',' methods+=MethodRef)* ) ']')
 	)
 ;
 
@@ -284,4 +283,7 @@ terminal DQ_STRING	:
 				| !('\\'|'"')
 			)* '"'
 		; 
+
+MdfAnnotation returns MdfAnnotation:
+    '@'    namespace=ID ':' name=ID ('(' properties+=DQ_STRING (',' properties+=DQ_STRING)* ')')?;
 

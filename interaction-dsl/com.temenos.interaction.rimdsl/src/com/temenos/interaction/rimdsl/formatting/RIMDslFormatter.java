@@ -47,18 +47,18 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 
 		// indent the domain {} block
 		setIndentationIncrementAndDecrementAndLinewrapAfter(c,
-				f.getDomainDeclarationAccess().getLeftCurlyBracketKeyword_2(),
-				f.getDomainDeclarationAccess().getRightCurlyBracketKeyword_4());
+				f.getDomainDeclarationAccess().getLeftCurlyBracketKeyword_3(),
+				f.getDomainDeclarationAccess().getRightCurlyBracketKeyword_5());
 
 		// indent the rim {} block
 		setIndentationIncrementAndDecrementAndLinewrapAfter(c,
-				f.getResourceInteractionModelAccess().getLeftCurlyBracketKeyword_2(),
-				f.getResourceInteractionModelAccess().getRightCurlyBracketKeyword_4());
+				f.getResourceInteractionModelAccess().getLeftCurlyBracketKeyword_3(),
+				f.getResourceInteractionModelAccess().getRightCurlyBracketKeyword_5());
 
 		// indent the resource {} block
 		setIndentationIncrementAndDecrementAndLinewrapAfter(c,
-				f.getStateAccess().getLeftCurlyBracketKeyword_3(),
-				f.getStateAccess().getRightCurlyBracketKeyword_5());
+				f.getStateAccess().getLeftCurlyBracketKeyword_4(),
+				f.getStateAccess().getRightCurlyBracketKeyword_6());
 
 		// indent the transition {} block
 		setIndentationIncrementAndDecrementAndLinewrapAfter(c,

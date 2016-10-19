@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import com.temenos.interaction.rimdsl.RIMDslInjectorProvider;
 import com.temenos.interaction.rimdsl.rim.DomainModel;
+import com.temenos.interaction.rimdsl.rim.DomainDeclaration;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import java.util.List;
 @RunWith(XtextRunner.class)
 @InjectWith(RIMDslInjectorProvider.class)
 public class FormatterTest {
-
+    
     @Inject
     ParseHelper<DomainModel> parser;
 
@@ -45,7 +46,8 @@ public class FormatterTest {
     public void testFormatting() throws Exception {
         String text = loadTestRIM("Simple.rim");
         DomainModel domainModel = parser.parse(text);
-        IParseResult parseResult = ((XtextResource) domainModel.eResource()).getParseResult();
+        DomainDeclaration domainDeclaration = (DomainDeclaration) domainModel.getRims().get(0);
+        IParseResult parseResult = ((XtextResource) domainDeclaration.eResource()).getParseResult();
         assertNotNull(parseResult);
         ICompositeNode rootNode = parseResult.getRootNode();
         String formattedText = formatter.format(rootNode, 0, text.length()).getFormattedText();

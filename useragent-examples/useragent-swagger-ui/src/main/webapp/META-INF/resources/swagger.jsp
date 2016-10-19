@@ -18,92 +18,192 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #L%
   --%>
+<%@page import="java.io.*"%>
 <%
     response.setHeader("Access-Control-Allow-Origin", "*");
-    response.setHeader("Access-Control-Allow-Headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
+    response.setHeader("Access-Control-Allow-Headers","Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
     response.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
-	request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
+    request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
+    
+    String pathName = request.getRealPath(request.getServletPath());
+    //pathName += "/api-docs";
+    File jsp = new File(pathName);
+    File dir = jsp.getParentFile();
+    File[] list = dir.listFiles();
+    File[] listJson = null;
+    String defaultEntry = null;
+    for(File f : list) {
+        String name = f.getName();
+        if(name.equals("api-docs")) {
+            listJson = f.listFiles();
+            if(null!=listJson && listJson.length > 0) {
+                defaultEntry = listJson[0].getName(); 
+            }
+        }
+    }
 %>
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Swagger UI</title>
-  <link href='//fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'/>
-  <link href='css/highlight.default.css' media='screen' rel='stylesheet' type='text/css'/>
-  <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
-  <script type="text/javascript" src="lib/shred.bundle.js"></script>
-  <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
-  <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
-  <script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
-  <script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
-  <script src='lib/handlebars-1.0.0.js' type='text/javascript'></script>
-  <script src='lib/underscore-min.js' type='text/javascript'></script>
-  <script src='lib/backbone-min.js' type='text/javascript'></script>
-  <script src='lib/swagger.js' type='text/javascript'></script>
-  <script src='swagger-ui.js' type='text/javascript'></script>
-  <script src='lib/highlight.7.3.pack.js' type='text/javascript'></script>
-  <script type="text/javascript">
+<meta charset="UTF-8">
+<title>Swagger UI</title>
+<link rel="icon" type="image/png" href="images/favicon-32x32.png" sizes="32x32" />
+<link rel="icon" type="image/png" href="images/favicon-16x16.png" sizes="16x16" />
+<link href='css/typography.css' media='screen' rel='stylesheet' type='text/css' />
+<link href='css/reset.css' media='screen' rel='stylesheet' type='text/css' />
+<link href='css/screen.css' media='screen' rel='stylesheet' type='text/css' />
+<link href='css/reset.css' media='print' rel='stylesheet' type='text/css' />
+<link href='css/print.css' media='print' rel='stylesheet' type='text/css' />
+
+<script src='lib/object-assign-pollyfill.js' type='text/javascript'></script>
+<script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
+<script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
+<script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
+<script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+<script src='lib/handlebars-4.0.5.js' type='text/javascript'></script>
+<script src='lib/lodash.min.js' type='text/javascript'></script>
+<script src='lib/backbone-min.js' type='text/javascript'></script>
+<script src='swagger-ui.js' type='text/javascript'></script>
+<script src='lib/highlight.9.1.0.pack.js' type='text/javascript'></script>
+<script src='lib/highlight.9.1.0.pack_extended.js' type='text/javascript'></script>
+<script src='lib/jsoneditor.min.js' type='text/javascript'></script>
+<script src='lib/marked.js' type='text/javascript'></script>
+<script src='lib/swagger-oauth.js' type='text/javascript'></script>
+
+<!-- Some basic translations -->
+<!-- <script src='lang/translator.js' type='text/javascript'></script> -->
+<!-- <script src='lang/ru.js' type='text/javascript'></script> -->
+<!-- <script src='lang/en.js' type='text/javascript'></script> -->
+
+<script type="text/javascript">
     $(function () {
-      window.swaggerUi = new SwaggerUi({
-      url: "<%=(request.getAttribute("API_DOCS_URL") != null ? request.getAttribute("API_DOCS_URL") : "http://petstore.swagger.wordnik.com/api/api-docs")%>",
-      dom_id: "swagger-ui-container",
-      supportedSubmitMethods: ['get', 'post', 'put', 'delete'],
-      onComplete: function(swaggerApi, swaggerUi){
-        if(console) {
-          console.log("Loaded SwaggerUI")
+	      var url = window.location.search.match(/url=([^&]+)/);
+	      var pathArray = location.href.split( '/' );
+	      var protocol = pathArray[0];
+	      var host = pathArray[2];
+	      var project = pathArray[3];
+	      var base = protocol + '//' + host + '/' + project;
+	      if (url && url.length > 1) {
+	              url = url[1];
+	      } else {
+	      	
+	          <%
+	            if (defaultEntry != null) {
+	                %> url = base + "/api-docs?file=api-docs/" + "<%= defaultEntry %>"<%
+	            } else {
+	                %> url = "http://petstore.swagger.io/v2/swagger.json"<%
+	            }
+	          
+	          %>
+	      }
+
+        hljs.configure({
+            highlightSizeThreshold : 5000
+        });
+
+        // Pre load translate...
+        if (window.SwaggerTranslator) {
+            window.SwaggerTranslator.translate();
         }
-        $('pre code').each(function(i, e) {hljs.highlightBlock(e)});
-      },
-      onFailure: function(data) {
-        if(console) {
-          console.log("Unable to Load SwaggerUI");
-          console.log(data);
+        window.swaggerUi = new SwaggerUi(
+                {
+                    url : url,
+                    dom_id : "swagger-ui-container",
+                    supportedSubmitMethods : [ 'get', 'post', 'put', 'delete',
+                            'patch' ],
+                    onComplete : function(swaggerApi, swaggerUi) {
+                        if (typeof initOAuth == "function") {
+                            initOAuth({
+                                clientId : "your-client-id",
+                                clientSecret : "your-client-secret-if-required",
+                                realm : "your-realms",
+                                appName : "your-app-name",
+                                scopeSeparator : " ",
+                                additionalQueryStringParams : {}
+                            });
+                        }
+
+                        $('pre code').each(function(i, e) {
+                            hljs.highlightBlock(e)
+                        });
+
+                        if (window.SwaggerTranslator) {
+                            window.SwaggerTranslator.translate();
+                        }
+                    },
+                    onFailure : function(data) {
+                        log("Unable to Load SwaggerUI");
+                    },
+                    docExpansion : "none",
+                    jsonEditor : false,
+                    defaultModelRendering : 'schema',
+                    showRequestHeaders : false
+                });
+        
+        $('#input_apiKey').change(function() {
+            var key = $('#input_apiKey')[0].value;
+            console.log("key: " + key);
+            if(key && key.trim() != "") {
+                console.log("added key " + key);
+                swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", key, "header"));
+            }
+        })
+
+        window.swaggerUi.load();
+
+        function log() {
+            if ('console' in window) {
+                console.log.apply(console, arguments);
+            }
         }
-      },
-      docExpansion: "none"
     });
-
-    $('#input_apiKey').change(function() {
-      var key = $('#input_apiKey')[0].value;
-      console.log("key: " + key);
-      if(key && key.trim() != "") {
-        console.log("added key " + key);
-        window.authorizations.add("key", new ApiKeyAuthorization("api_key", key, "query"));
-      }
-    })
-    window.swaggerUi.load();
-  });
-
-  </script>
+</script>
 </head>
 
-<body>
-<div id='header'>
-  <div class="swagger-ui-wrap">
-    <a id="logo" href="http://swagger.wordnik.com">swagger</a>
+<body class="swagger-section">
+	<div id='header'>
+		<div class="swagger-ui-wrap">
+			<a id="logo" href="http://swagger.io"><img class="logo__img" alt="swagger" height="30" width="30"
+				src="images/logo_small.png" /><span class="logo__title">swagger</span></a>
+			<form id='api_selector'>
+				<!--<div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div> -->
+				<div class="input">
+					<select id="input_baseUrl" name="baseUrl">
+					</select>
+				</div>
+				<div id='auth_container'></div>
+				<div class='input'>
+					<a id="explore" class="header__btn" href="#" data-sw-translate>Explore</a>
+				</div>
+			</form>
+		</div>
+	</div>
 
-    <form id='api_selector'>
-      <div class='input icon-btn'>
-        <img id="show-pet-store-icon" src="images/pet_store_api.png" title="Show Swagger Petstore Example Apis">
-      </div>
-      <div class='input icon-btn'>
-        <img id="show-wordnik-dev-icon" src="images/wordnik_api.png" title="Show Wordnik Developer Apis">
-      </div>
-      <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div>
-      <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
-      <div class='input'><a id="explore" href="#">Explore</a></div>
-    </form>
-  </div>
-</div>
+	<div id="message-bar" class="swagger-ui-wrap" data-sw-translate>&nbsp;</div>
+	<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+	<script>
+    
+        var url = window.location.search.match(/url=([^&]+)/);
+        var pathArray = location.href.split('/');
+        var protocol = pathArray[0];
+        var host = pathArray[2];
+        var project = pathArray[3];
+        var base = protocol + '//' + host + '/' + project;
+        
+        var spec = {
+                <%
+                for(File json : listJson) {
+                    %>'<%= json.getName().replace(".json", "").replace("api-docs-", "") %>' : base + "/" + "api-docs?file=" + "api-docs" + "/" + "<%= json.getName() %>",<%
+                }
+                %>
+                }
 
-<div id="message-bar" class="swagger-ui-wrap">
-  &nbsp;
-</div>
+        var sel = $('#input_baseUrl');
 
-<div id="swagger-ui-container" class="swagger-ui-wrap">
-
-</div>
-
+        $.each(spec, function(key, val) {
+            var opt = $('<option>').prop('value', val).html(key);
+            sel.append(opt);
+        });
+    </script>
 </body>
-
 </html>

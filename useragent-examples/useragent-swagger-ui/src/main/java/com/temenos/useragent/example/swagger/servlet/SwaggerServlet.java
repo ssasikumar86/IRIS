@@ -37,6 +37,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.util.StringUtils;
+
 public class SwaggerServlet extends HttpServlet {
     private static final long serialVersionUID = 8016912633666133628L;
 	private static final String SWAGGER_FILE_NAME = "api-docs.json";
@@ -54,16 +56,25 @@ public class SwaggerServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
+		    
+		    String fileName = req.getParameter("file");
+		    if(StringUtils.isEmpty(fileName)){
+		        fileName = SWAGGER_FILE_NAME;
+		    }
+		    
 			// Parse the api-docs.json file to get a JsonReader object
-			JsonReader jsonReader = Json.createReader(new InputStreamReader(getServletContext().getResourceAsStream("/" + SWAGGER_FILE_NAME)));
+			JsonReader jsonReader = Json.createReader(new InputStreamReader(getServletContext().getResourceAsStream("/" + fileName)));
 			JsonObject jsonSwaggerObject = jsonReader.readObject();
 			jsonReader.close();
 			// Build a JsonReader object with the basePath and the data from api-docs.json in order to write it to the response
 			JsonObjectBuilder builder = Json.createObjectBuilder();
-			builder.add("basePath", "http://" + req.getServerName() + ":" + req.getServerPort() + req.getContextPath() + "/" + irisUrlMapping);
 			for (Entry<String, JsonValue> entry : jsonSwaggerObject.entrySet()) {
 				builder.add(entry.getKey(), entry.getValue());
 			}
+			
+			builder.add("basePath", req.getContextPath() + "/" + irisUrlMapping);
+			builder.add("host", req.getServerName() + ":" + req.getServerPort());
+			
 			JsonObject jsonFinalSwaggerObject = builder.build();
 			JsonWriter jsonWriter = Json.createWriter(resp.getOutputStream());
 			jsonWriter.writeObject(jsonFinalSwaggerObject);

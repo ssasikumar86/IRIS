@@ -29,9 +29,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import com.google.inject.Injector;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.resource.ResourceMetadataManager;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetup;
-import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSwagger;
 import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSpringPRD;
+import com.temenos.interaction.rimdsl.RIMDslStandaloneSetupSwagger;
 import com.temenos.interaction.rimdsl.generator.launcher.Generator;
 import com.temenos.interaction.rimdsl.generator.launcher.ValidatorEventListener;
 
@@ -149,9 +151,11 @@ public class RIMGeneratorMojo extends AbstractMojo {
     			swaggerTargetDirectory.mkdirs();
     		}
     		Injector injector = new RIMDslStandaloneSetupSwagger().createInjectorAndDoEMFRegistration();
+    		ResourceMetadataManager metadataManager = new ResourceMetadataManager();
+    		Metadata metadata = new Metadata(metadataManager);
     		Generator generator = injector.getInstance(Generator.class);
     		if (rimSourceDir != null) {
-        		ok = generator.runGeneratorDir(rimSourceDir.toString(), swaggerTargetDirectory.toString());
+        		ok = generator.runGeneratorDir(rimSourceDir.toString(), metadata, swaggerTargetDirectory.toString());
     		} else {
         		ok = generator.runGenerator(rimSourceFile.toString(), swaggerTargetDirectory.toString());
     		}

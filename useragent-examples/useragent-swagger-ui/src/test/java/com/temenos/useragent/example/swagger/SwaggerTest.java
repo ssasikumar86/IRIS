@@ -57,7 +57,7 @@ public class SwaggerTest {
 	
 	private static final int EXPECTED_SWAGGER_SERVLET_RESPONSE_STATUS = 200;
 	
-	private static final String EXPECTED_SWAGGER_SERVLET_SIMPLE_STATES_SWAGGER = "{\"basePath\":\"http://"+REQUEST_SERVER_NAME + ":" + REQUEST_SERVER_PORT + REQUEST_CONTEXT_PATH + "/" + SWAGGER_SERVLET_INIT_PARAM_VALUE + "\",\"apiVersion\":\"0.2\",\"swaggerVersion\":\"1.2\",\"resourcePath\":\"/A\",\"apis\":[{\"path\":\"/A\",\"operations\":[{\"method\":\"GET\",\"nickname\":\"A\"}]},{\"path\":\"/B\",\"operations\":[{\"method\":\"POST\",\"nickname\":\"B\"},{\"method\":\"GET\",\"nickname\":\"B\"}]}]}";
+	private static final String EXPECTED_SWAGGER_SERVLET_SIMPLE_STATES_SWAGGER = "{\"apiVersion\":\"0.2\",\"swaggerVersion\":\"1.2\",\"resourcePath\":\"/A\",\"apis\":[{\"path\":\"/A\",\"operations\":[{\"method\":\"GET\",\"nickname\":\"A\"}]},{\"path\":\"/B\",\"operations\":[{\"method\":\"POST\",\"nickname\":\"B\"},{\"method\":\"GET\",\"nickname\":\"B\"}]}],\"basePath\":\""+ REQUEST_CONTEXT_PATH + "/" + SWAGGER_SERVLET_INIT_PARAM_VALUE + "\",\"host\":\""+REQUEST_SERVER_NAME + ":" + REQUEST_SERVER_PORT +"\"}";
 
 	private static final DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
 	

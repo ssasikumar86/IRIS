@@ -1,6 +1,6 @@
 // test comment
 domain SimpleModel {
-	rim Simple {
+	rim Simple @ Api : tags ( "Simple" ) {
 
 		event GET { method: GET }
 		event PUT { method: PUT }
@@ -12,6 +12,8 @@ domain SimpleModel {
 		command GETNotes
 		command GETNote
 		command DELETENote
+		
+		basepath: "/Simple"
 
 		initial resource notes {
 			type: collection

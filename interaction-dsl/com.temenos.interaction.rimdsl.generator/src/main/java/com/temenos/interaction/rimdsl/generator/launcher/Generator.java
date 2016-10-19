@@ -25,9 +25,15 @@ package com.temenos.interaction.rimdsl.generator.launcher;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.generator.IGenerator;
 import org.eclipse.xtext.generator.JavaIoFileSystemAccess;
@@ -37,8 +43,13 @@ import org.eclipse.xtext.util.CancelIndicator;
 import org.eclipse.xtext.validation.CheckMode;
 import org.eclipse.xtext.validation.IResourceValidator;
 import org.eclipse.xtext.validation.Issue;
+import org.eclipse.xtext.xbase.lib.IteratorExtensions;
 
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
+import com.temenos.interaction.core.entity.EntityMetadata;
+import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.rimdsl.rim.State;
 
 /**
  * This class generates code from a DSL model.
@@ -77,6 +88,21 @@ public class Generator {
 		return result;
 	}
 	
+	public boolean runGeneratorDir(String inputDirPath, Metadata metadata, String outputPath) {
+        List<String> files = getFiles(inputDirPath, ".rim");
+        for (String modelPath : files) {
+            resourceSet.getResources().add(resourceSet.getResource(URI.createFileURI(modelPath), true));
+        }
+        boolean result = true;
+        for (String modelPath : files) {
+            boolean fileResult = runGenerator(modelPath, metadata, outputPath);
+            if (!fileResult) {
+                result = fileResult;
+            }
+        }
+        return result;
+    }
+	
 	protected String toSystemFileName(String fileName) {
 		return fileName.replace("/", File.separator);
 	}
@@ -110,10 +136,42 @@ public class Generator {
 	}
 	
 	public boolean runGenerator(String inputPath, String outputPath) {
+	    return runGenerator(inputPath, null, outputPath);
+	}
+	
+	public boolean runGenerator(String inputPath, Metadata metadata, String outputPath) {
 		
 		// load the resource
 		resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
 		Resource resource = resourceSet.getResource(URI.createFileURI(inputPath), true);
+        
+		if(metadata!=null) {		    
+		    Map<String, Object> entitiesMap = new HashMap<String, Object>();		    
+		    for(State key : Iterables.<State>filter(IteratorExtensions.<EObject>toIterable(resource.getAllContents()), State.class)) {		        
+                String entity = key.getEntity().getName();                
+                if (StringUtils.isNotEmpty(entity)) {                
+                    try {                        
+                        EntityMetadata em = metadata.getEntityMetadata(entity);                        
+                        if (null != em) {                            
+                            Map<String, Object> entityPropMap = new HashMap<String, Object>();                            
+                            for (String propertySimple : em.getTopLevelProperties()) {                                
+                                if(!em.isPropertyList(propertySimple)) {
+                                    String propertyName = em.getSimplePropertyName(propertySimple);
+                                    entityPropMap.put(propertyName, "string");
+                                } else {                                    
+                                    String propertyName = em.getSimplePropertyName(propertySimple);
+                                    entityPropMap.put(propertyName, complexTypeHandler(propertySimple, em));
+                                }
+                            }                            
+                            entitiesMap.put(entity, entityPropMap);
+                        }                        
+                    } catch (Exception e) {
+                        System.out.println("Entity Not found: " + entity);
+                    }
+                }
+		    }
+		    resource.getResourceSet().getLoadOptions().put("Metadata", entitiesMap);
+		}
 
 		// validate the resource
 		List<Issue> list = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
@@ -137,4 +195,37 @@ public class Generator {
 			this.listener = listener;
 		}
 	}	
+	
+	public Map<String, Object> complexTypeHandler(String propertyName, EntityMetadata em) {
+	    
+	    Map<String, Object> map = new HashMap<>();
+	    
+	    // 1st level
+	    
+	    for (String property : em.getPropertyVocabularyKeySet()) {
+	        
+	        if(property.startsWith(propertyName) && !property.equals(propertyName)) {
+	            
+	            if(em.isPropertyList(property)) {
+	                // Complex
+	                    
+	                Map<String,Object> subMap = complexTypeHandler(property, em);
+	                map.put(em.getSimplePropertyName(property),subMap);
+	            
+	            } else {
+	                // SIMPLE	                
+	                Pattern pattern = Pattern.compile("(?:"+propertyName+")(?:\\.)(.*)");
+	                Matcher matcher = pattern.matcher(property);
+	                while(matcher.find()) {
+	                    String propertyCapture = matcher.group(1);
+	                    if(em.getSimplePropertyName(property).equals(propertyCapture)) {
+	                        map.put(em.getSimplePropertyName(property),"string");
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    
+	    return map;	    
+	}
 }

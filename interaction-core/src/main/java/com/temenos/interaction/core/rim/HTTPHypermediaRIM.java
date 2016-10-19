@@ -779,11 +779,20 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             List<Transition> autoTransitions) {
         Transition autoTransition;
         ResponseWrapper autoResponse;
+        Map<ResourceState, ResponseWrapper> resolvedDynamicResourceStates = new HashMap<ResourceState, ResponseWrapper>();
         do {
             autoTransition = autoTransitions.get(0);
             if (autoTransitions.size() > 1)
                 LOGGER.warn("Resource state [{}] has multiple auto-transitions. Using [{}].", currentState.getName(), autoTransition.getId());
             autoResponse = getResource(headers, autoTransition, ctx);
+            if(autoTransition.getTarget() instanceof DynamicResourceState){
+                if(resolvedDynamicResourceStates.get(autoResponse.getResolvedState()) == null){
+                    resolvedDynamicResourceStates.put(autoResponse.getResolvedState(), autoResponse);
+                }else{ //we have visited this resource before
+                    autoResponse = resolvedDynamicResourceStates.get(autoResponse.getResolvedState());
+                    break;
+                }
+            }
             autoTransitions = getTransitions(ctx, autoResponse.getResolvedState(), Transition.AUTO);
         }while(!autoTransitions.isEmpty() && autoTransition.isType(Transition.AUTO));
         if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
@@ -856,7 +865,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             // Simply pass the query parameters as is
             newQueryParameters = ctx.getQueryParameters();
         }
-
         try {
             ResourceRequestConfig config = new ResourceRequestConfig.Builder().transition(resourceTransition).build();
             Event event = new Event("", "GET");

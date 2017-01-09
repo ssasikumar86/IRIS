@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
@@ -656,7 +657,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     
                     responseBuilder.status(autoResponse.getResponse().getStatus());
                 }
-                resource = (RESTResource) ((GenericEntity<?>) autoResponse.getResponse().getEntity()).getEntity();
+                resource = autoResponse.getRESTResource();
                 assert (resource != null);
                 responseBuilder.entity(resource.getGenericEntity());
                 responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
@@ -781,7 +782,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                     break;
                 }
             }
-            autoTransitions = getTransitions(ctx, autoResponse.getResolvedState(), Transition.AUTO);
+            InteractionContext newCtx = new InteractionContext(ctx, headers, null, null, autoResponse.getResolvedState());
+            newCtx.setResource(autoResponse.getRESTResource());
+            autoTransitions = getTransitions(newCtx, autoResponse.getResolvedState(), Transition.AUTO);
         }while(!autoTransitions.isEmpty() && autoTransition.isType(Transition.AUTO));
         if (autoResponse.getResponse().getStatus() != Status.OK.getStatusCode()) {
             LOGGER.warn("Auto transition target did not return HttpStatus.OK status [{}]", autoResponse.getResponse().getStatus());
@@ -841,45 +844,28 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
      */
     private ResponseWrapper getResource(HttpHeaders headers, Transition resourceTransition, InteractionContext ctx) {
         ResourceState targetState = resourceTransition.getTarget();
-        ResourceStateAndParameters stateAndParams;
-        MultivaluedMap<String, String> newQueryParameters = null;
+        MultivaluedMap<String, String> newQueryParameters = copyParameters(ctx.getQueryParameters());
+        MultivaluedMap<String, String> newPathParameters = buildPathParameters(resourceTransition, ctx);
         if (targetState instanceof DynamicResourceState) {
-            Map<String, Object> transitionProperties = new HashMap<String, Object>();
-            stateAndParams = hypermediaEngine.resolveDynamicState(
-                    (DynamicResourceState) targetState, transitionProperties, ctx);
+            ResourceStateAndParameters stateAndParams = hypermediaEngine.resolveDynamicState((DynamicResourceState) targetState, new HashMap<String, Object>(), ctx);
+            MultivaluedMap<String, String> stateParameters = getStateParameters(stateAndParams);
             targetState = stateAndParams.getState();
-            newQueryParameters = ParameterAndValue.getParamAndValueAsMultiValueMap(stateAndParams.getParams());
-        } else {
-            // Simply pass the query parameters as is
-            newQueryParameters = ctx.getQueryParameters();
+            newQueryParameters = stateParameters;
+            newPathParameters.putAll(filterParameters(stateParameters, newPathParameters.keySet()));
         }
-
         try {
             ResourceRequestConfig config = new ResourceRequestConfig.Builder().transition(resourceTransition).build();
             Event event = new Event("", "GET");
             InteractionCommand action = hypermediaEngine.buildWorkflow(event, targetState.getActions());
-            MultivaluedMap<String, String> newPathParameters = new MultivaluedMapImpl<String>();
-            newPathParameters.putAll(ctx.getPathParameters());
-            RESTResource currentResource = ctx.getResource();
 
-            if (currentResource != null) {
-                Map<String, Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition,
-                        getEntityResource(currentResource), ctx.getPathParameters(), ctx.getQueryParameters());
-                for (String key : transitionProperties.keySet()) {
-                    if (transitionProperties.get(key) != null)
-                        newPathParameters.add(key, transitionProperties.get(key).toString());
-                }
-            }
-
-            InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, newQueryParameters,
-                    targetState);
-            Response response = handleRequest(headers, newCtx, event, action, (EntityResource<?>) currentResource,
-                    config, true);
+            InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, newQueryParameters, targetState);
+            Response response = handleRequest(headers, newCtx, event, action, (EntityResource<?>) ctx.getResource(), config, true);
             
             //forward any parameters set by the executed InteractionCommand to the InteractionContext
             ctx.getQueryParameters().putAll(newCtx.getQueryParameters());
             ctx.getOutQueryParameters().putAll(newCtx.getOutQueryParameters());
-            
+            ctx.getPathParameters().putAll(filterParameters(newPathParameters, ctx.getPathParameters().keySet()));
+
             return new ResponseWrapper(response, new ArrayList<Link>(
                     new LinkGeneratorImpl(hypermediaEngine, targetState.getSelfTransition(), newCtx
                     ).createLink(newPathParameters, newQueryParameters, response.getEntity())
@@ -892,6 +878,42 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             LOGGER.error("Failed to access resource [{}] with error:", targetState.getId(), ie);
             throw new RuntimeException(ie);
         }
+    }
+
+    protected MultivaluedMap<String, String> filterParameters(MultivaluedMap<String, String> parameters, Set<String> filterKeys) {
+        MultivaluedMap<String, String> filteredParameters = new MultivaluedMapImpl<>();
+        if (filterKeys == null) {
+            return filteredParameters;
+        }
+        for (String filterKey : filterKeys) {
+            if (parameters.containsKey(filterKey)) {
+                filteredParameters.put(filterKey, parameters.get(filterKey));
+            }
+        }
+        return filteredParameters;
+    }
+
+    protected MultivaluedMap<String, String> getStateParameters(ResourceStateAndParameters stateAndParams) {
+        return ParameterAndValue.getParamAndValueAsMultiValueMap(stateAndParams.getParams());
+    }
+
+    protected MultivaluedMap<String, String> buildPathParameters(Transition resourceTransition, InteractionContext ctx) {
+        MultivaluedMap<String, String> pathParameters = copyParameters(ctx.getPathParameters());
+        if (ctx.getResource() != null) {
+            Map<String, Object> transitionProperties = hypermediaEngine.getTransitionProperties(resourceTransition,
+                    getEntityResource(ctx.getResource()), ctx.getPathParameters(), ctx.getQueryParameters());
+            for (Entry<String, Object> entry : transitionProperties.entrySet()) {
+                if (transitionProperties.get(entry.getKey()) != null)
+                    pathParameters.add(entry.getKey(), entry.getValue().toString());
+            }
+        }
+        return pathParameters;
+    }
+
+    protected MultivaluedMap<String, String> copyParameters(MultivaluedMap<String, String> parameters) {
+        MultivaluedMap<String, String> parametersCopy = new MultivaluedMapImpl<>();
+        parametersCopy.putAll(parameters);
+        return parametersCopy;
     }
 
     // helper function

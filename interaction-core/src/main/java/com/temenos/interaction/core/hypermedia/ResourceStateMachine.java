@@ -40,6 +40,11 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
 
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.transition.EntityPropertiesGenerator;
+import com.temenos.interaction.core.hypermedia.transition.TransitionPropertiesBuilder;
+import com.temenos.interaction.core.hypermedia.transition.UriPropertiesGenerator;
+import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommandBuilder;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
@@ -57,7 +62,6 @@ import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
-import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.MetaDataResource;
@@ -161,15 +165,9 @@ public class ResourceStateMachine {
 	}
 
 	public InteractionCommand buildWorkflow(Event event, List<Action> actions) {
-		if (actions.size() > 0) {
-			AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
-			for (Action action : actions) {
-				assert (action != null && event != null);
-				workflow.addCommand(getCommandController().fetchCommand(action.getName()));
-			}
-			return workflow;
-		}
-		return null;
+		assert (event != null);
+		AbortOnErrorWorkflowStrategyCommand command = new AbortOnErrorWorkflowStrategyCommandBuilder(getCommandController()).build(actions);
+		return !command.isEmpty() ? command : null;
 	}
 
 	public ResourceState determineState(Event event, String resourcePath) {
@@ -846,7 +844,7 @@ public class ResourceStateMachine {
 						Collection<Link> generatedLinks = linkGenerator.createLink(resourceProperties, ctx.getQueryParameters(), er.getEntity());
 
 						if (addLink(transition, ctx, er, rimHander)) {
-							eLinks.addAll(generatedLinks);
+						    eLinks.addAll(generatedLinks);
 						}
 
 						er.setLinks(eLinks);
@@ -894,10 +892,10 @@ public class ResourceStateMachine {
 					entityResource = ((EntityResource<?>) ctx.getResource());
 				}
 				if (addLink(transition, ctx, entityResource, rimHander)) {
-					LinkGenerator linkGenerator = new LinkGeneratorImpl(this, transition, ctx);
-					links.addAll(linkGenerator.createLink(resourceProperties, ctx.getQueryParameters(), entity));
-				}
+                    LinkGenerator linkGenerator = new LinkGeneratorImpl(this, transition, ctx);
+                    links.addAll(linkGenerator.createLink(resourceProperties, ctx.getQueryParameters(), entity));
 			}
+		}
 		}
 		resourceEntity.setLinks(links);
 		return links;
@@ -1062,93 +1060,32 @@ public class ResourceStateMachine {
 
     public ResourceStateAndParameters resolveDynamicState(DynamicResourceState dynamicResourceState,
             Map<String, Object> transitionProperties, InteractionContext ctx) {
-		Object[] aliases = getResourceAliases(transitionProperties, dynamicResourceState, ctx).toArray();
+		DynamicResourceStateResolver dynamicResourceStateResolver = new DynamicResourceStateResolver(dynamicResourceState, resourceLocatorProvider);
+		dynamicResourceStateResolver.setParameterResolverProvider(parameterResolverProvider);
+		dynamicResourceStateResolver.addProperties(transitionProperties);
+		dynamicResourceStateResolver.addProperties(ctx.getAttributes());
+		ResourceStateAndParameters result = dynamicResourceStateResolver.resolve();
 
-		// Use resource locator to resolve dynamic target
-		String locatorName = dynamicResourceState.getResourceLocatorName();
-
-		ResourceLocator locator = resourceLocatorProvider.get(locatorName);
-
-		ResourceStateAndParameters result = new ResourceStateAndParameters();
-
-		ResourceState tmpState = locator.resolve(aliases);
-
-        if (tmpState == null) {
-			// A dead link, target could not be found
-            LOGGER.error("Dead link - Failed to resolve resource using {} resource locator", dynamicResourceState.getResourceLocatorName());
-		} else {
-			boolean registrationRequired = false;
-
-            for (Transition transition : tmpState.getTransitions()) {
-				ResourceState target = transition.getTarget();
-
-                if (target instanceof LazyResourceState || target instanceof LazyCollectionResourceState) {
-					registrationRequired = true;
-				}
-			}
-
-            if (registrationRequired) {
-				register(tmpState, HttpMethod.GET);
-			}
-
-            result.setState(tmpState);
-
-            if (parameterResolverProvider != null) {
-				try {
-					// Add query parameters
-					ResourceParameterResolver parameterResolver = parameterResolverProvider.get(locatorName);
-					ResourceParameterResolverContext context = new ResourceParameterResolverContext(dynamicResourceState.getEntityName());					
-					ParameterAndValue[] paramsAndValues = resolveParameterValues(parameterResolver.resolve(aliases, context), transitionProperties);
-					result.setParams(paramsAndValues);
-				} catch (IllegalArgumentException e) {
-				    LOGGER.warn("Failed to find parameter resolver for: {}", locatorName, e);
-				}
-			}
+		if (result != null) {
+			registerResolvedDynamicState(result.getState());
 		}
 
 		return result;
 
 	}
 
-	private ParameterAndValue[] resolveParameterValues(ParameterAndValue[] parameterAndValues, Map<String, Object> transitionProperties) {
-		if (parameterAndValues == null || parameterAndValues.length == 0) {
-			return parameterAndValues;
+	public boolean registerResolvedDynamicState(ResourceState resourceState) {
+		boolean registrationRequired = false;
+		for (Transition transition : resourceState.getTransitions()) {
+			ResourceState target = transition.getTarget();
+			if (target instanceof LazyResourceState || target instanceof LazyCollectionResourceState) {
+				registrationRequired = true;
+			}
 		}
-		ParameterAndValue[] result = new ParameterAndValue[parameterAndValues.length];
-		for (int i = 0; i < parameterAndValues.length; i++) {
-			String value = HypermediaTemplateHelper.templateReplace(parameterAndValues[i].getValue(), transitionProperties);
-			result[i] = new ParameterAndValue(parameterAndValues[i].getParameter(), value);
+		if (registrationRequired) {
+			register(resourceState, HttpMethod.GET);
 		}
-		return result;
-	}
-
-	/**
-	 * @param transitionProperties
-	 * @param dynamicResourceState
-     * @param ctx
-	 * @return
-	 */
-	private List<Object> getResourceAliases(Map<String, Object> transitionProperties,
-			DynamicResourceState dynamicResourceState, InteractionContext ctx) {
-		List<Object> aliases = new ArrayList<Object>();
-		
-		final Pattern pattern = Pattern.compile("\\{*([a-zA-Z0-9.]+)\\}*");
-
-		for (String resourceLocatorArg : dynamicResourceState.getResourceLocatorArgs()) {
-            Matcher matcher = pattern.matcher(resourceLocatorArg);
-            matcher.find();
-            String key = matcher.group(1);
-
-            if (transitionProperties.containsKey(key)) {
-                aliases.add(transitionProperties.get(key));
-            } else if (ctx != null && ctx.getAttribute(key)!=null) {
-                aliases.add(ctx.getAttribute(key));                
-            } else { //Keep all params
-            	aliases.add(key);
-            }
-        }
-		
-		return aliases;
+		return registrationRequired;
 	}
 
 	/**
@@ -1167,43 +1104,12 @@ public class ResourceStateMachine {
 	 */
 	public Map<String, Object> getTransitionProperties(Transition transition, Object entity,
 			MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
-		Map<String, Object> transitionProps = new HashMap<String, Object>();
-
-		// Obtain query parameters
-		if (queryParameters != null) {
-			for (String key : queryParameters.keySet()) {
-				transitionProps.put(key, queryParameters.getFirst(key));
-			}
-		}
-
-		// Obtain path parameters
-		if (pathParameters != null) {
-			for (String key : pathParameters.keySet()) {
-				transitionProps.put(key, pathParameters.getFirst(key));
-			}
-		}
-
-		// Obtain entity properties
-		Map<String, Object> entityProperties = null;
-		if (entity != null && transformer != null) {
-			LOGGER.debug("Using transformer [{}] to build properties for link [{}]", transformer, transition);
-			entityProperties = transformer.transform(entity);
-			if (entityProperties != null) {
-				transitionProps.putAll(entityProperties);
-			}
-		}
-
-		// Obtain linkage properties
-		Map<String, String> linkParameters = transition.getCommand().getUriParameters();
-		if (linkParameters != null) {
-			for (String key : linkParameters.keySet()) {
-				String value = linkParameters.get(key);
-				value = HypermediaTemplateHelper.templateReplace(value, transitionProps);
-				transitionProps.put(key, value);
-			}
-		}
-
-		return transitionProps;
+		return new TransitionPropertiesBuilder(transformer)
+				.addPathParameters(pathParameters)
+				.addQueryParameters(queryParameters)
+				.addEntity(entity)
+				.addTransition(transition)
+				.build();
 	}
 
 	public InteractionCommand determinAction(String event, String path) {
@@ -1218,36 +1124,16 @@ public class ResourceStateMachine {
 		this.resourceStateProvider = resourceStateProvider;
 	}
 
+	public ResourceLocatorProvider getResourceLocatorProvider() {
+		return resourceLocatorProvider;
+	}
+
+	public ResourceParameterResolverProvider getParameterResolverProvider() {
+		return parameterResolverProvider;
+	}
+
 	public ResourceState checkAndResolve(ResourceState targetState) {
-		if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
-			targetState = resourceStateProvider.getResourceState(targetState.getName());
-		}
-		if (targetState != null) {
-			for (Transition transition : targetState.getTransitions()) {
-				if (transition.getTarget() instanceof LazyResourceState
-						|| transition.getTarget() instanceof LazyCollectionResourceState) {
-					if (transition.getTarget() != null) {
-						ResourceState tt = resourceStateProvider.getResourceState(transition.getTarget().getName());
-						if (tt == null) {
-							LOGGER.error("Invalid transition [{}]", transition.getId());
-						}
-						transition.setTarget(tt);
-					}
-				}
-			}
-            // Target can have errorState which is not a normal transition, so
-            // resolve and add it here
-			if (targetState.getErrorState() != null) {
-				ResourceState errorState = targetState.getErrorState();
-                if ((errorState instanceof LazyResourceState || errorState instanceof LazyCollectionResourceState)
-                        && errorState.getId().startsWith(".")) {
-                    // We should resolve and overwrite the one already there
-					errorState = resourceStateProvider.getResourceState(errorState.getName());
-					targetState.setErrorState(errorState);
-				}
-			}
-		}
-		return targetState;
+		return new LazyResourceStateResolver(resourceStateProvider).resolve(targetState);
 	}
 
 	// Generated builder pattern from here

@@ -21,7 +21,6 @@ package com.temenos.interaction.core.rim;
  * #L%
  */
 
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -87,16 +86,15 @@ public class TestSequentialResourceRequestHandler {
         when(mockResponse.getEntity()).thenReturn(mockEntity);
         when(
                 rimHandler.handleRequest(any(HttpHeaders.class), any(InteractionContext.class), any(Event.class),
-                        any(InteractionCommand.class), any(EntityResource.class), any(ResourceRequestConfig.class),
-                        any(Boolean.class))).thenReturn(mockResponse);
+                        any(InteractionCommand.class), any(EntityResource.class), any(ResourceRequestConfig.class)))
+                .thenReturn(mockResponse);
 
         sequence.getResources(rimHandler, mock(HttpHeaders.class), origContext, mock(EntityResource.class),
                 config.build());
 
         ArgumentCaptor<InteractionContext> ctxCapture = ArgumentCaptor.forClass(InteractionContext.class);
         verify(rimHandler).handleRequest(any(HttpHeaders.class), ctxCapture.capture(), any(Event.class),
-                any(InteractionCommand.class), any(EntityResource.class), any(ResourceRequestConfig.class),
-                any(Boolean.class));
+                any(InteractionCommand.class), any(EntityResource.class), any(ResourceRequestConfig.class));
         assertEquals("entityVal", ctxCapture.getValue().getPathParameters().getFirst("entityname"));
         assertEquals("US001", ctxCapture.getValue().getPathParameters().getFirst("companyid"));
         assertEquals("123", ctxCapture.getValue().getQueryParameters().getFirst("id"));

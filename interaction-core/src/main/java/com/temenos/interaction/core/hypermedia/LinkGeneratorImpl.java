@@ -91,23 +91,14 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
     private Link createLink(LinkProperties linkProperties, MultivaluedMap<String, String> queryParameters, Object entity) {
         assert (RequestContext.getRequestContext() != null);
-        ResourceStateProvider resourceStateProvider = resourceStateMachine.getResourceStateProvider();
-        
         try {
             ResourceState targetState = transition.getTarget();            
 
-            if (targetState instanceof LazyResourceState || targetState instanceof LazyCollectionResourceState) {
-                targetState = resourceStateProvider.getResourceState(targetState.getName());
-            }
-            
             if (targetState == null) {
                 // a dead link, target could not be found
                 logger.error("Dead link to [" + transition.getId() + "]");
                 return null;
             }
-
-            processEmbeddedTransitions(targetState, resourceStateProvider);
-            setErrorState(targetState, resourceStateProvider);
 
             UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath());
 
@@ -124,35 +115,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
         } catch (UriBuilderException e) {
             logger.error("Dead link [" + transition + "]", e);
             throw e;
-        }
-    }
-
-    private void setErrorState(ResourceState targetState, ResourceStateProvider resourceStateProvider) {
-        // Target can have errorState which is not a normal transition,
-        // so resolve and add it here
-        if (targetState.getErrorState() != null) {
-            ResourceState errorState = targetState.getErrorState();
-            if ((errorState instanceof LazyResourceState || errorState instanceof LazyCollectionResourceState) && errorState.getId().startsWith(".")) {
-                // We should resolve and overwrite the one already there
-                errorState = resourceStateProvider.getResourceState(errorState.getName());
-                targetState.setErrorState(errorState);
-            }
-        }
-    }
-
-    private void processEmbeddedTransitions(ResourceState targetState, ResourceStateProvider resourceStateProvider) {
-        for (Transition tmpTransition : targetState.getTransitions()) {
-            if (tmpTransition.isType(Transition.EMBEDDED)) {
-                if (tmpTransition.getTarget() instanceof LazyResourceState || tmpTransition.getTarget() instanceof LazyCollectionResourceState) {
-                    if (tmpTransition.getTarget() != null) {
-                        ResourceState tt = resourceStateProvider.getResourceState(tmpTransition.getTarget().getName());
-                        if (tt == null) {
-                            logger.error("Invalid transition [" + tmpTransition.getId() + "]");
-                        }
-                        tmpTransition.setTarget(tt);
-                    }
-                }
-            }
         }
     }
 
@@ -209,7 +171,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
     }
 
     private String createLinkForProfile(Transition transition) {
-
         return transition.getLabel() != null && !transition.getLabel().equals("") ? transition.getLabel() : transition.getTarget().getName();
     }
 
@@ -230,7 +191,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         Map<String, Object> linkPropertiesMap = linkProperties.getTransitionProperties();
         ResourceStateAndParameters stateAndParams = resourceStateMachine.resolveDynamicState((DynamicResourceState) targetState, linkPropertiesMap, interactionContext);
 
-        if (stateAndParams.getState() == null) {
+        if (stateAndParams == null) {
             // Bail out as we failed to resolve resource
             return null;
         } else {
@@ -242,26 +203,26 @@ public class LinkGeneratorImpl implements LinkGenerator {
         linkTemplate.path(targetPath);
         String rel = getTargetRelValue(targetState);
 
-        String method = transition.getCommand().getMethod();        
+        String method = transition.getCommand().getMethod();
         if (rel.contains(NEW_REL_SUFFIX) || rel.contains(POPULATE_REL_SUFFIX)) {
             method = "POST";
         }
-        
+
         if ("item".equals(rel) || "collection".equals(rel)) {
             rel = createLinkForState(targetState);
         }
-        
+
         Map<String, String> uriParameters = transition.getCommand().getUriParameters();
         if (stateAndParams.getParams() != null) {
             // Add query parameters
             for (ParameterAndValue paramAndValue : stateAndParams.getParams()) {
                 String param = paramAndValue.getParameter();
                 String value = paramAndValue.getValue();
-                
+
                 if ("id".equalsIgnoreCase(param)) {
-                    linkPropertiesMap.put(param, value);                    
+                    linkPropertiesMap.put(param, value);
                     if(rel.contains(POPULATE_REL_SUFFIX) && (uriParameters == null || !uriParameters.containsKey(param))) {
-                    	linkTemplate.queryParam(param, value);
+                        linkTemplate.queryParam(param, value);
                     }
                 } else if(uriParameters == null || !uriParameters.containsKey(param)) { //Add query param only if it's not already present in the path
                     linkTemplate.queryParam(param, value);
@@ -290,8 +251,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
         	}
         }
 
-        //Map<String, Object> linkPropertiesMap = linkProperties.getTransitionProperties();
-        // We are NOT dealing with a dynamic target
         String targetPath = targetState.getPath();
         linkTemplate.path(targetPath);
         configureLink(linkTemplate, encodedLinkPropertiesMap, targetPath);

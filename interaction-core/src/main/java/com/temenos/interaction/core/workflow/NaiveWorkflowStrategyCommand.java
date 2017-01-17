@@ -37,7 +37,7 @@ import com.temenos.interaction.core.command.InteractionException;
  */
 public class NaiveWorkflowStrategyCommand implements InteractionCommand {
 
-	private List<InteractionCommand> commands = new ArrayList<InteractionCommand>();
+	protected List<InteractionCommand> commands = new ArrayList<InteractionCommand>();
 	
 	public NaiveWorkflowStrategyCommand() {}
 	

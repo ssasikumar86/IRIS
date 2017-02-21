@@ -168,7 +168,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
                     try{
                         outQueryParams.add(param.getKey(), URLEncoder.encode(paramValue, "UTF-8"));
                     }catch(UnsupportedEncodingException uee){
-                        logger.error("Unable to encode {}={}.", param.getKey(), paramValue);
+                        logger.error("ERROR unable to encode " + param.getKey(), uee);
                     }
                 }
             }

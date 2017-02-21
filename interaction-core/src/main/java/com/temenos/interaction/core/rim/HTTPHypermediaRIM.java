@@ -626,7 +626,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
                 try {
                     uriSegments[segmentIndex] = URLDecoder.decode(uriSegments[segmentIndex], "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    LOGGER.error("Error while decoding uriSegments " + e.getMessage());
+                    LOGGER.error("Error while decoding uriSegments " + uriSegments[segmentIndex], e);
                 }
             }
            return uriSegments;

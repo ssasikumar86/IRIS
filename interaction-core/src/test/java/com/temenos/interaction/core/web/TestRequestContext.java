@@ -115,6 +115,24 @@ public class TestRequestContext {
         assertEquals("value0", ctx.getFirstHeaderCaseInsensitive("HEADER0"));
         assertEquals("value0", ctx.getFirstHeaderCaseInsensitive("Header0"));
     }
+
+    @Test
+    public void testGetAllHeaders() {
+         Map<String, List<String>> headers = new HashMap<>();
+         List<String> lst1 = new ArrayList<>();
+         lst1.add("value0");
+         headers.put("header0", lst1);
+         List<String> lst2 = new ArrayList<>();
+         lst2.add("value1");
+         headers.put("header1", lst2);
+         
+         RequestContext ctx = new RequestContext("\basepath", "\requesturi", null, headers);
+
+         assertEquals(headers.size(), ctx.getAllHeaders().size());
+         assertEquals(headers, ctx.getAllHeaders());
+         assertEquals(headers.get("header0"), ctx.getAllHeaders().get("header0"));
+         assertEquals(headers.get("header1"), ctx.getAllHeaders().get("header1"));
+    }
     
     @Test
     public void testRequestTime() {

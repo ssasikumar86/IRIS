@@ -129,7 +129,6 @@ public class TestRequestContext {
          RequestContext ctx = new RequestContext("\basepath", "\requesturi", null, headers);
 
          assertEquals(headers.size(), ctx.getAllHeaders().size());
-         assertEquals(headers, ctx.getAllHeaders());
          assertEquals(headers.get("header0").get(0), ctx.getAllHeaders().get("header0").get(0));
          assertEquals(headers.get("header1").get(0), ctx.getAllHeaders().get("header1").get(0));
     }

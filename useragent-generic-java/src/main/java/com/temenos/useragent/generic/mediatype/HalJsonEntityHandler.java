@@ -86,6 +86,7 @@ public class HalJsonEntityHandler implements EntityHandler {
 
 	@Override
 	public void setValue(String fqPropertyName, String value) {
+		checkAndInitialiseEntity();
 		String[] pathParts = flattenPropertyName(fqPropertyName);
 		JSONObject parent = checkAndCreateParent(fqPropertyName, pathParts);
 		if (parent != null) {
@@ -158,34 +159,51 @@ public class HalJsonEntityHandler implements EntityHandler {
 				RepresentationFactory.PRETTY_PRINT));
 	}
 
-	private void addAllChildren(RepresentationFactory factory, Map<String,Object> parent, String name, Object jObject) {
+	private void addAllChildren(RepresentationFactory factory,
+			Map<String, Object> parent, String name, Object jObject) {
 		if (jObject != null && jObject instanceof JSONArray) {
-			ArrayList<Object> array = new ArrayList<Object>();
-    		JSONArray jArray = (JSONArray) jObject;
-    		for (int i = 0; i < jArray.length(); i++) {
-    			Map<String,Object> children = new TreeMap<String,Object>();
-            	if (jArray.get(i) != null
-            			&& jArray.get(i) instanceof JSONArray) {
-        			addAllChildren(factory, children, null, jArray.getJSONArray(i));
-            	} else {
-        			addAllChildren(factory, children, null, jArray.getJSONObject(i));
-            	}
-            	array.add(children);
-    		}
-			parent.put(name, array);
+			addJSONArrayChildren(factory, parent, name, (JSONArray) jObject);
 		} else if (jObject != null && jObject instanceof JSONObject) {
-			Map<String,Object> children = new TreeMap<String,Object>();
-        	String[] elementNames = JSONObject.getNames((JSONObject)jObject);
-			for (String elementName : elementNames) {
-    			addAllChildren(factory, children, elementName, ((JSONObject)jObject).get(elementName));
-			}
-			if (name == null) {
-				parent.putAll(children);
-			} else {
-				parent.put(name, children);
-			}
+			addJSONObjectChildren(factory, parent, name, (JSONObject) jObject);
 		} else {
 			parent.put(name, jObject);
+		}
+	}
+
+	private void addJSONObjectChildren(RepresentationFactory factory,
+			Map<String, Object> parent, String name, JSONObject jsonObject) {
+		String[] fieldNames = JSONObject.getNames(jsonObject);
+		if (fieldNames == null) {
+			return;
+		}
+		Map<String, Object> children = new TreeMap<String, Object>();
+		for (String fieldName : fieldNames) {
+			addAllChildren(factory, children, fieldName,
+					(jsonObject).get(fieldName));
+		}
+		if (name == null) {
+			parent.putAll(children);
+		} else {
+			parent.put(name, children);
+		}
+	}
+
+	private void addJSONArrayChildren(RepresentationFactory factory,
+			Map<String, Object> parent, String name, JSONArray jsonArray) {
+		List<Object> jObjects = new ArrayList<Object>();
+		for (int i = 0; i < jsonArray.length(); i++) {
+			Map<String, Object> children = new TreeMap<String, Object>();
+			if (jsonArray.get(i) != null && jsonArray.get(i) instanceof JSONArray) {
+				addAllChildren(factory, children, null, jsonArray.getJSONArray(i));
+			} else {
+				addAllChildren(factory, children, null, jsonArray.getJSONObject(i));
+			}
+			if (!children.isEmpty()) {
+				jObjects.add(children);
+			}
+		}
+		if (!jObjects.isEmpty()) {
+			parent.put(name, jObjects);
 		}
 	}
 		
@@ -244,17 +262,29 @@ public class HalJsonEntityHandler implements EntityHandler {
 	// identify the existing specific/indexed child or create new
 	private JSONObject checkAndCreateChild(JSONObject parent,
 			String propertyName, int index) {
-		JSONArray jsonArr = parent.getJSONArray(propertyName);
+		JSONArray jsonArr = getValidJsonArr(parent, propertyName, index);
+		if (jsonArr.length() == 0) {
+			jsonArr.put(new JSONObject());
+		} else if (jsonArr.length() == index) {
+			jsonArr = HalJsonUtil.cloneLastChild(jsonArr);
+		}
+		return jsonArr.getJSONObject(index);
+	}
+	
+	private JSONArray getValidJsonArr(JSONObject parent, String propertyName, int index) {
+		JSONArray jsonArr = parent.optJSONArray(propertyName);
+		if (jsonArr == null) {
+			parent.put(propertyName, new JSONArray());
+		}
+		jsonArr = parent.getJSONArray(propertyName);
 		if (index > jsonArr.length()) {
 			throw new IllegalArgumentException(
 					"Invalid index '"
 							+ index
 							+ "' to set value to. Only supported indexs are between '0' and '"
 							+ jsonArr.length() + "'");
-		} else if (index == jsonArr.length()) {
-			jsonArr = HalJsonUtil.cloneLastChild(jsonArr);
 		}
-		return jsonArr.getJSONObject(index);
+		return jsonArr;
 	}
 
 	private void ensurePropertyNameIsWithIndex(String elementName,
@@ -263,6 +293,12 @@ public class HalJsonEntityHandler implements EntityHandler {
 			throw new IllegalArgumentException("Invalid part '" + elementName
 					+ "' in fully qualified property name '" + fqPropertyName
 					+ "'");
+		}
+	}
+	
+	private void checkAndInitialiseEntity() {
+		if (jsonObject == null) {
+			jsonObject = new JSONObject();
 		}
 	}
 }

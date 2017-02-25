@@ -455,10 +455,75 @@ public class HalJsonEntityHandlerTest {
 		String contentFromFile = IOUtils
 				.toString(HalJsonEntityHandlerTest.class
 						.getResourceAsStream("/haljson_item_with_all_properties.json"));
-		
-		
-		
 		assertEquals(contentFromFile, contentFromEntity);
+	}
+	
+	@Test
+	public void testSetSimpleValueWithNoEntity() throws Exception {
+		entityHandler = new HalJsonEntityHandler();
+		entityHandler.setValue("id", "ABC");
+		entityHandler.setValue("name", "RetailSuite - dev");
+		assertEquals("ABC", entityHandler.getValue("id"));
+		assertEquals("RetailSuite - dev", entityHandler.getValue("name"));
+		assertNull(entityHandler.getValue("NonExistentProperty"));
+	}
+	
+	@Test
+	public void testSetValueForNewlyCreatedNestedProperty() {
+		entityHandler = new HalJsonEntityHandler();
+		entityHandler.setValue("contact(0)/type", "personal");
+		entityHandler.setValue("contact(0)/status", "active");
+		
+		assertEquals("personal", entityHandler.getValue("contact(0)/type"));
+		assertEquals("active", entityHandler.getValue("contact(0)/status"));
+		assertNull(entityHandler.getValue("contact(1)/type"));
+		assertNull(entityHandler.getValue("contact(1)/foo"));
+	}
+	
+	@Test
+	public void testSetValueForNewlyCreatedDeepNestedMixedProperty() {
+		entityHandler = new HalJsonEntityHandler();
+		
+		// set values to new nested properties
+		entityHandler.setValue("contact(0)/type", "personal");
+		entityHandler.setValue("contact(0)/status", "active");
+		entityHandler.setValue("contact(0)/emails(0)/email", "foo00@bar.com");
+		entityHandler.setValue("contact(0)/emails(1)/email", "foo01@bar.com");
+		
+		entityHandler.setValue("contact(0)/postals(0)/preferred", "Y");
+		entityHandler.setValue("contact(0)/postals(0)/regulars(0)/postcode", "REGULAR 000");
+		entityHandler.setValue("contact(0)/postals(0)/urgents(0)/postcode", "URGENT 000");
+		entityHandler.setValue("contact(0)/postals(0)/regulars(1)/postcode", "REGULAR 001");
+		entityHandler.setValue("contact(0)/postals(1)/urgents(0)/postcode", "URGENT 010");
+		
+		entityHandler.setValue("contact(1)/type", "official");
+		entityHandler.setValue("contact(1)/status", "inactive");
+		entityHandler.setValue("contact(1)/postals(0)/urgents(0)/postcode", "URGENT 100");
+		entityHandler.setValue("contact(1)/emails(0)/email", "foo10@bar.com");
+		entityHandler.setValue("contact(1)/postals(1)/regulars(0)/postcode", "REGULAR 110");
+		
+		// check for the set values in the underlying entity
+		assertEquals("personal", entityHandler.getValue("contact(0)/type"));
+		assertEquals("active", entityHandler.getValue("contact(0)/status"));
+		assertEquals("foo00@bar.com", entityHandler.getValue("contact(0)/emails(0)/email"));
+		assertEquals("foo01@bar.com", entityHandler.getValue("contact(0)/emails(1)/email"));
+		
+		assertEquals("Y", entityHandler.getValue("contact(0)/postals(0)/preferred"));
+		assertEquals("REGULAR 000", entityHandler.getValue("contact(0)/postals(0)/regulars(0)/postcode"));
+		assertEquals("URGENT 000", entityHandler.getValue("contact(0)/postals(0)/urgents(0)/postcode"));
+		assertEquals("REGULAR 001", entityHandler.getValue("contact(0)/postals(0)/regulars(1)/postcode"));
+		assertEquals("URGENT 010", entityHandler.getValue("contact(0)/postals(1)/urgents(0)/postcode"));
+		
+		assertEquals("official", entityHandler.getValue("contact(1)/type"));
+		assertEquals("inactive", entityHandler.getValue("contact(1)/status"));
+		assertEquals("URGENT 100", entityHandler.getValue("contact(1)/postals(0)/urgents(0)/postcode"));
+		assertEquals("foo10@bar.com", entityHandler.getValue("contact(1)/emails(0)/email"));
+		assertEquals("REGULAR 110", entityHandler.getValue("contact(1)/postals(1)/regulars(0)/postcode"));
+		
+		assertNull(entityHandler.getValue("contact(0)/emails(0)/unknown"));
+		assertNull(entityHandler.getValue("contact(0)/postals(0)/unknown"));
+		assertNull(entityHandler.getValue("contact(0)/postals(0)/regulars(0)/unknown"));
+		assertNull(entityHandler.getValue("contact(0)/unknown"));
 	}
 
 	private void initEntityHandler(String jsonFileName) {

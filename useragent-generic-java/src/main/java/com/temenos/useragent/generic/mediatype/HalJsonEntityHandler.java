@@ -23,12 +23,18 @@ package com.temenos.useragent.generic.mediatype;
 
 
 import static com.temenos.useragent.generic.mediatype.HalJsonUtil.initRepresentationFactory;
-import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.*;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.extractIndex;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.extractPropertyName;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.flattenPropertyName;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.isPropertyNameWithIndex;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -37,6 +43,7 @@ import org.json.JSONObject;
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityHandler;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
+import com.theoryinpractise.halbuilder.api.Representation;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 
 /**
@@ -138,11 +145,50 @@ public class HalJsonEntityHandler implements EntityHandler {
 
 	@Override
 	public InputStream getContent() {
-		return IOUtils.toInputStream(representation.toString(
+		RepresentationFactory factory = initRepresentationFactory();
+		Representation r = factory.newRepresentation();
+		Map<String,Object> root = new TreeMap<String,Object>();
+		addAllChildren(factory, root, null, jsonObject);
+		for (String key : root.keySet()) {
+			r.withProperty(key, root.get(key));
+		}
+		
+		return IOUtils.toInputStream(r.toString(
 				RepresentationFactory.HAL_JSON,
 				RepresentationFactory.PRETTY_PRINT));
 	}
 
+	private void addAllChildren(RepresentationFactory factory, Map<String,Object> parent, String name, Object jObject) {
+		if (jObject != null && jObject instanceof JSONArray) {
+			ArrayList<Object> array = new ArrayList<Object>();
+    		JSONArray jArray = (JSONArray) jObject;
+    		for (int i = 0; i < jArray.length(); i++) {
+    			Map<String,Object> children = new TreeMap<String,Object>();
+            	if (jArray.get(i) != null
+            			&& jArray.get(i) instanceof JSONArray) {
+        			addAllChildren(factory, children, null, jArray.getJSONArray(i));
+            	} else {
+        			addAllChildren(factory, children, null, jArray.getJSONObject(i));
+            	}
+            	array.add(children);
+    		}
+			parent.put(name, array);
+		} else if (jObject != null && jObject instanceof JSONObject) {
+			Map<String,Object> children = new TreeMap<String,Object>();
+        	String[] elementNames = JSONObject.getNames((JSONObject)jObject);
+			for (String elementName : elementNames) {
+    			addAllChildren(factory, children, elementName, ((JSONObject)jObject).get(elementName));
+			}
+			if (name == null) {
+				parent.putAll(children);
+			} else {
+				parent.put(name, children);
+			}
+		} else {
+			parent.put(name, jObject);
+		}
+	}
+		
 	// identify the existing last parent in the path
 	private JSONObject identifyParentProperty(String fqPropertyName,
 			String[] pathParts) {

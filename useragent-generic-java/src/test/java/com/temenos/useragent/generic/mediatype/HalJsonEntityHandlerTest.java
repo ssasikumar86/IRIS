@@ -28,6 +28,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -168,7 +169,7 @@ public class HalJsonEntityHandlerTest {
 	}
 
 	@Test
-	public void testSetValueForSimpleProperty() {
+	public void testSetValueForSimpleProperty() throws IOException {
 		entityHandler.setValue("AccountOfficer", "2003");
 		assertEquals("2003", entityHandler.getValue("AccountOfficer"));
 		entityHandler.setValue("CoCode", "");
@@ -177,6 +178,9 @@ public class HalJsonEntityHandlerTest {
 		assertEquals("TRUE", entityHandler.getValue("AllowBulkProcess"));
 		entityHandler.setValue("Foo", "Bar");
 		assertEquals("Bar", entityHandler.getValue("Foo"));
+		
+		String content = IOUtils.toString(entityHandler.getContent());
+		assertTrue(content.contains("\"AccountOfficer\" : \"2003\""));
 	}
 
 	@Test
@@ -451,6 +455,9 @@ public class HalJsonEntityHandlerTest {
 		String contentFromFile = IOUtils
 				.toString(HalJsonEntityHandlerTest.class
 						.getResourceAsStream("/haljson_item_with_all_properties.json"));
+		
+		
+		
 		assertEquals(contentFromFile, contentFromEntity);
 	}
 

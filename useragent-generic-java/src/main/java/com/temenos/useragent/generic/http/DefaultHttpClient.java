@@ -149,11 +149,15 @@ public class DefaultHttpClient implements HttpClient {
     private void logHttpRequest(String url, HttpRequest request) {
         if (logger.isInfoEnabled()) {
             String payload = request.payload();
-            if (payload != null && !payload.isEmpty()) {
-                logger.info("\nURL: {}\nHEADERS: {}\nREQUEST: {}", url,
-                        request.headers(),
-                        DefaultHttpClientHelper.prettyPrintXml(payload));
-            } else {
+			if (payload != null && !payload.isEmpty()) {
+				logger.info(
+						"\nURL: {}\nHEADERS: {}\nREQUEST: {}",
+						url,
+						request.headers(),
+						ContentPrettyFormatter.newFormatter(
+								request.headers().get("Content-Type")).format(
+								payload));
+			} else {
                 logger.info("\nURL: {}\nHEADERS:{}\nNO REQUEST BODY", url,
                         request.headers());
             }
@@ -163,11 +167,15 @@ public class DefaultHttpClient implements HttpClient {
     private void logHttpResponse(HttpResponse response) {
 	    if (logger.isInfoEnabled()) {
 	        String payload = response.payload();
-	        if (payload != null && !payload.isEmpty()) {
-	            logger.info("\nHEADERS: {}\nRESPONSE: {}", response.headers(),
-	                    DefaultHttpClientHelper.prettyPrintXml(payload));
-	        } else {
-	            logger.info("\nHEADERS: {}\nNO RESPONSE", response.headers() );
+			if (payload != null && !payload.isEmpty()) {
+				logger.info(
+						"\nHEADERS: {}\nRESPONSE: {}",
+						response.headers(),
+						ContentPrettyFormatter.newFormatter(
+								response.headers().get("Content-Type")).format(
+								payload));
+			} else {
+	            logger.info("\nHEADERS: {}\nNO RESPONSE BODY", response.headers() );
 	        }
 	    }
 	}

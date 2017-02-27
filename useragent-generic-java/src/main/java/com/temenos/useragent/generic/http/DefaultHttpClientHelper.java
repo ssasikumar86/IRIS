@@ -161,35 +161,4 @@ public class DefaultHttpClientHelper {
 			return "";
 		}
 	}
-
-	/**
-	 * Builds the pretty print XML for logging.
-	 * <p>
-	 * This method is safe for non XML content as it returns the invalid XML
-	 * content as-is.
-	 * </p>
-	 * 
-	 * @param xmlDoc
-	 * @return pretty print XML
-	 */
-	public static String prettyPrintXml(String xmlDoc) {
-		try {
-			Source xmlInput = new StreamSource(new StringReader(xmlDoc));
-			StringWriter stringWriter = new StringWriter();
-			StreamResult xmlOutput = new StreamResult(stringWriter);
-			TransformerFactory transformerFactory = TransformerFactory
-					.newInstance();
-			transformerFactory.setAttribute("indent-number", 4);
-			Transformer transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.transform(xmlInput, xmlOutput);
-			return xmlOutput.getWriter().toString();
-		} catch (Exception e) {
-		    if(LOGGER.isDebugEnabled()) {
-		        LOGGER.debug("Not a valid XML document so return as-is.", e);
-		    }
-			// Not a valid XML document so return as-is
-			return xmlDoc;
-		}
-	}
 }

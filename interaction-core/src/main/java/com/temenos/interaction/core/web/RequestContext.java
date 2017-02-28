@@ -49,7 +49,7 @@ import java.util.Map;
 public final class RequestContext {
 
     public static final String HATEOAS_OPTIONS_HEADER = "x-jax-rs-hateoas-options";
-    
+
     private final static ThreadLocal<RequestContext> currentContext = new ThreadLocal<RequestContext>();
 
     public static void setRequestContext(RequestContext context) {
@@ -182,6 +182,16 @@ public final class RequestContext {
     	return this.userPrincipal;
     }
 
+    /**
+     * Returns all headers in Map.
+     *
+     * @return headers Map
+     */
+    public Map<String, List<String>> getAllHeaders() {
+        return headers;
+
+    }
+    
     /**
      * Returns header entries for the specified header name
      * using case sensitive search.

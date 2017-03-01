@@ -54,16 +54,16 @@ public class TestLinkToFieldAssociation {
     }
 
     @Test
-    public void testNotSupportedAllCollectionParamsDifferentParent() {
+    public void testSupportedAllCollectionParamsDifferentParent() {
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null, new String[] { "filter", "value is {AB.CD} or {XX.MN}" }), new HashMap<String, Object>());
-        assertFalse(linkToFieldAssociation.isTransitionSupported());
+        assertTrue(linkToFieldAssociation.isTransitionSupported());
     }
     
     @Test
-    public void testNotSupportDynamicResourceDifferentParents()
+    public void testSupportDynamicResourceDifferentParents()
     {
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("AB.CD", true, new String[]{"{AB.CD}","{XX.YY}"}, new String[] { "filter", "value is {AB.CD} or {AB.MN}" }), new HashMap<String, Object>());
-        assertFalse(linkToFieldAssociation.isTransitionSupported());
+        assertTrue(linkToFieldAssociation.isTransitionSupported());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class TestLinkToFieldAssociation {
 
     @Test
     public void testSingleTargetFieldWithCollectionParam() {
-        Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2" });
+        Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2" }); 
         LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(createTransition("targetFieldName", false, null, new String[] { "filter", "id={AB.CD}" }), transitionPropertiesMap);
         List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
         assertEquals(2, transitionPropsList.size());
@@ -93,6 +93,25 @@ public class TestLinkToFieldAssociation {
             String value = (String) transitionMap.get("AB.CD");
             assertTrue(StringUtils.equals("value1", value) || StringUtils.equals("value2", value));
         }
+    }
+    
+    @Test
+    public void testSingleTragetFiledWithCollectionParamDiffrentParent(){
+        Map<String, Object> transitionPropertiesMap = createTransitionPropertiesMap(new String[] { "AB(0).CD", "value1", "AB(1).CD", "value2","App(0).Id","App1","App(1).Id","App2","VFunRef","S" });
+        Transition transition = createTransition("targetFieldName", true, new String[] { "{App.Id}", "{VFunRef}","{AB.CD}" },new String[] { "filter", "1234" } );
+        
+        LinkToFieldAssociation linkToFieldAssociation = new LinkToFieldAssociationImpl(transition, transitionPropertiesMap);
+        List<LinkProperties> transitionPropsList = linkToFieldAssociation.getProperties();
+        assertEquals(2, transitionPropsList.size());
+        for (LinkProperties linkTransitionProps : transitionPropsList) {
+            assertEquals("targetFieldName", linkTransitionProps.getTargetFieldFullyQualifiedName());
+            Map<String, Object> transitionMap = linkTransitionProps.getTransitionProperties();
+            String value = (String) transitionMap.get("AB.CD");
+            assertTrue(StringUtils.equals("value1", value) || StringUtils.equals("value2", value));
+            value = (String) transitionMap.get("App.Id");
+            assertTrue(StringUtils.equals("App1", value) || StringUtils.equals("App2", value));
+        }
+               
     }
 
     @Test

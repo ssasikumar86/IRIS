@@ -106,7 +106,7 @@ public class HypermediaITCase extends JerseyTest {
 			assertEquals(2, itemLinks.size());
 						
 			for (Link link : itemLinks) {
-				if (link.getRel().contains("self")) {
+				if (link.getRel().contains("related")) {
 					if(link.getHref().contains(Configuration.TEST_ENDPOINT_URI + "/authors/AU")) {
 						authorLinksFound = true;
 					}
@@ -122,10 +122,11 @@ public class HypermediaITCase extends JerseyTest {
 			}			
 		}
 		
-		// TODO
-		// Had to comment the below assert because HALProvider is assuming that dynamic links "rel" has self but isn't. 
-		// A separate defect with RTC # 1720030 has been filed and below assert to be uncommented when the issue is fixed.  
-		// assertTrue(authorLinksFound);
+		/* Now Fixed
+		 * // Had to comment the below assert because HALProvider is assuming that dynamic links "rel" has self but isn't. 
+		 * // A separate defect with RTC # 1720030 has been filed and below assert to be uncommented when the issue is fixed.  
+		 */
+		assertTrue(authorLinksFound);
 		assertTrue(systemLinksFound);		
 	}
 	

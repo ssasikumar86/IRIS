@@ -172,7 +172,7 @@ public class HypermediaITCase extends JerseyTest {
 				assertEquals(2, itemLinks.size());
 			}
 			for (Link link : itemLinks) {
-				if (link.getRel().contains("self")) {
+				if (link.getRel().contains("item")) {
 					assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/" + item.getProperties().get("noteID"),
 							link.getHref());
 				} else if (link.getName().contains("Note.deletedNote")) {
@@ -273,7 +273,7 @@ public class HypermediaITCase extends JerseyTest {
 		assertNotNull(testLinks);
 		assertEquals(1, testLinks.size());
 		for (Link link : testLinks) {
-			if (link.getRel().contains("self")) {
+			if (link.getRel().contains("item")) {
 				assertEquals(Configuration.TEST_ENDPOINT_URI + "/notes/9", link.getHref());
 // in the test we assert we cannot delete IMPORTANT notes
 //			} else if (link.getName().contains("Note.deletedNote")) {
@@ -413,7 +413,7 @@ public class HypermediaITCase extends JerseyTest {
 			// GET item link (Note.notes->Note.note)
 			Link getLink = null;
 			for (Link link : itemLinks) {
-				if (link.getRel().contains("self")) {
+				if (link.getRel().contains("item")) {
 					getLink = link;
 				}
 			}

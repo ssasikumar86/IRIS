@@ -57,6 +57,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.temenos.interaction.core.command.*;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.junit.Before;
@@ -66,12 +67,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
-import com.temenos.interaction.core.command.CommandController;
-import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
-import com.temenos.interaction.core.command.InteractionContext;
-import com.temenos.interaction.core.command.InteractionException;
-import com.temenos.interaction.core.command.MapBasedCommandController;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -109,7 +105,24 @@ public class TestHTTPHypermediaRIM {
         };
         return command;
     }
-    
+
+    private TransitionCommand createTransitionCommand(final String entityName, final Entity entity, final InteractionCommand.Result result) {
+        TransitionCommand command = new TransitionCommand() {
+            public Result execute(InteractionContext ctx) {
+                if (entity == null) {
+                    ctx.setResource(null);
+                } else {
+                    ctx.setResource(new EntityResource<Entity>(entityName, entity));
+                }
+                return result;
+            }
+            public boolean isInterim() {
+                return false;
+            }
+        };
+        return command;
+    }
+
     private List<Action> mockActions() {
         return mockActions(new Action("GET", Action.TYPE.VIEW), 
         		new Action("PUT", Action.TYPE.ENTRY), 
@@ -623,7 +636,7 @@ public class TestHTTPHypermediaRIM {
         // this test incorrectly supplies a resource as a result of the command.
         InteractionCommand mockCommand = new InteractionCommand() {
             public Result execute(InteractionContext ctx) {
-                ctx.setResource(mock(EntityResource.class));
+                ctx.setResource(new EntityResource<>());
                 return Result.CREATED;
             }
         };
@@ -640,6 +653,7 @@ public class TestHTTPHypermediaRIM {
         // RIM with command controller that issues commands that always return
         // SUCCESS
         HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController, stateMachine, createMockMetadata());
+
         Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mock(EntityResource.class));
         assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
     }
@@ -804,7 +818,7 @@ public class TestHTTPHypermediaRIM {
     public void testPUTCommandCreateNoContentAuto() throws Exception {
         MapBasedCommandController commandController = new MapBasedCommandController();
         // get command returns no resource
-        commandController.getCommandMap().put("GET", createCommand("entity", null, Result.SUCCESS));
+        commandController.getCommandMap().put("GET", createTransitionCommand("entity", null, Result.SUCCESS));
         commandController.getCommandMap().put("PUT", createCommand("entity", new Entity("entity", null), Result.CREATED));
 
         // create a state machine with a POST interaction
@@ -1061,12 +1075,11 @@ public class TestHTTPHypermediaRIM {
                 return (ResponseBuilder)invocation.getArguments()[0];
             }
         }).when(rim).setLocationHeader(any(ResponseBuilder.class), anyString(), any(MultivaluedMap.class));
-        
-        //execute the request and verify that we have executed InteractionCommand 
-        //as many times as the number of ResourceState objects that are participating
+
+        //execute the request and verify that we have executed InteractionCommand once
         Response response = rim.get(mock(HttpHeaders.class), "id", uriInfo);
         assertThat(response.getStatus(), equalTo(200));
-        verify(mockCommand, times(3)).execute(any(InteractionContext.class));
+        verify(mockCommand, times(1)).execute(any(InteractionContext.class));
         verify(rim, times(1)).setLocationHeader(any(ResponseBuilder.class), eq("http://localhost/myservice.svc/test_unsafe"), any(MultivaluedMap.class));
     }
 

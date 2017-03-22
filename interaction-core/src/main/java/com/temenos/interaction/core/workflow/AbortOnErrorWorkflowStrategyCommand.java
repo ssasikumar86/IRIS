@@ -28,6 +28,8 @@ import java.util.List;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.TransitionCommand;
+
 
 /**
  * <p>This command implements a workflow that will abort if there is an error.</p>
@@ -40,6 +42,10 @@ public class AbortOnErrorWorkflowStrategyCommand implements InteractionCommand {
 	private List<InteractionCommand> commands = new ArrayList<InteractionCommand>();
 	
 	public AbortOnErrorWorkflowStrategyCommand() {}
+
+	public boolean isEmpty() {
+		return commands.isEmpty();
+	}
 	
 	/**
 	 * Construct with a list of commands to execute.
@@ -54,7 +60,10 @@ public class AbortOnErrorWorkflowStrategyCommand implements InteractionCommand {
 	
 	public void addCommand(InteractionCommand command) {
 		if (command == null)
-			throw new IllegalArgumentException("No command supplied");		
+			throw new IllegalArgumentException("No command supplied");
+		if (command instanceof TransitionCommand) {
+			return;
+		}
 		commands.add(command);
 	}
 	

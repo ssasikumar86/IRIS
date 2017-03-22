@@ -2642,7 +2642,7 @@ public class TestResourceStateMachine {
         Map<String, Object> transitionProperties = new HashMap<String, Object>();
         transitionProperties.put("Field", "AVersion");
 
-        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
+        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, createMockInteractionContext(resourceState));
         assertEquals("AVersion", result.getParams()[0].getValue());
     }
 
@@ -2655,7 +2655,7 @@ public class TestResourceStateMachine {
         Map<String, Object> transitionProperties = new HashMap<String, Object>();
         transitionProperties.put("Parent.Field", "value1");
 
-        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
+        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, createMockInteractionContext(resourceState));
         assertEquals("value1", result.getParams()[0].getValue());
     }
     
@@ -2669,7 +2669,7 @@ public class TestResourceStateMachine {
         transitionProperties.put("Field", "AVersion");
         transitionProperties.put("Product", "Account");
 
-        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
+        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, createMockInteractionContext(resourceState));
         assertEquals("AVersion", result.getParams()[0].getValue());
         assertEquals("I", result.getParams()[1].getValue());
         assertEquals("Account", result.getParams()[2].getValue());
@@ -2685,7 +2685,7 @@ public class TestResourceStateMachine {
         transitionProperties.put("Field", "AVersion");
         transitionProperties.put("Parent.Product", "Account");
 
-        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
+        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, createMockInteractionContext(resourceState));
         assertEquals("AVersion", result.getParams()[0].getValue());
         assertEquals("I", result.getParams()[1].getValue());
         assertEquals("Account", result.getParams()[2].getValue());
@@ -2701,7 +2701,7 @@ public class TestResourceStateMachine {
         transitionProperties.put("Parent1.Field", "AVersion");
         transitionProperties.put("Parent.Product", "Account");
 
-        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, null);
+        ResourceStateAndParameters result = rsm.resolveDynamicState(resourceState, transitionProperties, createMockInteractionContext(resourceState));
         assertEquals("AVersion", result.getParams()[0].getValue());
         assertEquals("I", result.getParams()[1].getValue());
         assertEquals("Parent2.Product", result.getParams()[2].getValue());

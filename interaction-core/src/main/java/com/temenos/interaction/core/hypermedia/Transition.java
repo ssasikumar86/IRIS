@@ -206,6 +206,10 @@ public class Transition {
 		return (command.getFlags() & type) == type;
 	}
 
+	public boolean isAuto() {
+		return command.isAutoTransition();
+	}
+
 	public boolean isAnyOfTypes(int... types) {
 		for(int type : types) {
 			if (isType(type)) return true;

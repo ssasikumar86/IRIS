@@ -421,7 +421,21 @@ public class ResourceState implements Comparable<ResourceState> {
 	public List<Transition> getTransitions() {
 		return transitions;
 	}
-	
+
+	/**
+	 * Return all auto transitions {@link Transition}} from this state.
+	 * @return
+	 */
+	public List<Transition> getAutoTransitions() {
+		List<Transition> autoTransitions = new ArrayList<>();
+		for (Transition transition : transitions) {
+			if (transition.isAuto()) {
+				autoTransitions.add(transition);
+			}
+		}
+		return autoTransitions;
+	}
+
 	/**
 	 * Get the transition to the supplied target state.
 	 * @param targetState

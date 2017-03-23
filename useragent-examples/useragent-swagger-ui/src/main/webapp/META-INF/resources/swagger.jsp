@@ -18,6 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #L%
   --%>
+<%@page import="java.net.URL"%>
+<%@page import="java.util.Set"%>
 <%@page import="java.io.*"%>
 <%
     response.setHeader("Access-Control-Allow-Origin", "*");
@@ -25,19 +27,12 @@
     response.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
     request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
     
-    String pathName = request.getRealPath(request.getServletPath());
-    File jsp = new File(pathName);
-    File dir = jsp.getParentFile();
-    File[] list = dir.listFiles();
-    File[] listJson = null;
     String defaultEntry = null;
-    for(File f : list) {
-        String name = f.getName();
-        if(name.equals("api-docs")) {
-            listJson = f.listFiles();
-            if(null!=listJson && listJson.length > 0) {
-                defaultEntry = listJson[0].getName(); 
-            }
+    Set<String> resourcePaths = getServletContext().getResourcePaths("/api-docs/");
+    for(String path : resourcePaths) {
+        //URL resource = getServletContext().getResource(path);
+        if(path!=null && path.length() > 0) {
+            defaultEntry = path;
         }
     }
 %>
@@ -88,7 +83,7 @@
 	      	
 	          <%
 	            if (defaultEntry != null) {
-	                %> url = base + "/api-docs?file=api-docs/" + "<%= defaultEntry %>"<%
+	                %> url = base + "/api-docs?file=" + "<%= defaultEntry %>"<%
 	            } else {
 	                %> url = "http://petstore.swagger.io/v2/swagger.json"<%
 	            }
@@ -190,8 +185,8 @@
         
         var spec = {
                 <%
-                for(File json : listJson) {
-                    %>'<%= json.getName().replace(".json", "").replace("api-docs-", "") %>' : base + "/" + "api-docs?file=" + "api-docs" + "/" + "<%= json.getName() %>",<%
+                for(String json : resourcePaths) {
+                    %>'<%= json.replace(".json", "").replace("api-docs-", "").replace("/api-docs/", "") %>' : base + "/" + "api-docs?file="+"<%= json %>",<%
                 }
                 %>
                 }

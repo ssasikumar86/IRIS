@@ -116,8 +116,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 					event, 
 					action, 
 					resource, 
-					config,
-					true); 
+					config);
 			RESTResource targetResource = null;
 			if (response.getEntity() != null) {
 				targetResource = (RESTResource) ((GenericEntity<?>) response.getEntity()).getEntity();

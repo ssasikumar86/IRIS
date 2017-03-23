@@ -24,10 +24,7 @@ package com.temenos.interaction.core.rim;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -87,10 +84,11 @@ public class HeaderHelper {
      */
     public static ResponseBuilder locationHeader(ResponseBuilder rb, String target, 
             MultivaluedMap<String, String> queryParam) {
-        if (target != null && !isNullOrEmpty(queryParam) && target.indexOf("?") != -1) {
-            return rb.header(HttpHeaders.LOCATION, target + "&" + encodeMultivalueQueryParameters(queryParam));
-        }else if(target != null && !isNullOrEmpty(queryParam)){
-            return rb.header(HttpHeaders.LOCATION, target + "?" + encodeMultivalueQueryParameters(queryParam));
+        Set<String> encodedQueryParameters = filterParameters(target, encodeQueryParameters(queryParam));
+        if (target != null && !encodedQueryParameters.isEmpty() && target.contains("?")) {
+            return rb.header(HttpHeaders.LOCATION, target + "&" + toString(encodedQueryParameters));
+        }else if(target != null && !encodedQueryParameters.isEmpty()){
+            return rb.header(HttpHeaders.LOCATION, target + "?" + toString(encodedQueryParameters));
         }else if(target != null){
             return rb.header(HttpHeaders.LOCATION, target);
         }else{
@@ -167,19 +165,36 @@ public class HeaderHelper {
         if(isNullOrEmpty(queryParam)){
             return "";
         }
-        StringBuilder sb = new StringBuilder();
+        return toString(encodeQueryParameters(queryParam));
+    }
+
+    private static Set<String> encodeQueryParameters(MultivaluedMap<String, String> queryParameters) {
+        Set<String> encodedQueryParameters = new HashSet<>();
+        if (queryParameters == null) {
+            return encodedQueryParameters;
+        }
         int outerIndex = 0;
-        List<String> filter = new ArrayList<String>();
-        for(Map.Entry<String, List<String>> parameterKeyAndValues : queryParam.entrySet()){
+        List<String> filter = new ArrayList<>();
+        for(Map.Entry<String, List<String>> parameterKeyAndValues : queryParameters.entrySet()){
             filterDuplicateQueryKeyValuePairings(parameterKeyAndValues.getValue(), filter);
-            String keyAndValue = constructQueryKeyValuePairing(parameterKeyAndValues.getKey(), filter, outerIndex < queryParam.size() - 1);
-            sb.append(keyAndValue);
+            String keyAndValue = constructQueryKeyValuePairing(parameterKeyAndValues.getKey(), filter, outerIndex < queryParameters.size() - 1);
+            encodedQueryParameters.add(keyAndValue);
             filter.clear();
             outerIndex++;
         }
-        return sb.toString();
+        return encodedQueryParameters;
     }
-    
+
+    private static Set<String> filterParameters(String target, Set<String> parameters) {
+        Set<String> filteredParameters = new HashSet<>();
+        for (String parameter : parameters) {
+            if (!target.contains(parameter)) {
+                filteredParameters.add(parameter);
+            }
+        }
+        return filteredParameters;
+    }
+
     private static boolean isNullOrEmpty(MultivaluedMap<String, String> queryParam){
         return queryParam == null || queryParam.size() == 0;
     }
@@ -221,6 +236,14 @@ public class HeaderHelper {
                     encoding, queryParam);
             throw new RuntimeException(uee);
         }
+    }
+
+    private static String toString(Set<String> set) {
+        StringBuilder sb = new StringBuilder();
+        for(String s : set){
+            sb.append(s);
+        }
+        return sb.toString();
     }
 
 }

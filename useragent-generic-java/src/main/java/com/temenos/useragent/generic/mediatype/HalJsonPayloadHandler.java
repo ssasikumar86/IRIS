@@ -44,9 +44,10 @@ import com.theoryinpractise.halbuilder.api.RepresentationFactory;
  */
 public class HalJsonPayloadHandler implements PayloadHandler {
 
-	private ReadableRepresentation representation;
 	private RepresentationFactory representationFactory = HalJsonUtil
 			.initRepresentationFactory();
+	private ReadableRepresentation representation = representationFactory
+			.newRepresentation();
 	private String parameter; // not used yet
 
 	@Override

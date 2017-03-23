@@ -74,17 +74,4 @@ public class DefaultHttpClientHelperTest {
 		contentType = "";
 		assertEquals("", DefaultHttpClientHelper.extractParameter(contentType));
 	}
-
-	@Test
-	@Ignore
-	public void testPrettyPrintXml() {
-		String invalidXml = "";
-		assertEquals("", DefaultHttpClientHelper.prettyPrintXml(invalidXml));
-		invalidXml = "<html><HR1><HR2></html>";
-		assertEquals(invalidXml,
-				DefaultHttpClientHelper.prettyPrintXml(invalidXml));
-		String validXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><foo><bar>text</bar></foo>";
-		assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><foo>\n    <bar>text</bar>\n</foo>", DefaultHttpClientHelper.prettyPrintXml(validXml));
-
-	}
 }

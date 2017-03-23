@@ -23,12 +23,18 @@ package com.temenos.useragent.generic.mediatype;
 
 
 import static com.temenos.useragent.generic.mediatype.HalJsonUtil.initRepresentationFactory;
-import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.*;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.extractIndex;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.extractPropertyName;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.flattenPropertyName;
+import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.isPropertyNameWithIndex;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -37,6 +43,7 @@ import org.json.JSONObject;
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityHandler;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
+import com.theoryinpractise.halbuilder.api.Representation;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 
 /**
@@ -79,6 +86,7 @@ public class HalJsonEntityHandler implements EntityHandler {
 
 	@Override
 	public void setValue(String fqPropertyName, String value) {
+		checkAndInitialiseEntity();
 		String[] pathParts = flattenPropertyName(fqPropertyName);
 		JSONObject parent = checkAndCreateParent(fqPropertyName, pathParts);
 		if (parent != null) {
@@ -138,11 +146,67 @@ public class HalJsonEntityHandler implements EntityHandler {
 
 	@Override
 	public InputStream getContent() {
-		return IOUtils.toInputStream(representation.toString(
+		RepresentationFactory factory = initRepresentationFactory();
+		Representation r = factory.newRepresentation();
+		Map<String,Object> root = new TreeMap<String,Object>();
+		addAllChildren(factory, root, null, jsonObject);
+		for (String key : root.keySet()) {
+			r.withProperty(key, root.get(key));
+		}
+		
+		return IOUtils.toInputStream(r.toString(
 				RepresentationFactory.HAL_JSON,
 				RepresentationFactory.PRETTY_PRINT));
 	}
 
+	private void addAllChildren(RepresentationFactory factory,
+			Map<String, Object> parent, String name, Object jObject) {
+		if (jObject != null && jObject instanceof JSONArray) {
+			addJSONArrayChildren(factory, parent, name, (JSONArray) jObject);
+		} else if (jObject != null && jObject instanceof JSONObject) {
+			addJSONObjectChildren(factory, parent, name, (JSONObject) jObject);
+		} else {
+			parent.put(name, jObject);
+		}
+	}
+
+	private void addJSONObjectChildren(RepresentationFactory factory,
+			Map<String, Object> parent, String name, JSONObject jsonObject) {
+		String[] fieldNames = JSONObject.getNames(jsonObject);
+		if (fieldNames == null) {
+			return;
+		}
+		Map<String, Object> children = new TreeMap<String, Object>();
+		for (String fieldName : fieldNames) {
+			addAllChildren(factory, children, fieldName,
+					(jsonObject).get(fieldName));
+		}
+		if (name == null) {
+			parent.putAll(children);
+		} else {
+			parent.put(name, children);
+		}
+	}
+
+	private void addJSONArrayChildren(RepresentationFactory factory,
+			Map<String, Object> parent, String name, JSONArray jsonArray) {
+		List<Object> jObjects = new ArrayList<Object>();
+		for (int i = 0; i < jsonArray.length(); i++) {
+			Map<String, Object> children = new TreeMap<String, Object>();
+			if (jsonArray.get(i) != null && jsonArray.get(i) instanceof JSONArray) {
+				addAllChildren(factory, children, null, jsonArray.getJSONArray(i));
+			} else {
+				addAllChildren(factory, children, null, jsonArray.getJSONObject(i));
+			}
+			if (!children.isEmpty()) {
+				jObjects.add(children);
+			}
+		}
+		if (!jObjects.isEmpty()) {
+			parent.put(name, jObjects);
+		}
+	}
+		
 	// identify the existing last parent in the path
 	private JSONObject identifyParentProperty(String fqPropertyName,
 			String[] pathParts) {
@@ -198,17 +262,29 @@ public class HalJsonEntityHandler implements EntityHandler {
 	// identify the existing specific/indexed child or create new
 	private JSONObject checkAndCreateChild(JSONObject parent,
 			String propertyName, int index) {
-		JSONArray jsonArr = parent.getJSONArray(propertyName);
+		JSONArray jsonArr = getValidJsonArr(parent, propertyName, index);
+		if (jsonArr.length() == 0) {
+			jsonArr.put(new JSONObject());
+		} else if (jsonArr.length() == index) {
+			jsonArr = HalJsonUtil.cloneLastChild(jsonArr);
+		}
+		return jsonArr.getJSONObject(index);
+	}
+	
+	private JSONArray getValidJsonArr(JSONObject parent, String propertyName, int index) {
+		JSONArray jsonArr = parent.optJSONArray(propertyName);
+		if (jsonArr == null) {
+			parent.put(propertyName, new JSONArray());
+		}
+		jsonArr = parent.getJSONArray(propertyName);
 		if (index > jsonArr.length()) {
 			throw new IllegalArgumentException(
 					"Invalid index '"
 							+ index
 							+ "' to set value to. Only supported indexs are between '0' and '"
 							+ jsonArr.length() + "'");
-		} else if (index == jsonArr.length()) {
-			jsonArr = HalJsonUtil.cloneLastChild(jsonArr);
 		}
-		return jsonArr.getJSONObject(index);
+		return jsonArr;
 	}
 
 	private void ensurePropertyNameIsWithIndex(String elementName,
@@ -217,6 +293,12 @@ public class HalJsonEntityHandler implements EntityHandler {
 			throw new IllegalArgumentException("Invalid part '" + elementName
 					+ "' in fully qualified property name '" + fqPropertyName
 					+ "'");
+		}
+	}
+	
+	private void checkAndInitialiseEntity() {
+		if (jsonObject == null) {
+			jsonObject = new JSONObject();
 		}
 	}
 }

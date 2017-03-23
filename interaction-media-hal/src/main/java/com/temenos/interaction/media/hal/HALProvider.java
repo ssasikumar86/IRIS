@@ -568,7 +568,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 				halResource.withRepresentation(rel, subResource);
 			}
 		} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
-      logger.debug("Transforming CollectionResource<Entity>");
+			logger.debug("Transforming CollectionResource<Entity>");
 			@SuppressWarnings("unchecked")
 			CollectionResource<Entity> cr = (CollectionResource<Entity>) resource;
 			List<EntityResource<Entity>> entities = (List<EntityResource<Entity>>) cr.getEntities();
@@ -588,33 +588,14 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 			List<EntityResource<Object>> entities = (List<EntityResource<Object>>) cr.getEntities();
 			for (EntityResource<Object> er : entities) {
 				Object entity = er.getEntity();
-				// the subresource is part of a collection (maybe this link rel should be an 'item')
-				String rel = "collection." + cr.getEntityName();
 				// the properties
 				Map<String, Object> propertyMap = new HashMap<String, Object>();
 				buildFromBean(propertyMap, entity, cr.getEntityName());
-				// create hal resource and add link for self
-				Link itemSelfLink = findSelfLink(er.getLinks());
-				if (itemSelfLink != null) {
-					Representation subResource = representationFactory.newRepresentation(itemSelfLink.getHref());
-					for (Link el : er.getLinks()) {
-						String itemHref = el.getHref();
-						/*
-						don't add links twice, this break the client assertion of one rel per link (which seems wrong)
-						List<com.theoryinpractise.halbuilder.api.Link> selfLinks = subResource.getLinksByRel("self");
-						assert(selfLinks != null && selfLinks.size() == 1);
-						*/
-						if (!itemSelfLink.equals(el)) {
-							subResource.withLink(el.getRel(), itemHref, el.getId(), el.getTitle(), null, null);
-						}
-					}
-					// add properties to HAL sub resource
-					for (String key : propertyMap.keySet()) {
-						subResource.withProperty(key, propertyMap.get(key));
-					}
-					halResource.withRepresentation(rel, subResource);
-				}
-				
+
+				// Make Representation
+				Representation subResource = representationFactory.newRepresentation();
+				collectLinksAndProperties(subResource, er.getLinks(), propertyMap);
+				halResource.withRepresentation("item", subResource);				
 			}
 			
 		} else {

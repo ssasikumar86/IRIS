@@ -33,6 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import com.temenos.interaction.core.resource.EntityResource;
 import org.apache.wink.common.internal.MultivaluedMapImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +77,7 @@ public class InteractionContext {
 	private String preconditionIfMatch = null;
 	private List<String> preferredLanguages = new ArrayList<String>();
 	private final Map<String, String> responseHeaders = new HashMap<String, String>();
- 
+
 
 	/**
 	 * Construct the context for execution of an interaction.
@@ -199,6 +200,17 @@ public class InteractionContext {
 	}
 
 	/**
+	 * The enity object of the resource this interaction is dealing with.
+	 * @return
+	 */
+	public Object getResourceEntity() {
+		EntityResource<?> entityResource = (resource instanceof EntityResource<?>)
+				? (EntityResource<?>) resource
+				: new EntityResource<>(resource);
+		return entityResource.getEntity();
+	}
+
+	/**
 	 * In terms of the hypermedia interactions this is the current application state.
 	 * @return
 	 */
@@ -272,8 +284,18 @@ public class InteractionContext {
     public Object getAttribute(String name) {
     	return attributes.get(name);
     }
-    
-    /**
+
+	/**
+	 * Retrieve a copy of all attributes from this interaction context.
+	 * @return
+	 */
+	public Map<String, Object> getAttributes() {
+		Map<String, Object> attributesCopy = new HashMap<>();
+		attributesCopy.putAll(attributes);
+		return attributesCopy;
+	}
+
+	/**
      * Returns the metadata from this interaction context
      * @return metadata
      */
@@ -338,4 +360,5 @@ public class InteractionContext {
 	public MultivaluedMap<String, String> getOutQueryParameters() {
 		return outQueryParameters;
 	}
+
 }

@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,6 +45,7 @@ import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.transition.TransitionPropertiesBuilder;
 import com.temenos.interaction.core.workflow.*;
 import com.temenos.interaction.core.workflow.WorkflowCommandBuilderProvider.WorkflowType;
+
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
@@ -622,7 +624,7 @@ public class ResourceStateMachine {
 	public Map<String, Set<ResourceState>> getResourceStatesByPath() {
         Map<String, Set<ResourceState>> stateMap = new HashMap<String, Set<ResourceState>>();
         for (Entry<String, Set<String>> entry : resourceStateNamesByPath.entrySet()) {
-            Set<ResourceState> resourceStateSet = new HashSet<ResourceState>();
+            Set<ResourceState> resourceStateSet = new LinkedHashSet<ResourceState>();
             for(String resourceStateName : entry.getValue()) {
                 ResourceState state = resourceStatesByName.get(resourceStateName);
                 if(state != null) resourceStateSet.add(state);

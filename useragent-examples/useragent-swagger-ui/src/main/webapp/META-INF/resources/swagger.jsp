@@ -28,7 +28,7 @@
     request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
     
     String defaultEntry = null;
-    Set<String> resourcePaths = getServletContext().getResourcePaths("/api-docs/");
+    Set<String> resourcePaths = request.getServletContext().getResourcePaths("/api-docs/");
     for(String path : resourcePaths) {
         //URL resource = getServletContext().getResource(path);
         if(path!=null && path.length() > 0) {

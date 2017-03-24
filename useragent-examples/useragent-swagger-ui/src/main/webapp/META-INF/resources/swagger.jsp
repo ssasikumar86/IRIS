@@ -30,7 +30,6 @@
     String defaultEntry = null;
     Set<String> resourcePaths = request.getServletContext().getResourcePaths("/api-docs/");
     for(String path : resourcePaths) {
-        //URL resource = getServletContext().getResource(path);
         if(path!=null && path.length() > 0) {
             defaultEntry = path;
         }

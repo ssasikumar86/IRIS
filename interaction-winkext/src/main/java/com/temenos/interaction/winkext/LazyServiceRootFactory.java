@@ -35,6 +35,8 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transformer;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilderProvider;
+
 
 /**
  * A resource factory that uses the beans and configuration files from the SpringDSL implementation
@@ -51,6 +53,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 	private Metadata metadata;
 	private ResourceLocatorProvider resourceLocatorProvider;
 	private ResourceParameterResolverProvider parameterResolverProvider;
+	private WorkflowCommandBuilderProvider workflowCommandBuilderProvider;
 	private Cache cacheImpl;
 	private ResourceState exception;
 	private Transformer transformer;
@@ -64,6 +67,7 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 				.resourceLocatorProvider(resourceLocatorProvider)
 				.resourceStateProvider(resourceStateProvider)
 				.parameterResolverProvider(parameterResolverProvider)
+				.workflowCommandBuilderProvider(workflowCommandBuilderProvider)
 				.responseCache(cacheImpl)
 				.build();
 
@@ -111,6 +115,10 @@ public class LazyServiceRootFactory implements ServiceRootFactory {
 
 	public void setResourceParameterResolverProvider(ResourceParameterResolverProvider parameterResolverProvider) {
 		this.parameterResolverProvider = parameterResolverProvider;
+	}
+
+	public void setWorkflowCommandBuilderProvider(WorkflowCommandBuilderProvider workflowCommandBuilderProvider) {
+		this.workflowCommandBuilderProvider = workflowCommandBuilderProvider;
 	}
 
 	public ResourceState getException() {

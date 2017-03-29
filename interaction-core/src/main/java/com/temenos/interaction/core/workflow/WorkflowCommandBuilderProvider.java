@@ -22,37 +22,29 @@ package com.temenos.interaction.core.workflow;
  */
 
 
-import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.TransitionCommand;
-import com.temenos.interaction.core.hypermedia.Action;
-
-import java.util.List;
-
-
 /**
- * A builder to create a {@link WorkflowCommand}
- * out of a list of {@link Action}s or a list of {@link InteractionCommand}s.
+ * A provider for {@link WorkflowCommandBuilder}.
  *
  * @author ikarady
  */
-public interface WorkflowCommandBuilder {
+public interface WorkflowCommandBuilderProvider {
 
     /**
-     * Builds a {@link WorkflowCommand} from
-     * {@link InteractionCommand}s created from the list of {@link Action}s.
+     * Type of workflow for which {@link WorkflowCommandBuilder} is provided.
      *
-     * @param actions   list of {@link Action}s
-     *
-     * @return {@link WorkflowCommand}
+     * @author ikarady
      */
-    WorkflowCommand build(List<Action> actions);
+    public enum WorkflowType {
+        INTERACTION, TRANSITION;
+    }
 
     /**
-     * Builds a {@link WorkflowCommand} out of a list of {@link InteractionCommand}s.
+     * Returns a {@link WorkflowCommandBuilder} for given {@link WorkflowType}.
      *
-     * @param commands  list of {@link InteractionCommand}s
+     * @return {@link WorkflowCommandBuilder}
      *
-     * @return  {@link WorkflowCommand}
+     * @author ikarady
      */
-    WorkflowCommand build(InteractionCommand[] commands);
+    public WorkflowCommandBuilder getBuilder(WorkflowType workflowType);
+
 }

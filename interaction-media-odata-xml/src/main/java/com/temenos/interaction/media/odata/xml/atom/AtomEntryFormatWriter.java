@@ -259,9 +259,9 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
     	  } else {
     	      
     	      List<StringBuilder> profileAndHref = createProfileForStateName(href);
-    	      
+
     	      if("self".equals(rel) && null!=profileAndHref) {
-    	          writeElement(writer, "link", null, "rel", rel, "profile" , profileAndHref.get(0).toString() , "title", title, "href", profileAndHref.get(1).toString()); 
+    	          writeElement(writer, "link", null, "rel", rel, "profile" , profileAndHref.get(0).toString() , "title", title, "href", profileAndHref.get(1).toString());
     	      } else {
     	          writeElement(writer, "link", null, "rel", rel, "title", title, "href", href);
     	      }

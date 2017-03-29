@@ -25,9 +25,11 @@ package com.temenos.interaction.core.hypermedia.transition;
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.*;
 import com.temenos.interaction.core.hypermedia.*;
+import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.expression.ExpressionEvaluator;
 import com.temenos.interaction.core.resource.RESTResource;
-import com.temenos.interaction.core.workflow.TransitionWorkflowCommandBuilder;
 import com.temenos.interaction.core.workflow.TransitionWorkflowStrategyCommandBuilder;
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,23 +54,35 @@ public class AutoTransitioner {
 
     private InteractionContext originalCtx = null;
     private Transformer transformer = null;
-    private TransitionWorkflowCommandBuilder transitionWorkflowCommandBuilder = null;
+    private WorkflowCommandBuilder workflowCommandBuilder = null;
     private ResourceLocatorProvider resourceLocatorProvider = null;
     private LazyResourceStateResolver lazyResourceStateResolver = null;
     private ResourceParameterResolverProvider parameterResolverProvider = null;
+    private ExpressionEvaluator expressionEvaluator = null;
+    private int stateRevisitLimit = 100;
     private Outcome outcome = null;
 
     public AutoTransitioner(InteractionContext ctx, Transformer transformer, CommandController commandController,
             ResourceLocatorProvider resourceLocatorProvider, LazyResourceStateResolver lazyResourceStateResolver) {
         this.originalCtx = copyInteractionContext(ctx);
         this.transformer = transformer;
-        this.transitionWorkflowCommandBuilder = new TransitionWorkflowStrategyCommandBuilder(commandController);
+        this.workflowCommandBuilder = new TransitionWorkflowStrategyCommandBuilder(commandController);
         this.resourceLocatorProvider = resourceLocatorProvider;
         this.lazyResourceStateResolver = lazyResourceStateResolver;
     }
 
     public AutoTransitioner setParameterResolverProvider(ResourceParameterResolverProvider parameterResolverProvider) {
         this.parameterResolverProvider = parameterResolverProvider;
+        return this;
+    }
+
+    public AutoTransitioner setWorkflowCommandBuilder(WorkflowCommandBuilder workflowCommandBuilder) {
+        this.workflowCommandBuilder = workflowCommandBuilder;
+        return this;
+    }
+
+    public AutoTransitioner setExpressionEvaluator(ExpressionEvaluator expressionEvaluator) {
+        this.expressionEvaluator = expressionEvaluator;
         return this;
     }
 
@@ -122,6 +136,7 @@ public class AutoTransitioner {
         Outcome currentOutcome = new Outcome(outcome);
         currentOutcome.setState(lazyResourceStateResolver.resolve(transition.getTarget()));
         currentOutcome.addTransitionProperties(transition);
+        currentOutcome.setExpression(transition.getCommand().getEvaluation());
         if (transition.getTarget() instanceof DynamicResourceState) {
             DynamicResourceStateResolver dynamicStateResolver = new DynamicResourceStateResolver((DynamicResourceState) transition.getTarget(), resourceLocatorProvider)
                     .setParameterResolverProvider(parameterResolverProvider)
@@ -141,7 +156,7 @@ public class AutoTransitioner {
             return false;
         }
         currentOutcome.addCommand(currentOutcome.buildCommand());
-        InteractionContext ctx = currentOutcome.buildInteractionContext(currentOutcome.getPathParameters());
+        InteractionContext ctx = currentOutcome.getInteractionContext();
         currentOutcome.evaluate(ctx);
         if (currentOutcome.isSuccessful() || currentOutcome.isInterim()) {
             currentOutcome.setRestResource(ctx.getResource());
@@ -205,9 +220,10 @@ public class AutoTransitioner {
         private RESTResource restResource = null;
         private Boolean isSuccessful = null;
         private ResourceState state = null;
-        private Set<ResourceState> visitedStates = new HashSet<>();
-        private TransitionCommand command = null;
-        private TransitionCommand delayedCommand = null;
+        private Set<VisitedState> visitedStates = new HashSet<>();
+        private Expression expression = null;
+        private InteractionCommand command = null;
+        private InteractionCommand delayedCommand = null;
         private Outcome interimOutcome = null;
 
 
@@ -240,15 +256,10 @@ public class AutoTransitioner {
          *
          */
         public InteractionContext getInteractionContext() {
-            InteractionContext ctx = buildInteractionContext(toParameters(transitionPropertiesBuilder.build()));
-            return ctx;
-        }
-
-        protected InteractionContext buildInteractionContext(MultivaluedMap<String, String> pathParameters) {
             InteractionContext ctx = new InteractionContext(
                     originalCtx,
                     originalCtx.getHeaders(),
-                    copyParameters(pathParameters),
+                    copyParameters(toParameters(transitionPropertiesBuilder.build())),
                     copyParameters(getQueryParameters()),
                     getState());
             ctx.setTargetState(ctx.getCurrentState());
@@ -330,7 +341,7 @@ public class AutoTransitioner {
 
         private void addResult(Result result) {
             if (!isInterim()) {
-                this.isSuccessful = result == null || result.equals(Result.SUCCESS);
+                this.isSuccessful = result == null || result.equals(Result.SUCCESS) || result.equals(Result.CREATED);
             }
         }
 
@@ -346,32 +357,44 @@ public class AutoTransitioner {
             this.state = state;
         }
 
-        private TransitionCommand getDelayedCommand() {
+        private Expression getExpression() {
+            return expression;
+        }
+
+        private void setExpression(Expression expression) {
+            this.expression = expression;
+        }
+
+        private InteractionCommand getDelayedCommand() {
             return delayedCommand;
         }
 
-        private void setCommand(TransitionCommand command) {
+        private void setCommand(InteractionCommand command) {
             this.command = command;
         }
 
-        private void addCommand(TransitionCommand command) {
+        private void addCommand(InteractionCommand command) {
             if (command == null) {
                 return;
             }
-            if (command.isInterim()) {
+            if (command instanceof TransitionCommand && ((TransitionCommand)command).isInterim()) {
                 this.delayedCommand = command;
             } else {
-                this.command = transitionWorkflowCommandBuilder.build(new TransitionCommand[] {this.command, command});
+                this.command = workflowCommandBuilder.build(new InteractionCommand[] {this.command, command});
             }
         }
 
-        private TransitionCommand buildCommand() {
-            return transitionWorkflowCommandBuilder.build(state.getActions());
+        private InteractionCommand buildCommand() {
+            return workflowCommandBuilder.build(state.getActions());
         }
 
         private void evaluate(InteractionContext ctx) {
             try {
-                addResult((command == null) ? Result.SUCCESS : command.execute(ctx));
+                if (expressionEvaluator != null && expression != null && !expressionEvaluator.evaluate(expression, ctx, null)) {
+                    addResult(Result.FAILURE);
+                } else {
+                    addResult((command == null) ? Result.SUCCESS : command.execute(ctx));
+                }
             } catch (InteractionException ie) {
                 LOGGER.error("Transition command on state [{}] failed with error [{} - {}]: ",
                         state.getId(), ie.getHttpStatus(), ie.getHttpStatus().getReasonPhrase(), ie);
@@ -379,18 +402,22 @@ public class AutoTransitioner {
             }
         }
 
-        private void visitState(ResourceState state) throws ResourceStateRevisitedException {
-            if (this.visitedStates.contains(state)) {
-                throw new ResourceStateRevisitedException("Resource state "+state+" has been revisited");
+        private VisitedState visitState(ResourceState state) throws ResourceStateRevisitedException {
+            for (VisitedState visitedState : visitedStates) {
+                if (visitedState.visit(state)) {
+                    return visitedState;
+                }
             }
-            this.visitedStates.add(state);
+            VisitedState visitedState = new VisitedState(state);
+            visitedStates.add(visitedState);
+            return visitedState;
         }
 
-        private Set<ResourceState> getVisitedStates() {
+        private Set<VisitedState> getVisitedStates() {
             return visitedStates;
         }
 
-        private void setVisitedStates(Set<ResourceState> visitedStates) {
+        private void setVisitedStates(Set<VisitedState> visitedStates) {
             this.visitedStates = visitedStates;
         }
 
@@ -411,7 +438,9 @@ public class AutoTransitioner {
             } else {
                 apply(other);
                 setSuccessful(other.isSuccessful());
-                visitState(other.getState());
+                if (visitState(other.getState()).getCount() > stateRevisitLimit) {
+                    throw new ResourceStateRevisitedException("Resource state "+state+" has been revisited more than "+stateRevisitLimit+" times");
+                }
             }
         }
 
@@ -429,6 +458,29 @@ public class AutoTransitioner {
             setInterimOutcome(other.getInterimOutcome());
         }
 
+    }
+
+    private class VisitedState {
+
+        private ResourceState state = null;
+        private int count = 0;
+
+        private VisitedState(ResourceState state) {
+            this.state = state;
+            this.count = 1;
+        }
+
+        private int getCount() {
+            return count;
+        }
+
+        private boolean visit(ResourceState state) {
+            if (this.state.equals(state)) {
+                count++;
+                return true;
+            }
+            return false;
+        }
     }
 
 }

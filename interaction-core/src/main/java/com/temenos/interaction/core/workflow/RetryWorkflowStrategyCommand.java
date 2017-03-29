@@ -37,7 +37,7 @@ import com.temenos.interaction.core.command.InteractionException;
  * and the incremental backoff (configured in milliseconds).
  * @author aphethean
  */
-public class RetryWorkflowStrategyCommand implements InteractionCommand {
+public class RetryWorkflowStrategyCommand implements WorkflowCommand {
 	private final static Logger logger = LoggerFactory.getLogger(RetryWorkflowStrategyCommand.class);
 	private InteractionCommand command;
 	private int maxRetryCount;
@@ -87,7 +87,12 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 		}
 		return result;
 	}
-	
+
+	@Override
+	public boolean isEmpty() {
+		return command == null;
+	}
+
 	/**
 	 * @throws InteractionException 
 	 */

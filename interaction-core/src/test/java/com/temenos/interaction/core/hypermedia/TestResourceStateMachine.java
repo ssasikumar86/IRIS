@@ -49,6 +49,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilderFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.odata4j.core.OCollection;
@@ -2139,6 +2140,7 @@ public class TestResourceStateMachine {
         CommandController mockCommandController = mock(CommandController.class);
         when(mockCommandController.fetchCommand(anyString())).thenReturn(mock(InteractionCommand.class));
         sm.setCommandController(mockCommandController);
+        sm.setWorkflowCommandBuilderProvider(new WorkflowCommandBuilderFactory(mockCommandController));
 
         // Ensure the correct actions are used
         sm.determineAction(new Event("GET", "GET"), "/entity/notes");
@@ -2170,6 +2172,7 @@ public class TestResourceStateMachine {
         CommandController mockCommandController = mock(CommandController.class);
         when(mockCommandController.fetchCommand(anyString())).thenReturn(mock(InteractionCommand.class));
         sm.setCommandController(mockCommandController);
+        sm.setWorkflowCommandBuilderProvider(new WorkflowCommandBuilderFactory(mockCommandController));
 
         sm.determineAction(new Event("POST", "POST"), "/entity/created");
         verify(mockCommandController).fetchCommand("ValidateWithSomeService");

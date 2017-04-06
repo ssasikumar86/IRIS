@@ -35,7 +35,7 @@ import com.temenos.interaction.core.command.InteractionException;
  * of their return code {@link InteractionCommand.Result.SUCCESS} or otherwise.
  * @author aphethean
  */
-public class NaiveWorkflowStrategyCommand implements InteractionCommand {
+public class NaiveWorkflowStrategyCommand implements WorkflowCommand {
 
 	protected List<InteractionCommand> commands = new ArrayList<InteractionCommand>();
 	
@@ -51,11 +51,16 @@ public class NaiveWorkflowStrategyCommand implements InteractionCommand {
 		if (commands == null)
 			throw new IllegalArgumentException("No commands supplied");		
 	}
-	
+
 	public void addCommand(InteractionCommand command) {
 		if (command == null)
 			throw new IllegalArgumentException("No command supplied");		
 		commands.add(command);
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return commands.isEmpty();
 	}
 
 	/**

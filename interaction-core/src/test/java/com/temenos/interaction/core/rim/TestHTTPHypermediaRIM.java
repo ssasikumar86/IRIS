@@ -58,6 +58,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.temenos.interaction.core.command.*;
+import com.temenos.interaction.core.workflow.*;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.junit.Before;
@@ -1063,9 +1064,10 @@ public class TestHTTPHypermediaRIM {
         when(mockCommandController.fetchCommand(anyString())).thenReturn(mockCommand);
         
         //instantiate the class under test using the command controller that we created
-        HTTPHypermediaRIM rim = spy(new HTTPHypermediaRIM(mockCommandController, new ResourceStateMachine(
-                initialState), createMockMetadata()));
-        
+        ResourceStateMachine resourceStateMachine = new ResourceStateMachine(initialState);
+        resourceStateMachine.setWorkflowCommandBuilderProvider(new WorkflowCommandBuilderFactory(mockCommandController));
+        HTTPHypermediaRIM rim = spy(new HTTPHypermediaRIM(mockCommandController, resourceStateMachine, createMockMetadata()));
+
         UriInfo uriInfo = mock(UriInfo.class);
         when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));

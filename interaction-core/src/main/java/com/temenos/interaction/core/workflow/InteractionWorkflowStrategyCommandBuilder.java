@@ -24,39 +24,38 @@ package com.temenos.interaction.core.workflow;
 
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.command.InteractionCommand;
-import com.temenos.interaction.core.command.TransitionCommand;
 import com.temenos.interaction.core.hypermedia.Action;
 
 import java.util.List;
 
 
 /**
- * An {@link TransitionWorkflowStrategyCommand} builder that
+ * An {@link InteractionWorkflowStrategyCommand} builder that
  * uses a {@link CommandController} to create {@link InteractionCommand}s
  * out of a list of {@link Action}s and feed them into the
- * {@link TransitionWorkflowStrategyCommand} it builds.
+ * {@link InteractionWorkflowStrategyCommand} it builds.
  *
  * @author ikarady
  */
-public class TransitionWorkflowStrategyCommandBuilder implements WorkflowCommandBuilder {
+public class InteractionWorkflowStrategyCommandBuilder implements WorkflowCommandBuilder {
 
     private CommandController commandController;
 
-    public TransitionWorkflowStrategyCommandBuilder(CommandController commandController) {
+    public InteractionWorkflowStrategyCommandBuilder(CommandController commandController) {
         this.commandController = commandController;
     }
 
     /**
-     * Builds a {@link TransitionWorkflowStrategyCommand} from
+     * Builds an {@link InteractionWorkflowStrategyCommand} from
      * {@link InteractionCommand}s created from the list of {@link Action}s.
      *
      * @param actions   list of {@link Action}s
      *
-     * @return {@link TransitionWorkflowStrategyCommand}
+     * @return {@link InteractionWorkflowStrategyCommand}
      */
     @Override
-    public WorkflowCommand build(List<Action> actions) {
-        TransitionWorkflowStrategyCommand workflow = new TransitionWorkflowStrategyCommand();
+    public InteractionWorkflowStrategyCommand build(List<Action> actions) {
+        InteractionWorkflowStrategyCommand workflow = new InteractionWorkflowStrategyCommand();
         for (Action action : actions) {
             assert action != null;
             workflow.addCommand(commandController.fetchCommand(action.getName()));
@@ -65,16 +64,16 @@ public class TransitionWorkflowStrategyCommandBuilder implements WorkflowCommand
     }
 
     /**
-     * Builds a {@link TransitionWorkflowStrategyCommand} from
-     * a list of {@link TransitionCommand}s.
+     * Builds a {@link InteractionWorkflowStrategyCommand} from
+     * a list of {@link InteractionCommand}s.
      *
-     * @param commands  list of {@link TransitionCommand}s
+     * @param commands  list of {@link InteractionCommand}s
      *
-     * @return {@link TransitionWorkflowStrategyCommand}
+     * @return {@link InteractionWorkflowStrategyCommand}
      */
     @Override
     public WorkflowCommand build(InteractionCommand[] commands) {
-        TransitionWorkflowStrategyCommand workflow = new TransitionWorkflowStrategyCommand();
+        InteractionWorkflowStrategyCommand workflow = new InteractionWorkflowStrategyCommand();
         for (InteractionCommand command : commands) {
             if (command != null) {
                 workflow.addCommand(command);

@@ -22,29 +22,22 @@ package com.temenos.interaction.core.workflow;
  */
 
 
-import com.temenos.interaction.core.command.TransitionCommand;
-import com.temenos.interaction.core.hypermedia.Action;
-
-import java.util.List;
+import com.temenos.interaction.core.command.InteractionCommand;
 
 
 /**
- * A builder to create a workflow {@link TransitionCommand}
- * out of a list of {@link Action}s or a list of {@link TransitionCommand}s.
+ * An {@link InteractionCommand} that orchestrates a workflow
+ * of command execution.
  *
  * @author ikarady
  */
-public interface TransitionWorkflowCommandBuilder extends WorkflowCommandBuilder {
-
-    @Override
-    TransitionCommand build(List<Action> actions);
+public interface WorkflowCommand extends InteractionCommand {
 
     /**
-     * Builds a workflow {@link TransitionCommand} out of a list of {@link TransitionCommand}s.
+     * Returns true if there are no {@link InteractionCommand}s in workflow.
      *
-     * @param commands  list of {@link TransitionCommand}s
-     *
-     * @return  workflow {@link TransitionCommand}
+     * @return true or false
      */
-    TransitionCommand build(TransitionCommand[] commands);
+    public boolean isEmpty();
+
 }

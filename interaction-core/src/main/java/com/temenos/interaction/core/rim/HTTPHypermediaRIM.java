@@ -40,6 +40,8 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import com.temenos.interaction.core.hypermedia.*;
+import com.temenos.interaction.core.hypermedia.expression.ExpressionEvaluator;
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilderProvider.WorkflowType;
 import org.apache.commons.lang.StringUtils;
 import com.temenos.interaction.core.hypermedia.transition.AutoTransitioner;
 import org.apache.wink.common.model.multipart.InMultiPart;
@@ -80,7 +82,7 @@ import com.temenos.interaction.core.resource.RESTResource;
  * @author aphethean
  *
  */
-public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
+public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, ExpressionEvaluator {
     private static final Logger LOGGER = LoggerFactory.getLogger(HTTPHypermediaRIM.class);
 
     private static boolean skipValidation = System.getProperty("iris.skip.validation") != null;
@@ -91,6 +93,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     private final ResourceRequestHandler resourceRequestHandler;
     private final Metadata metadata;
     private final String resourcePath;
+    private AutoTransitioner autoTransitioner;
 
     /**
      * <p>
@@ -211,9 +214,9 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     }
 
     /*
-     * TODO: shouldn't this return the parent's fully qualified resource path
-     * with the current's resource path as a suffix?
-     */
+             * TODO: shouldn't this return the parent's fully qualified resource path
+             * with the current's resource path as a suffix?
+             */
     public String getFQResourcePath() {
 	    
 		String result = getResourcePath();
@@ -347,14 +350,16 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
             
             assert (result != null) : "InteractionCommand must return a result";
             status = determineStatus(headers, event, ctx, result);
-            if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
-                AutoTransitioner autoTransitioner = new AutoTransitioner(
+            if (status.getFamily() == Response.Status.Family.SUCCESSFUL && autoTransitioner == null) {
+                autoTransitioner = new AutoTransitioner(
                         ctx,
                         getHypermediaEngine().getTransformer(),
                         commandController,
                         getHypermediaEngine().getResourceLocatorProvider(),
                         new LazyResourceStateResolver(getHypermediaEngine().getResourceStateProvider()))
-                        .setParameterResolverProvider(getHypermediaEngine().getParameterResolverProvider());
+                        .setParameterResolverProvider(getHypermediaEngine().getParameterResolverProvider())
+                        .setWorkflowCommandBuilder(getHypermediaEngine().getWorkflowCommandBuilder(WorkflowType.TRANSITION))
+                        .setExpressionEvaluator(this);
                 if(autoTransitioner.transition().isSuccessful()) {
                     ctx = autoTransitioner.getOutcome().getInteractionContext();
                     status = determineStatus(headers, event, ctx, result);
@@ -1112,6 +1117,11 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     protected ResponseBuilder setLocationHeader(ResponseBuilder builder, 
             String dest, MultivaluedMap<String, String> param){
         return HeaderHelper.locationHeader(builder, dest, param);
+    }
+
+    @Override
+    public boolean evaluate(Expression expression, InteractionContext ctx, EntityResource<?> resource) {
+        return expression.evaluate(this, ctx, resource);
     }
 
 }

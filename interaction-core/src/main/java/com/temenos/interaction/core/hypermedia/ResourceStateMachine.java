@@ -41,10 +41,9 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.Status.Family;
 
 import com.temenos.interaction.core.hypermedia.expression.Expression;
-import com.temenos.interaction.core.hypermedia.transition.EntityPropertiesGenerator;
 import com.temenos.interaction.core.hypermedia.transition.TransitionPropertiesBuilder;
-import com.temenos.interaction.core.hypermedia.transition.UriPropertiesGenerator;
-import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommandBuilder;
+import com.temenos.interaction.core.workflow.*;
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilderProvider.WorkflowType;
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
 import org.slf4j.Logger;
@@ -71,7 +70,7 @@ import com.temenos.interaction.core.rim.ResourceRequestConfig;
 import com.temenos.interaction.core.rim.ResourceRequestHandler;
 import com.temenos.interaction.core.rim.ResourceRequestResult;
 import com.temenos.interaction.core.rim.SequentialResourceRequestHandler;
-import com.temenos.interaction.core.workflow.AbortOnErrorWorkflowStrategyCommand;
+
 
 /**
  * A state machine that is responsible for creating the links (hypermedia) to
@@ -92,7 +91,8 @@ public class ResourceStateMachine {
 	ResourceStateProvider resourceStateProvider;
 	ResourceLocatorProvider resourceLocatorProvider;
 	ResourceParameterResolverProvider parameterResolverProvider;
-	
+	WorkflowCommandBuilderProvider workflowCommandBuilderProvider;
+
 	// optimised access
 	private Map<String, Transition> transitionsById = new MapWithReadWriteLock<String, Transition>();
 	private Map<String, Transition> transitionsByRel = new MapWithReadWriteLock<String, Transition>();
@@ -166,8 +166,15 @@ public class ResourceStateMachine {
 
 	public InteractionCommand buildWorkflow(Event event, List<Action> actions) {
 		assert (event != null);
-		AbortOnErrorWorkflowStrategyCommand command = new AbortOnErrorWorkflowStrategyCommandBuilder(getCommandController()).build(actions);
+		WorkflowCommand command = getWorkflowCommandBuilder(WorkflowType.INTERACTION).build(actions);
 		return !command.isEmpty() ? command : null;
+	}
+
+	public WorkflowCommandBuilder getWorkflowCommandBuilder(WorkflowType workflowType) {
+		if (workflowCommandBuilderProvider == null) {
+			return new AbortOnErrorWorkflowStrategyCommandBuilder(commandController);
+		}
+		return workflowCommandBuilderProvider.getBuilder(workflowType);
 	}
 
 	public ResourceState determineState(Event event, String resourcePath) {
@@ -243,6 +250,10 @@ public class ResourceStateMachine {
 		this.resourceLocatorProvider = resourceLocatorProvider;
 		this.resourceStateProvider = resourceStateProvider;
 		build();
+	}
+
+	public void setWorkflowCommandBuilderProvider(WorkflowCommandBuilderProvider workflowCommandBuilderProvider) {
+		this.workflowCommandBuilderProvider = workflowCommandBuilderProvider;
 	}
 
 	/**
@@ -1146,6 +1157,7 @@ public class ResourceStateMachine {
 		private ResourceStateProvider resourceStateProvider;
 		private ResourceLocatorProvider resourceLocatorProvider;
 		private ResourceParameterResolverProvider parameterResolverProvider;
+		private WorkflowCommandBuilderProvider workflowCommandBuilderProvider;
 		private Cache responseCache;
 
 		public Builder initial(ResourceState initial) {
@@ -1183,6 +1195,11 @@ public class ResourceStateMachine {
 			return this;
 		}
 
+		public Builder workflowCommandBuilderProvider(WorkflowCommandBuilderProvider workflowCommandBuilderProvider) {
+			this.workflowCommandBuilderProvider = workflowCommandBuilderProvider;
+			return this;
+		}
+
 		public Builder responseCache(Cache cache) {
 			this.responseCache = cache;
 			return this;
@@ -1201,10 +1218,11 @@ public class ResourceStateMachine {
 		this.resourceStateProvider = builder.resourceStateProvider;
 		this.resourceLocatorProvider = builder.resourceLocatorProvider;
 		this.parameterResolverProvider = builder.parameterResolverProvider;
+		this.workflowCommandBuilderProvider = builder.workflowCommandBuilderProvider;
 		this.responseCache = builder.responseCache;
 		build();
-	}   
-    
+	}
+
 	private boolean addLink(Transition transition, InteractionContext ctx, EntityResource<?> er,
 			HTTPHypermediaRIM rimHander) {
 		boolean addLink = true;

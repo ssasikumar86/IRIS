@@ -64,4 +64,24 @@ public class AbortOnErrorWorkflowStrategyCommandBuilder implements WorkflowComma
         }
         return workflow;
     }
+
+    /**
+     * Builds a {@link AbortOnErrorWorkflowStrategyCommand} from
+     * a list of {@link InteractionCommand}s.
+     *
+     * @param commands  list of {@link InteractionCommand}s
+     *
+     * @return {@link AbortOnErrorWorkflowStrategyCommand}
+     */
+    @Override
+    public WorkflowCommand build(InteractionCommand[] commands) {
+        AbortOnErrorWorkflowStrategyCommand workflow = new AbortOnErrorWorkflowStrategyCommand();
+        for (InteractionCommand command : commands) {
+            if (command != null) {
+                workflow.addCommand(command);
+            }
+        }
+        return workflow;
+    }
+
 }

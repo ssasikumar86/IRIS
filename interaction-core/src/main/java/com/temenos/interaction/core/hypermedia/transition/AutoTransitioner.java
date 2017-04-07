@@ -176,12 +176,14 @@ public class AutoTransitioner {
     }
 
     protected InteractionContext copyInteractionContext(InteractionContext ctx) {
-        return new InteractionContext(
+        InteractionContext ctxCopy = new InteractionContext(
                 ctx,
                 ctx.getHeaders(),
                 copyParameters(ctx.getPathParameters()),
                 copyParameters(ctx.getQueryParameters()),
                 ctx.getCurrentState());
+        ctxCopy.getResponseHeaders().putAll(ctx.getResponseHeaders());
+        return ctxCopy;
     }
 
     protected MultivaluedMap<String, String> copyParameters(MultivaluedMap<String, String> parameters) {
@@ -266,6 +268,7 @@ public class AutoTransitioner {
             ctx.setResource(getRestResource());
             ctx.getAttributes().putAll(getCtxAttributes());
             ctx.getOutQueryParameters().putAll(getOutQueryParameters());
+            ctx.getResponseHeaders().putAll(originalCtx.getResponseHeaders());
             return ctx;
         }
 

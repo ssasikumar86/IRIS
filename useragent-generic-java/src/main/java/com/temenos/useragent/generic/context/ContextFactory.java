@@ -81,7 +81,7 @@ public class ContextFactory {
 
 	public static class ContextImpl implements Context {
 		private SessionConnectionConfig connectionConfig;
-
+		private ContentTypeHandlers registry = new ContentTypeHandlers();
 		private ContextImpl(ConnectionConfig connConfig) {
 			this.connectionConfig = new SessionConnectionConfig(connConfig);
 		}
@@ -93,7 +93,7 @@ public class ContextFactory {
 
 		@Override
 		public ContentTypeHandlers entityHandlersRegistry() {
-			ContentTypeHandlers registry = new ContentTypeHandlers();
+
 			registry.registerForPayload("application/atom+xml",
 					AtomPayloadHandler.class);
 			registry.registerForPayload("text/plain", PlainTextPayloadHandler.class);

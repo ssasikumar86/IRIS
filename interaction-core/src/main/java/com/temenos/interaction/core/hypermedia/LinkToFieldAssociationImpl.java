@@ -22,8 +22,10 @@ package com.temenos.interaction.core.hypermedia;
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -34,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+
 
 
 /**
@@ -100,21 +103,15 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         if(targetFields.isEmpty()) {            
             targetFields.add(targetFieldName);
         }
-        
         String parentTargetFieldName = getParentNameOfCollectionValue(targetFieldName);
 
         boolean hasSameParent = false;
-        String parentResolvedName = new String();        
         if (transitionCollectionParams.size() > 0) {
-            String firstCollectionParam = transitionCollectionParams.get(0);
+            ListIterator<String> transCollIter = transitionCollectionParams.listIterator();
             //Determine if parent of target field and parent of parameters are same 
-            hasSameParent = StringUtils.equals(getParentNameOfCollectionValue(firstCollectionParam), parentTargetFieldName);
-            if(!hasSameParent)
-            {
-                parentResolvedName = getParentOfMultivalueChildren();
-            }
+            while(transCollIter.hasNext() && (hasSameParent = StringUtils.equals(getParentNameOfCollectionValue(transCollIter.next()), parentTargetFieldName)));
         }
-        
+
         int targetFieldIndex = 0;
         for (String targetField : targetFields) // Generate one or more map of properties for each target field
         {
@@ -128,12 +125,10 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
                 String parentResolvedTargetFieldName = getParentNameOfCollectionValue(targetField);
                 LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, parentResolvedTargetFieldName);
                 transitionPropertiesList.add(linkProps);
-            } else { 
-                // Create one properties maps per target.
-                    String childParentResolvedParamNewIndex = parentResolvedName + "(" + targetFieldIndex + ")";
-                    LinkProperties linkProps = createLinkProperties(targetField, resolvedDynamicResourceFieldNames, childParamNames, childParentResolvedParamNewIndex);
-                    transitionPropertiesList.add(linkProps);
-                    targetFieldIndex ++;
+            } else {
+                LinkProperties linkProps = createLinkPropertieswithResolvedParentSet(targetField, resolvedDynamicResourceFieldNames,
+                         childParamNames, getParentSetOfMultivalueChildren(targetFieldIndex++));
+                transitionPropertiesList.add(linkProps);
             }
         }
     }
@@ -182,11 +177,19 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         return linkProps;
         
     }
-    
+
     private LinkProperties createLinkProperties(String targetField, List<String> resolvedDynamicResourceFieldNames, List<String> childParamNames, String resolvedParentName) {
+        Set<String> resolvedParentSet = new HashSet<String>();
+        resolvedParentSet.add(resolvedParentName);
+        return createLinkPropertieswithResolvedParentSet(targetField, resolvedDynamicResourceFieldNames, childParamNames, resolvedParentSet);
+    }
+
+    private LinkProperties createLinkPropertieswithResolvedParentSet(String targetField, List<String> resolvedDynamicResourceFieldNames, List<String> childParamNames, Set<String> resolvedParentSet) {
         List<String> paramPropertyKeys = new ArrayList<String>();
-        if (StringUtils.isNotBlank(resolvedParentName)) {
-            paramPropertyKeys = getListOfParamPropertyKeys(childParamNames, resolvedParentName);
+        for (String resolvedParentName : resolvedParentSet) {
+            if (StringUtils.isNotBlank(resolvedParentName)) {
+                paramPropertyKeys.addAll(getListOfParamPropertyKeys(childParamNames, resolvedParentName));
+            }
         }
 
         if (!CollectionUtils.isEmpty(resolvedDynamicResourceFieldNames)) {
@@ -245,6 +248,18 @@ public class LinkToFieldAssociationImpl implements LinkToFieldAssociation {
         List<String> matchingFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
         String parent = getParentNameOfCollectionValue(matchingFields.get(0));
         return parent.substring(0, parent.lastIndexOf("("));        
+    }
+
+    private Set<String> getParentSetOfMultivalueChildren(int targetFieldIndex) {
+        Set<String> parentSet = new HashSet<>();
+        for (String collectionParam : transitionCollectionParams) {
+            List<String> matchingFields = extractMatchingFieldsFromTransitionProperties(collectionParam);
+            if(!matchingFields.isEmpty()){
+                String parent = getParentNameOfCollectionValue(matchingFields.get(0));
+                parentSet.add(parent.substring(0, parent.lastIndexOf("(")).concat("(" + targetFieldIndex + ")"));
+            }
+        }
+        return parentSet;
     }
 
     private List<String> getCollectionParams(Transition transition) {

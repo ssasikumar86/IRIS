@@ -243,10 +243,10 @@ public class CommandHelper {
 					while(m.find()) {
 						String templateParam = m.group(1);			//e.g. code
 						if(ctx.getQueryParameters().containsKey(templateParam)) {
-							prop = prop.replaceAll("\\{" + templateParam + "\\}", ctx.getQueryParameters().getFirst(templateParam));
+						    prop = prop.replace("{" + templateParam + "}", ctx.getQueryParameters().getFirst(templateParam));
 						}
 						else if(ctx.getPathParameters().containsKey(templateParam)) {
-							prop = prop.replaceAll("\\{" + templateParam + "\\}", ctx.getPathParameters().getFirst(templateParam));
+						    prop = prop.replace("{" + templateParam + "}", ctx.getPathParameters().getFirst(templateParam));
 						}
 					}
 				}

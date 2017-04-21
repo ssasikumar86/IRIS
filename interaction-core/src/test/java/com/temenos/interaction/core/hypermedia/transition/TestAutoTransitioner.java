@@ -31,6 +31,7 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.*;
 import com.temenos.interaction.core.resource.EntityResource;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -39,6 +40,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.util.*;
 
 import static junit.framework.Assert.*;
@@ -179,6 +181,27 @@ public class TestAutoTransitioner {
         assertEquals(state2, autoTransitioner.getOutcome().getInteractionContext().getCurrentState());
         assertEquals("query", autoTransitioner.getOutcome().getInteractionContext().getPathParameters().getFirst("query"));
         assertEquals("query", autoTransitioner.getOutcome().getInteractionContext().getQueryParameters().getFirst("query"));
+    }
+
+    @Test
+    public void testTransitionWithResponseHeader() {
+        ResourceState state1 = new ResourceState(initialState, "state1", new ArrayList<Action>());
+        ResourceState state2 = new ResourceState(initialState, "state2", toList(new Action("POST", Action.TYPE.ENTRY)));
+        initialState.addTransition(new Transition.Builder().target(state1).build());
+        initialState.addTransition(new Transition.Builder().target(state2).flags(Transition.AUTO).build());
+        AutoTransitioner autoTransitioner = new AutoTransitioner(
+                new InteractionContextBuilder().addResponseHttpHeaders(new HashMap<String, String>(){{put("responseHeader1","responseValue1");}}).build(),
+                transformerMock,
+                stubCommandController(
+                        new AbstractMap.SimpleEntry<>("POST", getSuccessCommandBuilder().build())
+                ),
+                mockResourceLocatorProvider(),
+                mockLazyResourceStateResolver());
+
+        assertTrue(autoTransitioner.transition().isSuccessful());
+        assertEquals(state2, autoTransitioner.getOutcome().getInteractionContext().getCurrentState());
+        assertTrue(autoTransitioner.getOutcome().getInteractionContext().getResponseHeaders().containsKey("responseHeader1"));
+        assertEquals("responseValue1", autoTransitioner.getOutcome().getInteractionContext().getResponseHeaders().get("responseHeader1"));
     }
 
     @Test
@@ -593,6 +616,7 @@ public class TestAutoTransitioner {
         private Entity entity = null;
         private MultivaluedMapImpl<String> pathParameters = new MultivaluedMapImpl<>();
         private MultivaluedMapImpl<String> queryParameters = new MultivaluedMapImpl<>();
+        private Map<String,String> responseHttpHeaders = null;
 
         InteractionContextBuilder setEntity(Entity entity) {
             this.entity = entity;
@@ -617,10 +641,18 @@ public class TestAutoTransitioner {
             return this;
         }
 
+        InteractionContextBuilder addResponseHttpHeaders(Map<String,String> responseHttpHeaders) {
+            this.responseHttpHeaders = responseHttpHeaders;
+            return this;
+        }
+
         InteractionContext build() {
             InteractionContext ctx = new InteractionContext(null, null, pathParameters, queryParameters, initialState, metadataMock);
             if (entity != null) {
                 ctx.setResource(new EntityResource<>(entity.getName(), entity));
+            }
+            if(responseHttpHeaders != null){
+                ctx.getResponseHeaders().putAll(responseHttpHeaders);
             }
             return ctx;
         }

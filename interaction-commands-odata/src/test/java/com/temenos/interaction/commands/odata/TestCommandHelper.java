@@ -4,7 +4,7 @@ package com.temenos.interaction.commands.odata;
  * #%L
  * interaction-commands-odata
  * %%
- * Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2017 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -95,6 +95,19 @@ public class TestCommandHelper {
 		}
 	}
 
+	@Test
+    public void testGetViewActionPropertyWithQueryParamsContainingBackslash() {
+        try {
+            InteractionContext ctx = createInteractionContextWithQueryParams("MyEntity", "TEST....\\BNK");
+            String prop = CommandHelper.getViewActionProperty(ctx, "filter");
+            assertEquals("customer eq 'TEST....\\BNK'", prop);
+        }
+        catch(Exception e) {
+            fail(e.getMessage());
+        }
+    }
+	
+	
 	@Test
 	public void testGetViewActionProperty() {
 		try {

@@ -27,11 +27,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 //import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.powermock.api.support.membermodification.MemberModifier.suppress;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.powermock.api.support.membermodification.MemberMatcher.constructor;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
+import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
 import java.io.File;
 

@@ -688,7 +688,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
             responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
         } else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
             if (resource != null) {
-                if (resource.getLinks() != null && !resource.getLinks().isEmpty()) {
+                if (resource.getLinks() != null && !resource.getLinks().isEmpty() && autoTransitioner != null && autoTransitioner.transition().isSuccessful()) {
                     responseBuilder = setLocationHeader(responseBuilder, resource.getLinks().iterator().next().getHref(), ctx.getQueryParameters());
                 }
 

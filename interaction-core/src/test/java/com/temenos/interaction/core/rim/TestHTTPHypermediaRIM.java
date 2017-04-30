@@ -276,58 +276,13 @@ public class TestHTTPHypermediaRIM {
         rim.get(mock(HttpHeaders.class), "id", uriInfo);
         verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextArgumentPathMatcherPercent()));
     }
-    
-    @Test
-    public void testExtractDecodedUriSegments() throws InteractionException {
-        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-        InteractionCommand mockCommand = mock(InteractionCommand.class);
-        when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(
-                initialState), createMockMetadata());
-
-        UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPath(anyBoolean())).thenReturn("notes/id('id%2FwithSlash')/view");
-        String[] expectedResultArray = new String[]{"notes", "id('id/withSlash')", "view"};
-        
-        String[] resultArray =  rim.extractDecodedUriSegments(uriInfo);
-        assertEquals(3, resultArray.length);
-        assertArrayEquals(expectedResultArray, resultArray);
-    }
-    
-    /*
-     * testing method extractDecodedUriSegment with null and empty input
-     * 
-     * 
-     */
-    @Test
-    public void testExtractDecodedUriSegmentsWithNullAndEmptyInput() throws InteractionException {
-        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
-        InteractionCommand mockCommand = mock(InteractionCommand.class);
-        when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
-        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand), new ResourceStateMachine(
-                initialState), createMockMetadata());
-        String[] resultArray =  rim.extractDecodedUriSegments(null);
-        if(resultArray.length != 0) {
-            fail("When passing null input method extractDecodedUriSegments return some invalid result");
-        }
-        //Empty input String test 
-        UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPath(anyBoolean())).thenReturn("");
-        
-        String[] resultArrayforEmptyPath =  rim.extractDecodedUriSegments(uriInfo);
-        if(resultArrayforEmptyPath.length != 0) {
-            fail("When passing empty input method extractDecodedUriSegments return some invalid result");
-        }
-    }
-    
-    
 
     class InteractionContextArgumentPathMatcherPercent extends ArgumentMatcher<InteractionContext> {
         public boolean matches(Object o) {
             if (o instanceof InteractionContext) {
                 InteractionContext ctx = (InteractionContext) o;
                 MultivaluedMap<String, String> mvmap = ctx.getPathParameters();
-                if (!mvmap.getFirst("id").equals("ab%25cd")) {
+                if (!mvmap.getFirst("id").equals("ab%cd")) {
                     return false;
                 }
                 return true;

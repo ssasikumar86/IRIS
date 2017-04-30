@@ -586,7 +586,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
         if(uriInfo.getPath() != null && currentState != null) {        	
             
             // Extract values of placeholders defined in the resource state's path from the uri, such as id
-	        String[] uriSegments = extractDecodedUriSegments(uriInfo);
+	        String[] uriSegments = uriInfo.getPath(false).split("/");
 	        String[] pathSegments = currentState.getPath().substring(1).split("/");
 	
 	        new URLHelper().extractPathParameters(uriInfo, uriSegments, pathSegments);
@@ -603,7 +603,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
          * expected 'ab%30'.
          */
         MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(false) : null;
-        MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(false) : null;
+        MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
         // work around an issue in wink, wink does not decode query parameters
         // in 1.1.3
         decodeQueryParams(queryParameters);
@@ -614,22 +614,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
         return ctx;
     }
 
-    String[] extractDecodedUriSegments(UriInfo uriInfo) {
-        if(uriInfo!=null && StringUtils.isNotEmpty(uriInfo.getPath(false))) {
-            String[] uriSegments = uriInfo.getPath(false).split("/");
-            for (int segmentIndex = 0; segmentIndex < uriSegments.length; segmentIndex++) {
-                try {
-                    uriSegments[segmentIndex] = URLDecoder.decode(uriSegments[segmentIndex], "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    LOGGER.error("Error while decoding uriSegments " + uriSegments[segmentIndex], e);
-                }
-            }
-           return uriSegments;
-        }
-        LOGGER.warn("Error while extracting Uri Segment, uriInfo Cannot be null");
-        return new String[0];
-    }
-    
     // param cacheable true if this response is to an in-principle cacheable
     // request (i.e. a GET). This method will
     // determine itself whether the particular resource returned can be

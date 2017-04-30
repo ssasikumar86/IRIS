@@ -23,8 +23,10 @@ package com.temenos.interaction.core;
 
 import java.net.URI;
 import java.net.URLDecoder;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
@@ -51,15 +53,7 @@ public class UriInfoImpl implements UriInfo {
 
     @Override
     public String getPath() {
-        try {
-            return URLDecoder.decode(uriInfo.getPath(), "UTF-8");
-        } catch (Exception e) {
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Failed to decode " + uriInfo.getPath(), e);
-            }
-            
-            return uriInfo.getPath();
-        }
+        return uriInfo.getPath();
     }
 
     @Override
@@ -107,32 +101,36 @@ public class UriInfoImpl implements UriInfo {
         return uriInfo.getBaseUriBuilder();
     }
 
-    @Override
+    /**
+     * Returns the map of path parameters which are un-decoded. This is directly
+     * opposite to the behavior of the method it overrides which returns the map
+     * of parameters which are decoded.
+     * <p>
+     * This map <b>should not be</b> added with decoded parameters.
+     * </p>
+     */
     public MultivaluedMap<String, String> getPathParameters() {
-    	return pathParameters;
+        return this.pathParameters;
     }
 
     @Override
     public MultivaluedMap<String, String> getPathParameters(boolean decode) {
+        MultivaluedMap<String, String> map = new MultivaluedMapImpl<>();
         try {
-            for (Map.Entry<String, List<String>> entry : pathParameters.entrySet()) {
-                // remove the encoded parameters from the object
-                pathParameters.remove(entry.getKey());
-                
-                for (int i = 0; i < entry.getValue().size(); i++) {
-                    // add the parameters decoded again to the object
-                    pathParameters.add(entry.getKey(), URLDecoder.decode(entry.getValue().get(i), "UTF-8"));
+            Iterator<Entry<String, List<String>>> pathParamIter = this.pathParameters.entrySet().iterator();
+            while (pathParamIter.hasNext()) {
+                Entry<String, List<String>> entry = pathParamIter.next();
+                for (String paramVal : entry.getValue()) {
+                    // true => decodes; false => uses original
+                    map.add(entry.getKey(), decode ? URLDecoder.decode(paramVal, "UTF-8") : paramVal);
                 }
             }
-            
-            return pathParameters;
         } catch (Exception e) {
-            if(LOGGER.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Failed to decode parameter", e);
             }
-            
-            return pathParameters;
-        }        
+        }
+        return map;
     }
 
     @Override

@@ -4,6 +4,8 @@
 # For example:
 INSERT INTO `Profile`(`userID` , `name` , `DOB` , `location` , `pictureTaken`) VALUES('aphethean' , 'Aaron Phethean' , '1824-08-21 00:00:00' , '-27.4667,153.0333' , '2012-04-16 15:23:00');	
 INSERT INTO `Preferences`(`userID` , `currency` , `language`) VALUES('aphethean' , 'GBP' , 'EN');	
+INSERT INTO `Profile`(`userID` , `name` , `DOB` , `location` , `pictureTaken`) VALUES('test+User 1\2/3''4' , 'Test User' , '1999-08-21 00:00:00' , '-27.4667,153.0333' , '2012-04-16 15:23:00');
+INSERT INTO `Preferences`(`userID` , `currency` , `language`) VALUES('test+User 1\2/3''4' , 'USD' , 'EN');
 
 #INSERT INTO `ID`(`DomainObjectName`, `LastId`) VALUES('NOTE', 1);
 

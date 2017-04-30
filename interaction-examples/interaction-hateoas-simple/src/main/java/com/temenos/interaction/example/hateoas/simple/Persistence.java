@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.temenos.interaction.example.hateoas.simple.model.Note;
+import com.temenos.interaction.example.hateoas.simple.model.Profile;
 
 public class Persistence {
     private final static Logger logger = LoggerFactory.getLogger(Persistence.class);
@@ -93,6 +94,28 @@ public class Persistence {
 			logger.error("Error while removing entity [" + note.getNoteID() + "]: ", e);
 		}
 		return note;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Profile> getProfiles() {
+        List<Profile> entities = null;
+        try {
+            Query jpaQuery = entityManager.createQuery("SELECT p FROM Profile p");
+            entities = jpaQuery.getResultList();
+        } catch (Exception e) {
+            logger.error("Error while loading entities: ", e);
+        }
+        return entities;
+    }
+
+    public Profile getProfile(String profileId) {
+        Profile profile = null;
+        try {
+            profile = entityManager.find(Profile.class, profileId);
+        } catch (Exception e) {
+            logger.error("Error while loading entity [" + profileId + "]: ", e);
+        }
+        return profile;
     }
 
 }

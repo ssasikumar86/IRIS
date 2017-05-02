@@ -91,7 +91,7 @@ public class TestLazyServiceRootFactory {
         String id = "123";		
         UriInfo uriInfo = mock(UriInfo.class);	
         when(uriInfo.getPath(eq(false))).thenReturn("test");
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));   
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
 
 		Response response = rim.get(headers, id, uriInfo);
@@ -157,7 +157,7 @@ public class TestLazyServiceRootFactory {
         String id = "123";      
         UriInfo uriInfo = mock(UriInfo.class);  
         when(uriInfo.getPath(eq(false))).thenReturn("test");
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));   
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         
         Response response = rim.get(headers, id, uriInfo);

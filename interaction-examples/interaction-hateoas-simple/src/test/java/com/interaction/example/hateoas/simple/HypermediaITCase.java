@@ -21,15 +21,22 @@ package com.interaction.example.hateoas.simple;
  * #L%
  */
 
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.endsWith;
 
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.core.Response;
 
@@ -511,5 +518,43 @@ public class HypermediaITCase extends JerseyTest {
 				.put(ClientResponse.class, halRequest);
 		assertEquals(400, response.getStatus());
 	}
+
+    @Test
+    public void testGetProfile() throws Exception {
+        ClientResponse response = webResource.path("/profiles/test%2BUser+1%5C2%2F3%274").accept(MediaType.APPLICATION_HAL_JSON)
+                .get(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+
+        RepresentationFactory representationFactory = new StandardRepresentationFactory();
+        ReadableRepresentation resource = representationFactory.readRepresentation(
+                MediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
+
+        Map<String, Object> properties = resource.getProperties();
+        assertNotNull(resource.getLinkByRel("self"));
+        assertTrue(properties.get("userID").equals("test+User 1\\2/3'4"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetProfiles() throws Exception {
+        ClientResponse response = webResource.path("/profiles").accept(MediaType.APPLICATION_HAL_JSON)
+                .get(ClientResponse.class);
+        assertEquals(200, response.getStatus());
+        RepresentationFactory representationFactory = new StandardRepresentationFactory();
+        ReadableRepresentation resource = representationFactory.readRepresentation(
+                MediaType.APPLICATION_HAL_JSON.toString(), new InputStreamReader(response.getEntityInputStream()));
+
+        assertNotNull(resource.getLinkByRel("self"));
+        Iterator<Entry<String, ReadableRepresentation>> propsIter = resource.getResources().iterator();
+        while (propsIter.hasNext()) {
+            Entry<String, ReadableRepresentation> entry = propsIter.next();
+            Map<String, Object> properties = entry.getValue().getProperties();
+            Link link = entry.getValue().getLinkByRel("item");// Rel self??
+            assertNotNull(link);
+            String href = link.getHref();
+            assertTrue(href.endsWith("test%2BUser+1%5C2%2F3%274") || href.endsWith("aphethean"));
+            assertTrue(properties.get("userID").equals("test+User 1\\2/3'4") || properties.get("userID").equals("aphethean")); 
+        }
+    }
 
 }

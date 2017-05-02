@@ -531,7 +531,7 @@ public class HypermediaITCase extends JerseyTest {
 
         Map<String, Object> properties = resource.getProperties();
         assertNotNull(resource.getLinkByRel("self"));
-        assertThat(properties.get("userID"), equalTo("test+User 1\\2/3'4"));
+        assertTrue(properties.get("userID").equals("test+User 1\\2/3'4"));
     }
 
     @SuppressWarnings("unchecked")
@@ -553,7 +553,7 @@ public class HypermediaITCase extends JerseyTest {
             assertNotNull(link);
             String href = link.getHref();
             assertTrue(href.endsWith("test%2BUser+1%5C2%2F3%274") || href.endsWith("aphethean"));
-            assertThat(properties.get("userID"), anyOf(equalTo("test+User 1\\2/3'4"), equalTo("aphethean")));
+            assertTrue(properties.get("userID").equals("test+User 1\\2/3'4") || properties.get("userID").equals("aphethean")); 
         }
     }
 

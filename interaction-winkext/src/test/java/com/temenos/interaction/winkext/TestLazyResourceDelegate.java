@@ -103,7 +103,7 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         
@@ -112,7 +112,7 @@ public class TestLazyResourceDelegate {
         verify(resourceStateProvider).getResourceStateId("GET", "/myResource");
         
         uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("");
         
@@ -152,7 +152,7 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("");
         
@@ -256,7 +256,7 @@ public class TestLazyResourceDelegate {
 		HttpHeaders headers = mock(HttpHeaders.class);
 		String id = "123";
 		UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));	
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
 		when(uriInfo.getPath(eq(false))).thenReturn("myResource");
 		EntityResource<?> resource = mock(EntityResource.class);
@@ -366,7 +366,7 @@ public class TestLazyResourceDelegate {
         
         HttpHeaders headers = mock(HttpHeaders.class);
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));     
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         
@@ -475,7 +475,7 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));  
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         MultivaluedMap<String, String> formMap = mock(MultivaluedMap.class);
@@ -583,7 +583,7 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class)); 
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         EntityResource<?> resource = mock(EntityResource.class);
@@ -693,7 +693,7 @@ public class TestLazyResourceDelegate {
         
         HttpHeaders headers = mock(HttpHeaders.class);
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));    
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         
@@ -801,7 +801,7 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));    
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));        
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         EntityResource<?> resource = mock(EntityResource.class);
@@ -908,7 +908,7 @@ public class TestLazyResourceDelegate {
         HttpHeaders headers = mock(HttpHeaders.class);
         String id = "123";
         UriInfo uriInfo = mock(UriInfo.class);
-        when(uriInfo.getPathParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));     
+        when(uriInfo.getPathParameters(eq(true))).thenReturn(mock(MultivaluedMap.class));
         when(uriInfo.getQueryParameters(eq(false))).thenReturn(mock(MultivaluedMap.class));                
         when(uriInfo.getPath(eq(false))).thenReturn("myResource");
         

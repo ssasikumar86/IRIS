@@ -116,6 +116,12 @@
 	<bean id="CREATENote" class="com.temenos.interaction.example.hateoas.simple.CREATENoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
+	<bean id="GETProfiles" class="com.temenos.interaction.example.hateoas.simple.GETProfilesCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="GETProfile" class="com.temenos.interaction.example.hateoas.simple.GETProfileCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -131,6 +137,8 @@
 				<entry key="GETMultipleNoteCommand" value-ref="GETMultipleNoteCommand" />				
 				<entry key="DELETENote" value-ref="DELETENote" />
 				<entry key="CREATENote" value-ref="CREATENote" />
+				<entry key="GETProfiles" value-ref="GETProfiles" />
+				<entry key="GETProfile" value-ref="GETProfile" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

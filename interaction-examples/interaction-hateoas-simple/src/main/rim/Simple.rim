@@ -1,88 +1,94 @@
 // test comment
 domain SimpleModel {
-rim Simple {
+	rim Simple {
 
-	event GET {
-		method: GET
-	}
-	event PUT {
-		method: PUT
-	}
-	event POST {
-		method: POST
-	}
-	event DELETE {
-		method: DELETE
-	}
+		event GET { method: GET }
+		event PUT { method: PUT }
+		event POST { method: POST }
+		event DELETE { method: DELETE }
 
-	command CREATENote
-	command NoopGET
-	command GETNotes
-	command GETNote
-	command DELETENote
-	command MatchCommand
-	command GETMultipleNoteCommand
+		command CREATENote
+		command NoopGET
+		command GETNotes
+		command GETNote
+		command DELETENote
+		command MatchCommand
+		command GETMultipleNoteCommand
+		command GETProfiles
+		command GETProfile
 
-resource notes {
-	type: collection
-	entity: Note
-	commands [ GET: GETNotes ]
-	path: "/notes"
-	POST -> createNote
-	GET *+> note
-	DELETE *-> deletedNote {
-		condition: NOT_FOUND(NoteImportant)
-	}
-}
+		resource notes {
+			type: collection
+			entity: Note
+			commands [ GET : GETNotes ]
+			path: "/notes"
+			POST -> createNote
+			GET *+> note
+			DELETE *-> deletedNote {
+				condition: NOT_FOUND ( NoteImportant ) }
+		}
 
-resource note {
-	type: item
-	entity: Note
-	commands [ GET: GETNote ]
-	path: "/notes/{noteID}"
-	DELETE -> deletedNote
-	cache: 120
-}
+		resource note {
+			type: item
+			entity: Note
+			commands [ GET : GETNote ]
+			path: "/notes/{noteID}"
+			DELETE -> deletedNote
+			cache: 120 }
 
-resource deletedNote {
-	type: item
-	entity: Note
-	commands [ DELETE: DELETENote ]
-	relations [ "http://relations.rimdsl.org/delete" ]
-	path: "/notes/{noteID}"
-	GET ->> notes
-}
+		resource deletedNote {
+			type: item
+			entity: Note
+			commands [ DELETE : DELETENote ]
+			relations [ "http://relations.rimdsl.org/delete" ]
+			path: "/notes/{noteID}"
+			GET ->> notes
+		}
 
-resource createNote {
-	type: item
-	entity: Note
-	commands [ POST:  CREATENote ]
-	path: "/notes"
-	// 'create' means post to the collection, 'new' means get the next available number
-	relations [ "http://relations.rimdsl.org/create" ]
-	GET --> note {
-		condition: OK(note)
-	}
-}
+		resource createNote {
+			type: item
+			entity: Note
+			commands [ POST : CREATENote ]
+			path: "/notes" // 'create' means post to the collection, 'new' means get the next available number
+			relations [ "http://relations.rimdsl.org/create" ]
+			GET --> note {
+				condition: OK ( note ) }
+		}
 
 		resource NoteImportant {
-		   type: item
-		   entity: Note 
-		   view: MatchCommand {
-		      properties [ Expression="{body}='IMPORTANT'" ]
-		   }
-		   path: "/notes/{noteID}/NoteImportant"
+			type: item
+			entity: Note
+			view: MatchCommand {
+				properties [ Expression = "{body}='IMPORTANT'" ]
+			}
+			path: "/notes/{noteID}/NoteImportant"
 		}
-	
-resource twiceGetNote {
-	type: item
-	entity: Note
-	// Call same command twice.
-	commands [ 
-				GET : GETMultipleNoteCommand,
-				GET : GETMultipleNoteCommand ]
-	path: "/twiceGetNote({noteID})"
-	cache: 120
-}
-}
+
+		resource twiceGetNote {
+			type: item
+			entity: Note // Call same command twice.
+			commands [ GET : GETMultipleNoteCommand , GET : GETMultipleNoteCommand ]
+			path: "/twiceGetNote({noteID})"
+			cache: 120 }
+
+		resource profiles {
+			type: collection
+			entity: Profile
+			commands [ GET : GETProfiles ]
+			path: "/profiles"
+			GET *+> profileId {
+				parameters [ id = "{userID}" ]
+				title: "profile"
+			}
+		}
+
+		resource profileId {
+			type: item
+			entity: Profile
+			commands [ GET : GETProfile ]
+			path: "/profiles/{id}"
+		}
+
+	}
+
 }

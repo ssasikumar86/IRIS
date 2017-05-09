@@ -121,16 +121,6 @@
             <artifactId>interaction-sdk</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.temenos.interaction</groupId>
-            <artifactId>com.temenos.interaction.rimdsl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.temenos.interaction</groupId>
-            <artifactId>com.temenos.interaction.rimdsl.generator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
         </dependency>

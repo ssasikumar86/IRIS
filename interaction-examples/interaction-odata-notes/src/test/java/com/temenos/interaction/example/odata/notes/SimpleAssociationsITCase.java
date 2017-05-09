@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import org.core4j.Enumerable;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
@@ -181,6 +182,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	/**
 	 * Creation of entity with link to another entity
 	 */
+	@Ignore("Unreliable test case, Quarantine for analysis")
 	@Test
 	public void createPersonSingleNoteWithLink() throws Exception {
 		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();

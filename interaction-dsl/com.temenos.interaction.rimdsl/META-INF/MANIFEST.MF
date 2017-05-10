@@ -19,20 +19,7 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.antlr.runtime,
  org.eclipse.xtext.common.types,
  org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
- org.eclipse.xtext.xbase.lib,
- org.eclipse.xtend.lib,
- org.eclipse.xtend.lib.macro,
- org.eclipse.xtext.smap,
- org.eclipse.xtext.ecore,
- org.eclipse.xtext.ui,
- org.eclipse.xtext.ide,
- org.eclipse.xtext.ui.shared,
- org.eclipse.xtext.common.types.ui,
- org.eclipse.xtext.builder,
- org.eclipse.xtext.common.types.edit,
- org.eclipse.xtext.ui.codetemplates.ui,
- org.eclipse.xtext.ui.codetemplates,
- org.eclipse.xtext.junit4
+ org.eclipse.xtext.xbase.lib
 Import-Package: org.apache.log4j,
  org.eclipse.xtext.xbase.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -47,5 +34,5 @@ Export-Package: com.temenos.interaction.rimdsl,
  com.temenos.interaction.rimdsl.validation,
  com.temenos.interaction.rimdsl.scoping,
  com.temenos.interaction.rimdsl.generator,
- com.temenos.interaction.rimdsl.formatting
-
+ com.temenos.interaction.rimdsl.formatting,
+ com.temenos.interaction.rimdsl.encoding

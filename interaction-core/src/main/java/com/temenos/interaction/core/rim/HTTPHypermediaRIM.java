@@ -23,8 +23,14 @@ package com.temenos.interaction.core.rim;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.PathParam;
@@ -39,11 +45,6 @@ import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import com.temenos.interaction.core.hypermedia.*;
-import com.temenos.interaction.core.hypermedia.expression.ExpressionEvaluator;
-import com.temenos.interaction.core.workflow.WorkflowCommandBuilderProvider.WorkflowType;
-import org.apache.commons.lang.StringUtils;
-import com.temenos.interaction.core.hypermedia.transition.AutoTransitioner;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.slf4j.Logger;
@@ -62,11 +63,30 @@ import com.temenos.interaction.core.entity.EntityProperties;
 import com.temenos.interaction.core.entity.EntityProperty;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.StreamingInput;
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.DynamicResourceState;
+import com.temenos.interaction.core.hypermedia.Event;
+import com.temenos.interaction.core.hypermedia.LazyResourceStateResolver;
+import com.temenos.interaction.core.hypermedia.Link;
+import com.temenos.interaction.core.hypermedia.LinkGenerator;
+import com.temenos.interaction.core.hypermedia.LinkGeneratorImpl;
+import com.temenos.interaction.core.hypermedia.LinkHeader;
+import com.temenos.interaction.core.hypermedia.ParameterAndValue;
+import com.temenos.interaction.core.hypermedia.ResourceLocatorProvider;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateAndParameters;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
+import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.hypermedia.TransitionCommandSpec;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
+import com.temenos.interaction.core.hypermedia.expression.ExpressionEvaluator;
+import com.temenos.interaction.core.hypermedia.transition.AutoTransitioner;
 import com.temenos.interaction.core.hypermedia.validation.HypermediaValidator;
 import com.temenos.interaction.core.hypermedia.validation.LogicalConfigurationListener;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.web.RequestContext;
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilderProvider.WorkflowType;
 
 /**
  * <P>
@@ -276,6 +296,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
      */
     @Override
     public Response get(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
+        LOGGER.info("[{}] GET {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("GET", HttpMethod.GET);
 
@@ -909,6 +930,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
 
     @Override
     public Response put(@Context HttpHeaders headers, @Context UriInfo uriInfo, InMultiPart inMP) {
+        LOGGER.info("[{}] PUT {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         Event event = new Event("PUT", HttpMethod.PUT);
 
         return handleMultipartRequest(headers, uriInfo, inMP, event);
@@ -916,6 +938,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
 
     @Override
     public Response post(HttpHeaders headers, UriInfo uriInfo, InMultiPart inMP) {
+        LOGGER.info("[{}] POST {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         Event event = new Event("POST", HttpMethod.POST);
 
         return handleMultipartRequest(headers, uriInfo, inMP, event);
@@ -955,6 +978,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
     @Override
     public Response post(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
             MultivaluedMap<String, String> formParams) {
+        LOGGER.info("[{}] POST {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("POST", HttpMethod.POST);
         // handle request
@@ -987,7 +1011,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
     @Override
     public Response post(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
             EntityResource<?> resource) {
-        LOGGER.info("POST {}", getFQResourcePath());
+        LOGGER.info("[{}] POST {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("POST", HttpMethod.POST);
 
@@ -1008,7 +1032,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
     @Override
     public Response put(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo,
             EntityResource<?> resource) {
-        LOGGER.info("PUT {}", getFQResourcePath());
+        LOGGER.info("[{}] PUT {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("PUT", HttpMethod.PUT);
 
@@ -1028,7 +1052,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
      */
     @Override
     public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
-        LOGGER.info("DELETE {}", getFQResourcePath());
+        LOGGER.info("[{}] DELETE {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("DELETE", HttpMethod.DELETE);
 

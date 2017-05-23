@@ -489,7 +489,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			new URLHelper().extractPathParameters(tmpUriInfo, uriPath.split("/"), statePath.split("/"));
 			
 			MultivaluedMap<String, String> pathParameters = tmpUriInfo.getPathParameters();
-			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null) {
+			if (pathParameters != null && pathParameters.getFirst(pathIdParameter) != null &&  !pathParameters.getFirst(pathIdParameter).isEmpty()) {
 				if (STRING_KEY_RESOURCE_PATTERN.matcher(resourcePath).find()) {
 					entityKey = OEntityKey.create(pathParameters.getFirst(pathIdParameter));				
 				} else {

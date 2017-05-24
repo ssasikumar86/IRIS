@@ -272,7 +272,7 @@ public final class RequestContext {
      * @return the requestId
      */
     public String getRequestId() {
-        return requestId;
+        return requestId == null ? "" : requestId;
     }
 
 }

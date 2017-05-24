@@ -43,8 +43,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.model.multipart.InMultiPart;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.Metadata;
@@ -54,12 +59,25 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.resource.EntityResource;
+import com.temenos.interaction.core.web.RequestContext;
 
 /**
  * @author mlambert
  *
  */
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(RequestContext.class)
 public class TestLazyResourceDelegate {
+    
+    @Before
+    public void setup() {
+        PowerMockito.mockStatic(RequestContext.class);
+        RequestContext ctx = mock(RequestContext.class);
+        when(RequestContext.getRequestContext()).thenReturn(ctx);
+        when(RequestContext.getRequestContext().getRequestId()).thenReturn("SomeId");
+    }
+    
     @Test
     public void testRegularGet() throws MethodNotAllowedException {             
         ResourceStateProvider resourceStateProvider = mock(ResourceStateProvider.class);

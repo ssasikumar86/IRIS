@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -531,12 +532,13 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
     private List<String> getFileLists() {
 	List<String> filename = new ArrayList<String>();
+	Pattern p = Pattern.compile(CTX_ENQ_FILENAME_PATTERN);
 	for (String pathToDirectory : configLoader.getIrisConfigDirPaths()) {
 	    File dir = new File(pathToDirectory);
 	    File files[] = dir.listFiles(new FilenameFilter() {
 		@Override
 		public boolean accept(File dir, String name) {
-		    return name.matches(CTX_ENQ_FILENAME_PATTERN);
+		     return p.matcher(name).matches();
 		}
 	    });
 	    for (File file : files) {

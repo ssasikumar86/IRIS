@@ -38,7 +38,12 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.temenos.interaction.core.command.CommandController;
 import com.temenos.interaction.core.entity.EntityMetadata;
@@ -48,9 +53,20 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.rim.HTTPResourceInteractionModel;
+import com.temenos.interaction.core.web.RequestContext;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(RequestContext.class)
 public class TestLazyServiceRootFactory {
 
+    @Before
+    public void setup() {
+        PowerMockito.mockStatic(RequestContext.class);
+        RequestContext ctx = mock(RequestContext.class);
+        when(RequestContext.getRequestContext()).thenReturn(ctx);
+        when(RequestContext.getRequestContext().getRequestId()).thenReturn("SomeId");
+    }
+    
 	@Test
 	public void testPath() {
 		LazyServiceRootFactory factory = new LazyServiceRootFactory();

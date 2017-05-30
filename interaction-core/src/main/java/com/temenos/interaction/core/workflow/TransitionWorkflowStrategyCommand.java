@@ -29,6 +29,9 @@ import com.temenos.interaction.core.command.TransitionCommand;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * An implementation of a workflow {@link TransitionCommand}.
@@ -43,7 +46,7 @@ public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyComm
             throw new IllegalArgumentException("InteractionContext must be supplied");
         }
         Result result = null;
-        for (InteractionCommand command : commands) {
+        for (InteractionCommand command : getEligibleCommands()) {
             result = command.execute(ctx);
             if (result != null && !result.equals(Result.SUCCESS)) {
                 break;
@@ -63,11 +66,11 @@ public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyComm
      */
     @Override
     public boolean isInterim() {
-        if (commands.isEmpty()) {
+        if (getEligibleCommands().isEmpty()) {
             return false;
         }
-        for (InteractionCommand command : commands) {
-            if (!((TransitionCommand) command).isInterim()) {
+        for (InteractionCommand command : getEligibleCommands()) {
+            if (!isInterim(command)) {
                 return false;
             }
         }
@@ -76,9 +79,26 @@ public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyComm
 
     @Override
     public void addCommand(InteractionCommand command) {
-        if (command instanceof TransitionCommand) {
-            commands.add(command);
+        commands.add(command);
+    }
+
+    private List<InteractionCommand> getEligibleCommands() {
+        List<InteractionCommand> transitionCommands = getTransitionCommands();
+        return !transitionCommands.isEmpty() ? transitionCommands : commands;
+    }
+
+    private List<InteractionCommand> getTransitionCommands() {
+        List<InteractionCommand> transitionCommands = new ArrayList<>();
+        for (InteractionCommand command : commands) {
+            if (command instanceof TransitionCommand) {
+                transitionCommands.add(command);
+            }
         }
+        return transitionCommands;
+    }
+
+    private boolean isInterim(InteractionCommand command) {
+        return command instanceof TransitionCommand && ((TransitionCommand) command).isInterim();
     }
 
 }

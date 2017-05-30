@@ -29,7 +29,7 @@ import com.temenos.interaction.rimdsl.rim.TransitionRef
 import com.temenos.interaction.rimdsl.rim.MethodRef
 import com.temenos.interaction.rimdsl.rim.TransitionEmbeddedForEach
 
-class RIMDslGeneratorSpringPRD implements IGenerator {
+class RIMDslGeneratorSpringPRD implements IGenerator { 
 	
 	@Inject extension IQualifiedNameProvider
 	
@@ -42,15 +42,23 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
         }
 	}
 		
-	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
-        val rimName = rim.fullyQualifiedName.toString("_")
-        		
-        // generate resource state files
+	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa, String fileName) {
         
+        var rimName = "";
+        if (!fileName.isNullOrEmpty) {
+            rimName = fileName;
+        } else {
+            rimName = rim.fullyQualifiedName.toString("_")
+        }      		
+        // generate resource state files
         fsa.generateFile("IRIS-" + rimName + "-PRD.xml", toSpringXML(rim))
 
         fsa.generateFile("META-INF/IRIS-" + rimName + ".properties", toBeanMap(rim))
 	}
+
+    def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
+        generate(resource, rim, fsa, null)
+    }
 
 	
 	def className(Resource res) {

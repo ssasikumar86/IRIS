@@ -1033,10 +1033,11 @@ public class TestHTTPHypermediaRIM {
             }
         }).when(rim).setLocationHeader(any(ResponseBuilder.class), anyString(), any(MultivaluedMap.class));
 
-        //execute the request and verify that we have executed InteractionCommand once
+        //execute the request and verify that we have executed InteractionCommand
+        //as many times as the number of ResourceState objects that are participating
         Response response = rim.get(mock(HttpHeaders.class), "id", uriInfo);
         assertThat(response.getStatus(), equalTo(200));
-        verify(mockCommand, times(1)).execute(any(InteractionContext.class));
+        verify(mockCommand, times(3)).execute(any(InteractionContext.class));
         verify(rim, times(1)).setLocationHeader(any(ResponseBuilder.class), eq("http://localhost/myservice.svc/test_unsafe"), any(MultivaluedMap.class));
     }
 

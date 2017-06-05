@@ -43,12 +43,7 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	}
 		
 	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa, String fileName) {
-        if (!fileName.isNullOrEmpty) {
-            rimName = fileName;
-        } else {
-            rimName = rim.fullyQualifiedName.toString("_")
-        }		
-        
+               
         var rimName = "";
         if (!fileName.isNullOrEmpty) {
             rimName = fileName;
@@ -62,10 +57,6 @@ class RIMDslGeneratorSpringPRD implements IGenerator {
 	}
 
     def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
-        generate(resource, rim, fsa, null)
-    }
-
-	def void generate(Resource resource, ResourceInteractionModel rim, IFileSystemAccess fsa) {
         generate(resource, rim, fsa, null)
     }
     

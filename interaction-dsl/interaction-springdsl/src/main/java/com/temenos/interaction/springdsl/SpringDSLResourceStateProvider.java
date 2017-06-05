@@ -15,7 +15,6 @@ package com.temenos.interaction.springdsl;
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -556,15 +555,6 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
             };
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, filter)) {
 
-                for (Path streamEntry : stream) {
-                    filename.add(streamEntry.toFile().getName());
-                }
-            } catch (IOException e) {
-                logger.error("Failed to load timestamped file from" + dir);
-            }
-        }
-        return filename;
-    }
                 for (Path streamEntry : stream) {
                     filename.add(streamEntry.toFile().getName());
                 }

@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author Mattias Hellborg Arthursson
@@ -71,6 +72,7 @@ public final class RequestContext {
     private final Principal userPrincipal;
     private final Map<String, List<String>> headers = new HashMap<>();
     private final long requestTime;
+    private final String requestId;
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader) {
         this.basePath = basePath;
@@ -78,6 +80,7 @@ public final class RequestContext {
         this.verbosityHeader = verbosityHeader;
         this.userPrincipal = null;
         this.requestTime = System.currentTimeMillis();
+        this.requestId = UUID.randomUUID().toString();
     }
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal) {
@@ -86,6 +89,7 @@ public final class RequestContext {
         this.verbosityHeader = verbosityHeader;
         this.userPrincipal = userPrincipal;
         this.requestTime = System.currentTimeMillis();
+        this.requestId = UUID.randomUUID().toString();
     }
 
     public RequestContext(String basePath, String requestUri, String verbosityHeader, Map<String, List<String>> headers) {
@@ -95,6 +99,7 @@ public final class RequestContext {
         this.userPrincipal = null;
         this.headers.putAll(headers);
         this.requestTime = System.currentTimeMillis();
+        this.requestId = UUID.randomUUID().toString();
     }
     
     public RequestContext(String basePath, String requestUri, String verbosityHeader, Principal userPrincipal, Map<String, List<String>> headers) {
@@ -104,7 +109,9 @@ public final class RequestContext {
         this.userPrincipal = userPrincipal;
         this.headers.putAll(headers);
         this.requestTime = System.currentTimeMillis();
+        this.requestId = UUID.randomUUID().toString();
     }
+    
 
     /**
      * Construct an object using Builder
@@ -117,6 +124,7 @@ public final class RequestContext {
         this.userPrincipal = builder._userPrincipal;
         this.headers.putAll(builder._headers);
         this.requestTime = builder._requestTime;
+        this.requestId = builder._requestId;
     }
     
     /**
@@ -127,7 +135,7 @@ public final class RequestContext {
      *
      */
     public static class Builder {
-        private String _basePath, _requestUri, _verbosityHeader;
+        private String _basePath, _requestUri, _verbosityHeader, _requestId;
         private Principal _userPrincipal;
         private Map<String, List<String>> _headers;
         private long _requestTime;
@@ -161,6 +169,12 @@ public final class RequestContext {
             _requestTime = requestTime;
             return this;
         }
+        
+        public Builder setRequestId(String requestId) {
+            _requestId = requestId;
+            return this;
+        }
+        
         public RequestContext build() {
             return new RequestContext(this);
         }
@@ -252,6 +266,13 @@ public final class RequestContext {
      */
     public long getRequestTime() {
         return requestTime;
+    }
+
+    /**
+     * @return the requestId
+     */
+    public String getRequestId() {
+        return requestId == null ? "" : requestId;
     }
 
 }

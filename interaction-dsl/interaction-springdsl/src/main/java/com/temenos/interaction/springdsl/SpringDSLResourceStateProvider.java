@@ -15,7 +15,6 @@ package com.temenos.interaction.springdsl;
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -40,6 +39,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +48,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import com.temenos.interaction.core.hypermedia.Event;
 import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
@@ -89,7 +91,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 	 * Map to a resource path where the state name is the key
 	 */
 	protected Map<String, String> resourcePathsByState = new HashMap<String, String>();
-
+	
 	PathTree pathTree = new PathTree();
     
 	public SpringDSLResourceStateProvider() {}
@@ -379,7 +381,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 			if(context != null) {
 				result = loadAllResourceStatesFromFile(context, tmpResourceStateName);
 			}
-			if (result == null) {
+            if (result == null) {
                 List<String> timestampedFiles = getTimestampedResourceStateFileLists(tmpResourceName);
                 if (!timestampedFiles.isEmpty()) {
                     result = loadAllResourceStatesFromTimeStampedResourceState(tmpResourceStateName, timestampedFiles);
@@ -404,32 +406,28 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
         private ResourceState loadAllResourceStatesFromTimeStampedResourceState(String resourceState,
                 List<String> timestampledFiles) {
-
-            Set<Transition> ctxListTransitions = new HashSet<Transition>();
-
-            int itsAddTime = 0;
-            ResourceState result = null;
-            // load timestamp based resourcestate
-            for (String timestampledFile : timestampledFiles) {
-
-                ApplicationContext context2 = createApplicationContext(timestampledFile);
-                Map<String, ResourceState> tmpResources = context2.getBeansOfType(ResourceState.class);
-                // add transisition
-                ctxListTransitions.addAll(tmpResources.get(resourceState).getTransitions());
-                if (!(itsAddTime < timestampledFiles.size() - 1)) {
-                    // clear the list before add
-                    tmpResources.get(resourceState).getTransitions().clear();
-                    // update transition
-                    tmpResources.get(resourceState).setTransitions(new ArrayList<Transition>(ctxListTransitions));
-                }
-                resources.putAll(tmpResources);
-
-                if (tmpResources.containsKey(resourceState)) {
-                    result = tmpResources.get(resourceState);
-                }
-                itsAddTime++;
+            if (timestampledFiles.size() == 0) {
+                return null;
             }
-            return result;
+            ApplicationContext beanContext = createApplicationContext(timestampledFiles.get(0));
+            Map<String, ResourceState> fileResources = beanContext.getBeansOfType(ResourceState.class);
+            ResourceState resource = loadAllResourceStatesFromTimeStampedResourceState(resourceState,
+                    timestampledFiles.subList(1, timestampledFiles.size()));
+            if (resource == null) {
+                resource = fileResources.get(resourceState);
+            } else {
+                Set<Transition> newTransitions = new HashSet<>(fileResources.get(resourceState).getTransitions());
+                for (Transition transition : newTransitions) {
+                    transition.setSource(resource);
+                }
+                newTransitions.addAll(new HashSet<>(resource.getTransitions()));
+                resource.getTransitions().clear();
+                resource.setTransitions(new ArrayList<Transition>(newTransitions));
+            }
+            resources.putAll(fileResources);
+            resources.put(resourceState, resource);
+            return resource;
+
         }
 
 		/**
@@ -443,6 +441,9 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 				// Try and load the resource from the classpath
 				String description = "classpath:" + beanXml;
 				attempts.add(description);
+                if (null == this.getClass().getClassLoader().getResource(beanXml)) {
+                    beanXml = getTimeStampBeanXmlName(beanXml);
+                }
 				result = new ClassPathXmlApplicationContext(new String[] {beanXml});
                 foundFile = description;
 			} else {
@@ -482,6 +483,23 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 
     }
 
+    /**
+     * Check timeStamped beanXml availability on classpath
+     */
+    public String getTimeStampBeanXmlName(String beanXml) {
+        String beanFileName = beanXml.substring(0, beanXml.indexOf("-PRD.xml"));
+        Resource[] patternResource = null;
+        try {
+            patternResource = new PathMatchingResourcePatternResolver().getResources("classpath*:"
+                    + beanFileName.concat("_*-PRD.xml"));
+            if (patternResource != null && patternResource.length > 0)
+                if (Pattern.matches(beanFileName.concat("_(\\d+)-PRD.xml"), patternResource[0].getFilename()))
+                    beanXml = patternResource[0].getFilename();
+        } catch (IOException e) {
+            logger.error("Unable to find the resource from classpath");
+        }
+        return beanXml;
+    }
 
     @Override
     public ResourceState getResourceState(String httpMethod, String url) throws MethodNotAllowedException {
@@ -519,6 +537,7 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
         
         return resourceStateId;
     }
+
 
     private List<String> getTimestampedResourceStateFileLists(String tmpResourceName) {
         List<String> filename = new ArrayList<String>();

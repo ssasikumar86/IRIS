@@ -90,7 +90,9 @@ public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyComm
     private List<InteractionCommand> getTransitionCommands() {
         List<InteractionCommand> transitionCommands = new ArrayList<>();
         for (InteractionCommand command : commands) {
-            if (command instanceof TransitionCommand) {
+            if (command instanceof TransitionWorkflowStrategyCommand) {
+                transitionCommands.addAll(((TransitionWorkflowStrategyCommand) command).getTransitionCommands());
+            } else if (command instanceof TransitionCommand) {
                 transitionCommands.add(command);
             }
         }

@@ -63,69 +63,21 @@ public class MatchCommand implements InteractionCommand {
 			assert ctx.getCurrentState().getEntityName() != null && !"".equals(ctx.getCurrentState().getEntityName());
 
 			Properties properties = ctx.getCurrentState().getViewAction().getProperties();
-			String sExpression = properties.getProperty("Expression");
-			if (sExpression == null){
-				LOGGER.error("null expression passed to MatchCommand");
-				return Result.FAILURE;
-			}
+            String expressionVal = properties.getProperty("Expression");
+            if (expressionVal == null) {
+                LOGGER.error("null expression passed to MatchCommand");
+                return Result.FAILURE;
+            }
+            String[] sExpressions = expressionVal.split(" +\\| +");
 
-			/*
-			 * So we have an expression.
-			 * Currently, only simple expression are valid (=, >, <, <=, >=, !=, startsWith, endsWith, contains)
-			 */
-			
-			String left = null;
-			String right = null;
-			String comparator = null;
-			for (String sOneComparator : supportedComparators){
-				int pos = sExpression.indexOf(sOneComparator);
-				if (pos > 0){
-					left = sExpression.substring(0,pos);
-					right = sExpression.substring(pos + sOneComparator.length());
-					comparator = sOneComparator;
-				}
-			}
-			
-			if (comparator == null){
-				LOGGER.error("Wrong expression passed to MatchCommand. Only simple expression are valid (=, >, <, <=, >=, !=, startsWith, endsWith, contains) ");
-				return Result.FAILURE;
-			}
-			
-			left = resolveVariable(ctx, left);
-			right = resolveVariable(ctx, right);
-
-			/*
-			 * Do the comparisons.
-			 */
-			boolean bResult = false;
-			if ("=".equals(comparator)){
-				bResult = left.equals(right);
-			}else if (">".equals(comparator)){
-				bResult = left.compareTo(right) > 0;
-			}else if ("<".equals(comparator)){
-				bResult = left.compareTo(right) < 0;
-			}else if (">=".equals(comparator)){
-				bResult = left.compareTo(right) >= 0;
-			}else if ("<=".equals(comparator)){
-				bResult = left.compareTo(right) <= 0;
-			}else if ("!=".equals(comparator)){
-				bResult = !left.equals(right);
-			}else if ("startsWith".equals(comparator)){
-				bResult = left.startsWith(right);
-			}else if ("endsWith".equals(comparator)){
-				bResult = left.endsWith(right);
-			}else if ("contains".equals(comparator)){
-				bResult = left.contains(right);
-			}
-			
-			if (bResult){
-				return Result.SUCCESS;
-			}else{
-				return Result.FAILURE;
-			}
+            for (String sExpression : sExpressions) {
+                if (evaluate(ctx, sExpression) == Result.SUCCESS) {
+                    return Result.SUCCESS;
+                }
+            }
+			return Result.FAILURE;
 		} catch (Exception e) {
 		    LOGGER.error("There was an issue while evaluating the expression", e);
-		    
 			return Result.FAILURE;
 		}
 	}	
@@ -134,7 +86,8 @@ public class MatchCommand implements InteractionCommand {
 		if (s == null){
 			return null;
 		}
-		String ret = s.trim();
+        s = s.trim();
+        String ret = s;
 		
 		if (s.startsWith("'") && s.endsWith("'")){
 			ret = s.substring(1, s.length()-1).trim();
@@ -157,5 +110,68 @@ public class MatchCommand implements InteractionCommand {
 
 		return ret;
 	}
-	
+
+    private Result evaluate(InteractionContext ctx, String sExpression) {
+        try {
+            /*
+             * So we have an expression. Currently, only simple expression are
+             * valid (=, >, <, <=, >=, !=, startsWith, endsWith, contains)
+             */
+
+            String left = null;
+            String right = null;
+            String comparator = null;
+            for (String sOneComparator : supportedComparators) {
+                int pos = sExpression.indexOf(sOneComparator);
+                if (pos > 0) {
+                    left = sExpression.substring(0, pos);
+                    right = sExpression.substring(pos + sOneComparator.length());
+                    comparator = sOneComparator;
+                    break;
+                }
+            }
+
+            if (comparator == null) {
+                LOGGER.error(
+                        "Wrong expression passed to MatchCommand. Only simple expression are valid (=, >, <, <=, >=, !=, startsWith, endsWith, contains) ");
+                return Result.FAILURE;
+            }
+
+            left = resolveVariable(ctx, left);
+            right = resolveVariable(ctx, right);
+
+            /*
+             * Do the comparisons.
+             */
+            boolean bResult = false;
+            if ("=".equals(comparator)) {
+                bResult = left.equals(right);
+            } else if (">".equals(comparator)) {
+                bResult = left.compareTo(right) > 0;
+            } else if ("<".equals(comparator)) {
+                bResult = left.compareTo(right) < 0;
+            } else if (">=".equals(comparator)) {
+                bResult = left.compareTo(right) >= 0;
+            } else if ("<=".equals(comparator)) {
+                bResult = left.compareTo(right) <= 0;
+            } else if ("!=".equals(comparator)) {
+                bResult = !left.equals(right);
+            } else if ("startsWith".equals(comparator)) {
+                bResult = left.startsWith(right);
+            } else if ("endsWith".equals(comparator)) {
+                bResult = left.endsWith(right);
+            } else if ("contains".equals(comparator)) {
+                bResult = left.contains(right);
+            }
+
+            if (bResult) {
+                return Result.SUCCESS;
+            } else {
+                return Result.FAILURE;
+            }
+        } catch (Exception e) {
+            LOGGER.error("There was an issue while evaluating the expression", e);
+            return Result.FAILURE;
+        }
+    }
 }

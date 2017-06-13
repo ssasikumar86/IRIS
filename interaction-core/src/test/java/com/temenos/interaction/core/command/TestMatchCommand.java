@@ -1,5 +1,7 @@
 package com.temenos.interaction.core.command;
 
+import static org.junit.Assert.assertEquals;
+
 /*
  * #%L
  * interaction-core
@@ -24,15 +26,13 @@ package com.temenos.interaction.core.command;
 import java.util.Collections;
 import java.util.Properties;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.hypermedia.Action;
 import com.temenos.interaction.core.hypermedia.ResourceState;
-
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 
 public class TestMatchCommand {
 	private InteractionCommand cmd;
@@ -50,6 +50,8 @@ public class TestMatchCommand {
 
 		pParams.add("Variable", "Value");
 		qParams.add("Query", "Apple");
+		pParams.add("Variable2", "Value2");
+        qParams.add("Query2", "Orange");
 
 		cmd = new MatchCommand();
 		commandProperties = new Properties();
@@ -113,16 +115,14 @@ public class TestMatchCommand {
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 	}
 
-	@Test @Ignore
+	@Test
 	public void testSpaces() throws InteractionException {
 		setExpression("{Variable} = 'Value'");
 		InteractionCommand.Result result = cmd.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 	}
 
-	/* != is broken, because it comes after = in the list, and there is
-     * no break in the loop */
-	@Test @Ignore
+	@Test
 	public void testNotEquals() throws InteractionException {
 		setExpression("{Variable}!='Wrong'");
 		InteractionCommand.Result result = cmd.execute(ctx);
@@ -143,14 +143,56 @@ public class TestMatchCommand {
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 	}
 
-	@Test @Ignore
+    @Test
+    public void testEqualsVariableExpression2() throws InteractionException {
+        setExpression("{Variable}='Value2' | {Variable2}='Value2'");
+        InteractionCommand.Result result = cmd.execute(ctx);
+        assertEquals(InteractionCommand.Result.SUCCESS, result);
+    }
+
+    @Test
+    public void testEqualsVariableExpression2Fail() throws InteractionException {
+        setExpression("{Variable}='Value2' | {Variable}='Value2'");
+        InteractionCommand.Result result = cmd.execute(ctx);
+        assertEquals(InteractionCommand.Result.FAILURE, result);
+    }
+
+    @Test
+    public void testEqualsQueryExpression2() throws InteractionException {
+        setExpression("{Query}='Orange'   |   {Query2}='Orange'");
+        InteractionCommand.Result result = cmd.execute(ctx);
+        assertEquals(InteractionCommand.Result.SUCCESS, result);
+    }
+
+    @Test
+    public void testEqualsQueryExpression2Fail() throws InteractionException {
+        setExpression("{Query}='Orange' | {Query}='Orange'");
+        InteractionCommand.Result result = cmd.execute(ctx);
+        assertEquals(InteractionCommand.Result.FAILURE, result);
+    }
+
+    @Test
+    public void testExpressionsSpaceFail() throws InteractionException {
+        setExpression("{Query}='Orange' |{Query2}='Orange'");
+        InteractionCommand.Result result = cmd.execute(ctx);
+        assertEquals(InteractionCommand.Result.FAILURE, result);
+    }
+
+    @Test
+    public void testExpressionsFail() throws InteractionException {
+        setExpression("{Var}='Unresolved' | {Var2}='Unresolved1'");
+        InteractionCommand.Result result = cmd.execute(ctx);
+        assertEquals(InteractionCommand.Result.FAILURE, result);
+    }
+
+	@Test
 	public void testStartsWithLiteral() throws InteractionException {
 		setExpression("'Value' startsWith 'Val'");
 		InteractionCommand.Result result = cmd.execute(ctx);
 		assertEquals(InteractionCommand.Result.SUCCESS, result);
 	}
 
-	@Test @Ignore
+	@Test
 	public void testStartsWithSpace() throws InteractionException {
 		setExpression("{Variable} startsWith 'Val'");
 		InteractionCommand.Result result = cmd.execute(ctx);

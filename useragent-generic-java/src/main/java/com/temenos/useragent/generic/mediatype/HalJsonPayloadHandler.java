@@ -80,7 +80,7 @@ public class HalJsonPayloadHandler implements PayloadHandler {
 
 	@Override
 	public EntityWrapper entity() {
-		if (!isCollection()) {
+		if (!isCollection() || representation.getProperties().isEmpty()) {
 			EntityWrapper wrapper = new DefaultEntityWrapper();
 			HalJsonEntityHandler entityHandler = new HalJsonEntityHandler();
 			entityHandler.setContent(IOUtils.toInputStream(representation

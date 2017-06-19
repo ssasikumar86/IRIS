@@ -54,7 +54,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
     private static final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
     private static final String NEW_REL_SUFFIX = "/new";
     private static final String POPULATE_REL_SUFFIX = "/populate";
-    private static final String AA_POPULATE_REL_SUFFIX = "/aapopulate";
     private ResourceStateMachine resourceStateMachine;
     private Transition transition;
     private InteractionContext interactionContext;
@@ -205,7 +204,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         String rel = getTargetRelValue(targetState);
 
         String method = transition.getCommand().getMethod();
-        if (rel.contains(NEW_REL_SUFFIX) || rel.contains(POPULATE_REL_SUFFIX) || rel.contains(AA_POPULATE_REL_SUFFIX) ) {
+        if (rel.contains(NEW_REL_SUFFIX) || rel.contains(POPULATE_REL_SUFFIX)) {
             method = "POST";
         }
 

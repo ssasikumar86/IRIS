@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import com.temenos.useragent.generic.Entity;
 import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.internal.DefaultEntityWrapper;
 import com.temenos.useragent.generic.internal.EntityWrapper;
 import com.temenos.useragent.generic.internal.NullEntityWrapper;
 
@@ -104,7 +105,7 @@ public class HalJsonPayloadHandlerTest {
 	@Test
 	public void testEntity() {
 		Entity nullEntity = payloadHandler.entity();
-		assertTrue(nullEntity instanceof NullEntityWrapper);
+		assertTrue(nullEntity instanceof DefaultEntityWrapper);
 
 		initPayloadHandler("/haljson_item_with_all_properties.json");
 		assertNotNull(payloadHandler.entity());

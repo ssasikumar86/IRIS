@@ -1,0 +1,7 @@
+{
+  "_links": {
+    "self": {
+	  "href": "http://mybank/restservice/BankService/Customers()"
+	}
+  }
+}

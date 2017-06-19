@@ -48,11 +48,11 @@ public class HalJsonPayloadHandler implements PayloadHandler {
 			.initRepresentationFactory();
 	private ReadableRepresentation representation = representationFactory
 			.newRepresentation();
-	private String parameter; // not used yet
 
 	@Override
 	public boolean isCollection() {
-		if (representation.getResourcesByRel("item").isEmpty()) {
+		if (!representation.getProperties().isEmpty()
+				&& representation.getResourcesByRel("item").isEmpty()) {
 			return false;
 		}
 		return true;
@@ -104,6 +104,6 @@ public class HalJsonPayloadHandler implements PayloadHandler {
 
 	@Override
 	public void setParameter(String parameter) {
-		this.parameter = parameter;
+		// not used yet
 	}
 }

@@ -1,5 +1,7 @@
 package com.temenos.useragent.generic;
 
+import com.temenos.useragent.generic.internal.Payload;
+
 /*
  * #%L
  * useragent-generic-java
@@ -64,5 +66,12 @@ public interface Entity {
 	 * @return links
 	 */
 	Links links();
+	
+	/**
+	 * Returns the embedded payload.
+	 * 
+	 * @return embedded payload or null if this link has no embedded payload
+	 */
+	Payload embedded();
 
 }

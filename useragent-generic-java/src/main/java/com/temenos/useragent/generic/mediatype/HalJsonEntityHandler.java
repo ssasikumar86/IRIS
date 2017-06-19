@@ -34,6 +34,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
@@ -41,7 +42,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.PayloadHandler;
+import com.temenos.useragent.generic.context.ContextFactory;
+import com.temenos.useragent.generic.http.DefaultHttpClientHelper;
+import com.temenos.useragent.generic.internal.DefaultPayloadWrapper;
 import com.temenos.useragent.generic.internal.EntityHandler;
+import com.temenos.useragent.generic.internal.Payload;
+import com.temenos.useragent.generic.internal.PayloadHandlerFactory;
+import com.temenos.useragent.generic.internal.PayloadWrapper;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
@@ -62,6 +70,7 @@ public class HalJsonEntityHandler implements EntityHandler {
 
 	private ReadableRepresentation representation;
 	private JSONObject jsonObject;
+	private Payload embeddedPayload;
 
 	@Override
 	public String getId() {
@@ -126,7 +135,19 @@ public class HalJsonEntityHandler implements EntityHandler {
 			parent.remove(childName);
 		}
 	}
-
+	
+	@Override
+	public Payload embedded() {
+		if (embeddedPayload == null) {
+			ReadableRepresentation firstEmbedded = getFirstEmbedded();
+			if (firstEmbedded != null) {
+				buildEmbeddedPayload(firstEmbedded.toString(RepresentationFactory.HAL_JSON));
+			}
+			
+		}
+		return embeddedPayload;
+	}
+		
 	@Override
 	public void setContent(InputStream stream) {
 		if (stream == null) {
@@ -300,5 +321,24 @@ public class HalJsonEntityHandler implements EntityHandler {
 		if (jsonObject == null) {
 			jsonObject = new JSONObject();
 		}
+	}
+	
+	private ReadableRepresentation getFirstEmbedded() {
+		if (!representation.getResources().isEmpty()) {
+			return new ArrayList<Entry<String, ReadableRepresentation>>(
+					representation.getResources()).get(0).getValue();
+		} else {
+			return null;
+		}
+	}
+	
+	private void buildEmbeddedPayload(String content) {
+		PayloadHandlerFactory<? extends PayloadHandler> factory = ContextFactory
+				.get().getContext().entityHandlersRegistry()
+				.getPayloadHandlerFactory(RepresentationFactory.HAL_JSON);
+		PayloadHandler handler = factory.createHandler(content);
+		PayloadWrapper wrapper = new DefaultPayloadWrapper();
+		wrapper.setHandler(handler);
+		embeddedPayload = wrapper;
 	}
 }

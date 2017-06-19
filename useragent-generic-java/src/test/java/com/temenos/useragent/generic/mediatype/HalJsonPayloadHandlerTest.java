@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.useragent.generic.Entity;
@@ -45,16 +44,24 @@ public class HalJsonPayloadHandlerTest {
 
 	private HalJsonPayloadHandler payloadHandler;
 
-	@Before
-	public void setUp() {
-		initPayloadHandler("/haljson_collection_with_two_items.json");
-	}
-
 	@Test
-	public void testIsCollectionCollection() {
+	public void testIsCollectionForCollection() {
+		initPayloadHandler("/haljson_collection_with_two_items.json");
 		assertTrue(payloadHandler.isCollection());
 	}
 
+	@Test
+	public void testIsCollectionForEmptyCollection() {
+		initPayloadHandler("/haljson_empty_collection.json");
+		assertTrue(payloadHandler.isCollection());
+	}
+	
+	@Test
+	public void testIsCollectionForAnEntity() {
+		initPayloadHandler("/haljson_item_with_all_properties.json");
+		assertFalse(payloadHandler.isCollection());
+	}
+	
 	@Test
 	public void testIsCollectionForItem() {
 		initPayloadHandler("/haljson_item_with_all_properties.json");
@@ -63,6 +70,7 @@ public class HalJsonPayloadHandlerTest {
 
 	@Test
 	public void testLinks() {
+		initPayloadHandler("/haljson_collection_with_two_items.json");
 		List<Link> links = payloadHandler.links();
 		assertEquals(2, links.size());
 
@@ -81,6 +89,7 @@ public class HalJsonPayloadHandlerTest {
 
 	@Test
 	public void testEntities() {
+		initPayloadHandler("/haljson_collection_with_two_items.json");
 		List<EntityWrapper> entities = payloadHandler.entities();
 		assertEquals(2, entities.size());
 		Entity firstEntity = entities.get(0);
@@ -104,6 +113,7 @@ public class HalJsonPayloadHandlerTest {
 
 	@Test
 	public void testEntity() {
+		initPayloadHandler("/haljson_collection_with_two_items.json");
 		Entity nullEntity = payloadHandler.entity();
 		assertTrue(nullEntity instanceof DefaultEntityWrapper);
 
@@ -114,14 +124,17 @@ public class HalJsonPayloadHandlerTest {
 
 	@Test
 	public void testSetPayload() {
+		initPayloadHandler("/haljson_collection_with_two_items.json");
 		try {
 			payloadHandler.setPayload(null);
 			fail("IllegalArgumentException should be thrown");
 		} catch (Exception e) {
-			assertTrue(e instanceof IllegalArgumentException);
+			assertTrue("Expected 'IllegalArgumentException' but got '"
+					+ e.getClass().getSimpleName() + "'",
+					e instanceof IllegalArgumentException);
 		}
 	}
-
+	
 	private void initPayloadHandler(String jsonFileName) {
 		payloadHandler = new HalJsonPayloadHandler();
 		try {

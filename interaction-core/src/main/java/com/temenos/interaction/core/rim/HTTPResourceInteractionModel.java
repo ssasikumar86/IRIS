@@ -62,6 +62,11 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	 */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces({
+        MediaType.APPLICATION_ATOM_XML,
+        MediaType.APPLICATION_XML,
+        MediaType.APPLICATION_JSON,
+        MediaType.WILDCARD})
     public Response post( @Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, 
     		MultivaluedMap<String, String> formParams);
 
@@ -70,6 +75,11 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
      */
     @POST
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({
+        MediaType.APPLICATION_ATOM_XML,
+        MediaType.APPLICATION_XML,
+        MediaType.APPLICATION_JSON,
+        MediaType.WILDCARD})
     public Response post(@Context HttpHeaders headers, @Context UriInfo uriInfo, InMultiPart inMP);
     
 	/**
@@ -94,6 +104,11 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
      */	
     @PUT
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces({
+        MediaType.APPLICATION_ATOM_XML,
+        MediaType.APPLICATION_XML,
+        MediaType.APPLICATION_JSON,
+        MediaType.WILDCARD})
     public Response put(@Context HttpHeaders headers, @Context UriInfo uriInfo, InMultiPart inMP);
 	
 	/**

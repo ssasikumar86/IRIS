@@ -60,6 +60,11 @@ public class DefaultEntityWrapper implements EntityWrapper {
 			return Links.create(entityLinks(), sessionCallback);
 		}
 	}
+	
+	@Override
+	public Payload embedded() {
+		return entityHandler.embedded();
+	}
 
 	private List<Link> entityLinks() {
 		checkAndBuildLinks();

@@ -22,11 +22,7 @@ package com.temenos.useragent.generic.mediatype;
  */
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -37,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.internal.Payload;
 
 public class HalJsonEntityHandlerTest {
 
@@ -45,33 +42,6 @@ public class HalJsonEntityHandlerTest {
 	@Before
 	public void setUp() {
 		initEntityHandler("/haljson_item_with_all_properties.json");
-	}
-
-	@Test
-	public void testGetLinks() {
-		List<Link> links = entityHandler.getLinks();
-		assertEquals(4, links.size());
-
-		Link selfLink = links.get(0);
-		assertEquals("self", selfLink.rel());
-		assertEquals(
-				"http://mybank/restservice/BankService/Customers('66052')",
-				selfLink.href());
-		assertFalse(selfLink.hasEmbeddedPayload());
-		assertEquals("", selfLink.baseUrl());
-		assertEquals("", selfLink.title());
-		assertNull(selfLink.embedded());
-
-		Link inputLink = links.get(1);
-		assertEquals("http://temenostech.temenos.com/rels/input",
-				inputLink.rel());
-		assertEquals(
-				"http://mybank/restservice/BankService/Customers('66052')",
-				inputLink.href());
-		assertFalse(inputLink.hasEmbeddedPayload());
-		assertEquals("", inputLink.baseUrl());
-		assertEquals("input deal", inputLink.title());
-		assertNull(inputLink.embedded());
 	}
 
 	@Test
@@ -524,6 +494,14 @@ public class HalJsonEntityHandlerTest {
 		assertNull(entityHandler.getValue("contact(0)/postals(0)/unknown"));
 		assertNull(entityHandler.getValue("contact(0)/postals(0)/regulars(0)/unknown"));
 		assertNull(entityHandler.getValue("contact(0)/unknown"));
+	}
+	
+	@Test
+	public void testGetValidEmbedded() {
+		initEntityHandler("/haljson_item_with_inline_item.json");
+		Payload embeddedPayload = entityHandler.embedded();
+		assertNotNull(embeddedPayload);
+		assertEquals("Duplicate", embeddedPayload.entity().get("Errors(0)/Text"));
 	}
 
 	private void initEntityHandler(String jsonFileName) {

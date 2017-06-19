@@ -69,6 +69,11 @@ public class NullEntityWrapper implements EntityWrapper {
 	public void remove(String fqPropertyName) {
 		throw new IllegalStateException("Unexpected method call");
 	}
+	
+	@Override
+	public Payload embedded() {
+		throw new IllegalStateException("Unexpected method call");
+	}
 
 	@Override
 	public InputStream getContent() {

@@ -111,5 +111,13 @@ public interface EntityHandler {
 	 * @return content
 	 */
 	InputStream getContent();
+	
+	/**
+	 * Returns the embedded payload of the underlying entity.
+	 * 
+	 * @return embedded payload or null if the underlying entity has no embedded
+	 *         payload
+	 */
+	Payload embedded();
 
 }

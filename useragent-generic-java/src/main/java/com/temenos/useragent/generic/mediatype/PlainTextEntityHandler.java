@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityHandler;
+import com.temenos.useragent.generic.internal.Payload;
 
 /**
  * An entity handler implementation for <i>text/plain</i> media type.
@@ -71,6 +72,11 @@ public class PlainTextEntityHandler implements EntityHandler {
 	}
 	
 	@Override
+	public Payload embedded() {
+		return null;
+	}
+	
+	@Override
 	public int getCount(String fqPropertyName) {
 		return 0;
 	}
@@ -84,6 +90,4 @@ public class PlainTextEntityHandler implements EntityHandler {
 	public InputStream getContent() {
 		return IOUtils.toInputStream(plainText);
 	}
-
-
 }

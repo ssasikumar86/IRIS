@@ -41,6 +41,7 @@ import org.apache.commons.io.IOUtils;
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.EntityHandler;
 import com.temenos.useragent.generic.internal.LinkImpl;
+import com.temenos.useragent.generic.internal.Payload;
 
 /**
  * An {@link EntityHandler entity handler} implementation for Atom Entry type in
@@ -95,6 +96,12 @@ public class AtomEntryHandler implements EntityHandler {
     	validateHandler();
     	xmlContentHandler.remove(fqPropertyName);
     }
+    
+	@Override
+	public Payload embedded() {
+		// atom xml supports embedded entities only in links
+		return null;
+	}
 
     private List<Link> convertLinks(List<org.apache.abdera.model.Link> abderaLinks) {
         List<Link> links = new ArrayList<Link>();

@@ -1,0 +1,29 @@
+{
+  "AccountOfficer" : "2002",
+  "AllowBulkProcess" : "",
+  "CoCode" : "GB0010001",
+  "_embedded": {"http://temenostech.temenos.com/rels/errors": [{
+    "_links": {"self": {"href": "http://mybank/restservice/BankService/errors"}},
+        "Errors": [{
+            "Type": "Error",
+            "Text": "Duplicate",
+            "Info": "NO",
+            "Code": "DUPLICATE"
+        }]
+    }]},
+  "_links" : {
+    "http://temenostech.temenos.com/rels/input" : [ {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')",
+      "name" : "Customers>PUT(input deal)>Customer_input",
+      "title" : "input deal"
+    } ],
+    "item" : [ {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')",
+      "name" : "Customers>GET>Customer",
+      "title" : "Customer"
+    } ],
+    "self" : {
+      "href" : "http://mybank/restservice/BankService/Customers('66052')"
+    }
+  }
+}

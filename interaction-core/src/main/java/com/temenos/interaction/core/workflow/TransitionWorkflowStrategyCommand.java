@@ -38,7 +38,7 @@ import java.util.List;
  *
  * @author ikarady
  */
-public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyCommand implements TransitionCommand {
+public class TransitionWorkflowStrategyCommand extends AbortOnErrorWorkflowStrategyCommand implements TransitionCommand {
 
     @Override
     public Result execute(InteractionContext ctx) throws InteractionException {
@@ -46,7 +46,7 @@ public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyComm
             throw new IllegalArgumentException("InteractionContext must be supplied");
         }
         Result result = null;
-        for (InteractionCommand command : getEligibleCommands()) {
+        for (InteractionCommand command : commands) {
             result = command.execute(ctx);
             if (result != null && !result.equals(Result.SUCCESS)) {
                 break;
@@ -66,41 +66,49 @@ public class TransitionWorkflowStrategyCommand extends NaiveWorkflowStrategyComm
      */
     @Override
     public boolean isInterim() {
-        if (getEligibleCommands().isEmpty()) {
+        if (commands.isEmpty()) {
             return false;
         }
-        for (InteractionCommand command : getEligibleCommands()) {
-            if (!isInterim(command)) {
-                return false;
+        for (InteractionCommand command : commands) {
+            if (isInterim(command)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     @Override
     public void addCommand(InteractionCommand command) {
-        commands.add(command);
-    }
-
-    private List<InteractionCommand> getEligibleCommands() {
-        List<InteractionCommand> transitionCommands = getTransitionCommands();
-        return !transitionCommands.isEmpty() ? transitionCommands : commands;
-    }
-
-    private List<InteractionCommand> getTransitionCommands() {
-        List<InteractionCommand> transitionCommands = new ArrayList<>();
-        for (InteractionCommand command : commands) {
-            if (command instanceof TransitionWorkflowStrategyCommand) {
-                transitionCommands.addAll(((TransitionWorkflowStrategyCommand) command).getTransitionCommands());
-            } else if (command instanceof TransitionCommand) {
-                transitionCommands.add(command);
-            }
+        if (command instanceof TransitionWorkflowStrategyCommand) {
+            addTransitionWorkflowCommand((TransitionWorkflowStrategyCommand)command);
+        } else if (!contains(command)) {
+            commands.add(command);
         }
-        return transitionCommands;
+    }
+
+    private void addTransitionWorkflowCommand(TransitionWorkflowStrategyCommand workflow) {
+        for (InteractionCommand command : workflow.getCommands()) {
+            addCommand(command);
+        }
+    }
+
+    private List<InteractionCommand> getCommands() {
+        List<InteractionCommand> result = new ArrayList<>();
+        result.addAll(commands);
+        return result;
     }
 
     private boolean isInterim(InteractionCommand command) {
         return command instanceof TransitionCommand && ((TransitionCommand) command).isInterim();
+    }
+
+    private boolean contains(InteractionCommand command) {
+        for (InteractionCommand existingCommand : commands) {
+            if (existingCommand.equals(command)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

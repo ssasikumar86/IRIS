@@ -37,13 +37,7 @@ import java.util.List;
  */
 public class InteractionWorkflowStrategyCommand extends AbortOnErrorWorkflowStrategyCommand {
 
-    private List<InteractionCommand> commands = new ArrayList<InteractionCommand>();
-
     public InteractionWorkflowStrategyCommand() {}
-
-    public boolean isEmpty() {
-        return commands.isEmpty();
-    }
 
     /**
      * Construct with a list of commands to execute.
@@ -60,9 +54,6 @@ public class InteractionWorkflowStrategyCommand extends AbortOnErrorWorkflowStra
             return;
         }
         super.addCommand(command);
-        if (command == null)
-            throw new IllegalArgumentException("No command supplied");
-        commands.add(command);
     }
 
 }

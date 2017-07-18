@@ -104,7 +104,9 @@ public class HypermediaTemplateHelper {
 					}
 					if (normalizedProperties.containsKey(param)) {
 						// replace template tokens
-						result = result.replaceAll(Pattern.quote("{"+param+"}"), Matcher.quoteReplacement(normalizedProperties.get(param).toString()));
+					    String value = Matcher.quoteReplacement(normalizedProperties.get(param).toString());
+					    result = resolveWildCardMatches(result, value);
+					    result = result.replaceAll(Pattern.quote("{"+param+"}"), value);
 					}
 				}
 			}
@@ -113,6 +115,33 @@ public class HypermediaTemplateHelper {
 		}
 		return result;
 	}
+
+	/**
+     * This is used to replace wild card variable values, while doing template
+     * replace for value "id eq {ArrOd}". If variable value contains "...",
+     * based on its position equals operator gets converted into particular
+     * OData operator.
+     *
+     * @param result
+     * @param value
+     */
+    private static String resolveWildCardMatches(String result, String value) {
+        String[] splitResult = result.split(" ");
+        if (splitResult.length == 3 && ("eq".equalsIgnoreCase(splitResult[1]) || "ne".equalsIgnoreCase(splitResult[1]))
+                && value.contains("...")) {
+            if (value.endsWith("...") && !value.startsWith("...")) {
+                result = "startswith(" + splitResult[0] + ", '" + splitResult[2] + "')";
+            } else if (value.startsWith("...") && !value.endsWith("...")) {
+                result = "endswith(" + splitResult[0] + ", '" + splitResult[2] + "')";
+            } else {
+                result = "substringof('" + splitResult[2] + "', " + splitResult[0] + ")";
+            }
+            if ("ne".equalsIgnoreCase(splitResult[1])) {
+                result = "not " + result;
+            }
+        }
+        return result;
+    }
 
 	/**
 	 * Given a base uri template and a uri, return the base uri portion.

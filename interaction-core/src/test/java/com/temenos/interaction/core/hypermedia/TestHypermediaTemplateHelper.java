@@ -20,9 +20,8 @@ package com.temenos.interaction.core.hypermedia;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,7 +111,7 @@ public class TestHypermediaTemplateHelper {
 		assertEquals("http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001/", 
 				HypermediaTemplateHelper.getTemplatedBaseUri("http://localhost:8080/example/interaction-odata-multicompany.svc/{companyid}/", "http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001"));
 	}
-		
+
 	@Test
 	public void testTemplateReplace() {
 		Map<String,Object> properties = new HashMap<String,Object>();
@@ -291,6 +290,14 @@ public class TestHypermediaTemplateHelper {
 		assertEquals("bar", HypermediaTemplateHelper.extractSimplePropertyName("foo_bar"));
 		assertEquals("bar_hello", HypermediaTemplateHelper.extractSimplePropertyName("foo_bar_hello"));
 	}
+
+	@Test
+    public void testWildCardTemplateReplace() {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put("ArrOd", "...AA16082QHSNZ...");
+        assertEquals("substringof('...AA16082QHSNZ...', Id)",
+                HypermediaTemplateHelper.templateReplace("Id eq {ArrOd}", properties));
+    }
 
 	private OComplexObject create(OProperty<?>... properties) {
 		List<OProperty<?>> propertyList = new ArrayList<OProperty<?>>();

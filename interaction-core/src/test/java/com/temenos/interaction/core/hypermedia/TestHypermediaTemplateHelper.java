@@ -295,7 +295,7 @@ public class TestHypermediaTemplateHelper {
     public void testWildCardTemplateReplace() {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("ArrOd", "...AA16082QHSNZ...");
-        assertEquals("substringof('...AA16082QHSNZ...', Id)",
+        assertEquals("substringof('...AA16082QHSNZ...', Id) eq true",
                 HypermediaTemplateHelper.templateReplace("Id eq {ArrOd}", properties));
     }
 

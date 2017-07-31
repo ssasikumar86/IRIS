@@ -442,10 +442,10 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
 				// Try and load the resource from the classpath
 				String description = "classpath:" + beanXml;
 				attempts.add(description);
-                if (null == this.getClass().getClassLoader().getResource(beanXml)) {
-                    beanXml = getTimeStampBeanXmlName(beanXml);
-                }
-				result = new ClassPathXmlApplicationContext(new String[] {beanXml});
+				String[] contextFiles = getClassPathContextFileNames(beanXml);
+				if(contextFiles.length > 0){
+	                result = new ClassPathXmlApplicationContext(contextFiles);
+				}
                 foundFile = description;
 			} else {
 				// Try and load the resource from the file system as a resource directories has been specified
@@ -485,21 +485,40 @@ public class SpringDSLResourceStateProvider implements ResourceStateProvider, Dy
     }
 
     /**
-     * Check timeStamped beanXml availability on classpath
+     * Checks if the provided xml file name is available in class-path else scans for 
+     * time-stamp included files
+     * @param resourceName
+     * @return array of class-path file names
      */
-    public String getTimeStampBeanXmlName(String beanXml) {
-        String beanFileName = beanXml.substring(0, beanXml.indexOf("-PRD.xml"));
-        Resource[] patternResource = null;
-        try {
-            patternResource = new PathMatchingResourcePatternResolver().getResources("classpath*:"
-                    + beanFileName.concat("_*-PRD.xml"));
-            if (patternResource != null && patternResource.length > 0)
-                if (Pattern.matches(beanFileName.concat("_(\\d+)-PRD.xml"), patternResource[0].getFilename()))
-                    beanXml = patternResource[0].getFilename();
-        } catch (IOException e) {
-            logger.error("Unable to find the resource from classpath");
+    private String[] getClassPathContextFileNames(String resourceName) {
+        List<String> resources = new ArrayList<String>();
+        if (this.getClass().getClassLoader().getResource(resourceName) != null) {
+            resources.add(resourceName);
+        } else {
+            String resource = resourceName.replace("-PRD.xml", "");
+            /*
+             * PathMatchingResourcePatternResolver fails to get resources
+             * present in root directory. Hence the relevant properties file
+             * inside 'META-INF' is looked-up to conclude that the relevant
+             * 'PRD.xml' resource is present in class-path
+             */
+            String resourceProperty = resource.concat("*.properties");
+            Resource[] patternResources;
+            try {
+                patternResources = new PathMatchingResourcePatternResolver()
+                        .getResources("classpath*:META-INF/" + resourceProperty);
+                if (patternResources != null) {
+                    for (Resource patternResource : patternResources) {
+                        if (Pattern.matches(resource.concat("_(\\d+).properties"), patternResource.getFilename())) {
+                            resources.add(patternResource.getFilename().replace(".properties", "-PRD.xml"));
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                logger.error("Unable to find the resource from classpath");
+            }
         }
-        return beanXml;
+        return resources.toArray(new String[resources.size()]);
     }
 
     @Override

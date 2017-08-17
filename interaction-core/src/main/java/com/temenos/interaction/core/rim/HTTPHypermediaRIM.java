@@ -889,16 +889,20 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
             }
 
             URLDecoder ud = new URLDecoder();
-
-            for (String key : queryParameters.keySet()) {
-                List<String> values = queryParameters.get(key);
+            Object[] keySet = queryParameters.keySet().toArray();
+            for (int i = 0; i < keySet.length; i++) {
+                List<String> values = queryParameters.get(keySet[i]);
                 if (values != null) {
                     List<String> newValues = new ArrayList<String>();
                     for (String value : values) {
                         if (value != null)
                             newValues.add(ud.decode(value, "UTF-8"));
                     }
-                    queryParameters.put(key, newValues);
+                    if (keySet[i] != null) {
+                        queryParameters.remove(keySet[i]);
+                        queryParameters.put(ud.decode((String) keySet[i].toString(), "UTF-8"), newValues);
+
+                    }
                 }
             }
 

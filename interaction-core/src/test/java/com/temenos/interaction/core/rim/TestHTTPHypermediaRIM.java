@@ -23,12 +23,10 @@ package com.temenos.interaction.core.rim;
 
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -57,8 +55,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import com.temenos.interaction.core.command.*;
-import com.temenos.interaction.core.workflow.*;
 import org.apache.wink.common.model.multipart.InMultiPart;
 import org.apache.wink.common.model.multipart.InPart;
 import org.junit.Before;
@@ -68,7 +64,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.command.CommandController;
+import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionCommand.Result;
+import com.temenos.interaction.core.command.InteractionContext;
+import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.MapBasedCommandController;
+import com.temenos.interaction.core.command.TransitionCommand;
 import com.temenos.interaction.core.entity.Entity;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
@@ -81,6 +83,7 @@ import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.web.RequestContext;
+import com.temenos.interaction.core.workflow.WorkflowCommandBuilderFactory;
 
 public class TestHTTPHypermediaRIM {
 
@@ -309,6 +312,47 @@ public class TestHTTPHypermediaRIM {
 
         // should get past here without a NullPointerException
         rim.get(mock(HttpHeaders.class), "id", uriInfo);
+    }
+    
+    /* We decode the query parameters to workaround an issue in Wink */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testDecodeQueryParametersPercentValue() throws InteractionException {
+        ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/test");
+        // this test simply mocks a command to test the context query parameters
+        // is initialised properly
+        InteractionCommand mockCommand = mock(InteractionCommand.class);
+        when(mockCommand.execute(any(InteractionContext.class))).thenReturn(Result.FAILURE);
+        // RIM with command controller that issues commands that always return
+        // SUCCESS
+
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(mockCommandController(mockCommand),
+                new ResourceStateMachine(initialState), createMockMetadata());
+
+        UriInfo uriInfo = mock(UriInfo.class);
+        when(uriInfo.getPathParameters(anyBoolean())).thenReturn(mock(MultivaluedMap.class));
+        MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl<String>();
+        queryMap.add("%24filter", "123");
+        queryMap.add("%24top", "1");
+
+        when(uriInfo.getQueryParameters(anyBoolean())).thenReturn(queryMap);
+
+        rim.get(mock(HttpHeaders.class), "%24id", uriInfo);
+        verify(mockCommand).execute((InteractionContext) argThat(new InteractionContextQueryParamMatcherPercent()));
+    }
+
+    class InteractionContextQueryParamMatcherPercent extends ArgumentMatcher<InteractionContext> {
+        public boolean matches(Object o) {
+            if (o instanceof InteractionContext) {
+                InteractionContext ctx = (InteractionContext) o;
+                MultivaluedMap<String, String> mvmap = ctx.getQueryParameters();
+                if (!(mvmap.getFirst("$filter").equals("123") && mvmap.getFirst("$top").equals("1"))) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
     }
 
     /*

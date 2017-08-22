@@ -103,9 +103,21 @@ public class HypermediaTemplateHelper {
 						normalizedProperties = HypermediaTemplateHelper.normalizeProperties(properties);
 					}
 					if (normalizedProperties.containsKey(param)) {
-						// replace template tokens
-						result = result.replaceAll(Pattern.quote("{"+param+"}"), Matcher.quoteReplacement(normalizedProperties.get(param).toString()));
-					}
+                        // replace template tokens
+                        String value = Matcher.quoteReplacement(normalizedProperties.get(param).toString());
+                        result = resolveWildCardMatches(result, value);
+                        /*
+                         * Avoid duplicate quotes, if both expression and value
+                         * contains single quotes. For example: Expression:
+                         * filter=FileVer eq '{Fv}' Value:Fv='SIM' Result should
+                         * be filter=FileVer eq 'SIM' instead filter=FileVer eq
+                         * ''SIM''
+                         */
+                        if (value.startsWith("'") && value.endsWith("'")) {
+                            result = result.replaceAll(Pattern.quote("'{" + param + "}'"), value);
+                        }
+                        result = result.replaceAll(Pattern.quote("{"+param+"}"), value);
+                    }
 				}
 			}
 		} catch (Exception e) {
@@ -113,6 +125,28 @@ public class HypermediaTemplateHelper {
 		}
 		return result;
 	}
+
+    /**
+     * This is used to replace wild card variable values, while doing template
+     * replace for value "id eq {ArrOd}". If variable value contains "...",
+     * based on its position equals operator gets converted into particular
+     * OData operator.
+     *
+     * @param result
+     * @param value
+     */
+    private static String resolveWildCardMatches(String result, String value) {
+        String[] splitResult = result.split(" ");
+        if (splitResult.length == 3 && ("eq".equalsIgnoreCase(splitResult[1]) || "ne".equalsIgnoreCase(splitResult[1]))
+                && value.contains("...")) {
+            if("eq".equalsIgnoreCase(splitResult[1])) {
+                result = "substringof('" + splitResult[2] + "', " + splitResult[0] + ") eq true";
+            } else {
+                result = "substringof('" + splitResult[2] + "', " + splitResult[0] + ") eq false";
+            }
+        }
+        return result;
+    }
 
 	/**
 	 * Given a base uri template and a uri, return the base uri portion.

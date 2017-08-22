@@ -299,6 +299,14 @@ public class TestHypermediaTemplateHelper {
                 HypermediaTemplateHelper.templateReplace("Id eq {ArrOd}", properties));
     }
 
+	@Test
+    public void testQuoteValueReplace() {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        properties.put("Fv", "'SIM'");
+        assertEquals("FileVer eq 'SIM'",
+                HypermediaTemplateHelper.templateReplace("FileVer eq '{Fv}'", properties));
+    }
+
 	private OComplexObject create(OProperty<?>... properties) {
 		List<OProperty<?>> propertyList = new ArrayList<OProperty<?>>();
 		for (OProperty<?> property : properties) {

@@ -106,6 +106,16 @@ public class HypermediaTemplateHelper {
 						// replace template tokens
 					    String value = Matcher.quoteReplacement(normalizedProperties.get(param).toString());
 					    result = resolveWildCardMatches(result, value);
+                        /*
+                         * Avoid duplicate quotes, if both expression and value
+                         * contains single quotes. For example: Expression:
+                         * filter=FileVer eq '{Fv}' Value:Fv='SIM' Result should
+                         * be filter=FileVer eq 'SIM' instead filter=FileVer eq
+                         * ''SIM''
+                         */
+                        if (value.startsWith("'") && value.endsWith("'")) {
+                            result = result.replaceAll(Pattern.quote("'{" + param + "}'"), value);
+                        }
 					    result = result.replaceAll(Pattern.quote("{"+param+"}"), value);
 					}
 				}

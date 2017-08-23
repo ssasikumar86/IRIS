@@ -130,9 +130,9 @@ public class HypermediaTemplateHelper {
         if (splitResult.length == 3 && ("eq".equalsIgnoreCase(splitResult[1]) || "ne".equalsIgnoreCase(splitResult[1]))
                 && value.contains("...")) {
             if("eq".equalsIgnoreCase(splitResult[1])) {
-                result = "substringof('" + splitResult[2] + "', " + splitResult[0] + ") eq true";
+                result = "substringof(" + splitResult[2] + ", " + splitResult[0] + ") eq true";
             } else {
-                result = "substringof('" + splitResult[2] + "', " + splitResult[0] + ") eq false";
+                result = "substringof(" + splitResult[2] + ", " + splitResult[0] + ") eq false";
             }
         }
         return result;

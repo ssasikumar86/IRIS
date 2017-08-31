@@ -296,7 +296,7 @@ public class TestHypermediaTemplateHelper {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("ArrOd", "...AA16082QHSNZ...");
         assertEquals("substringof('...AA16082QHSNZ...', Id)",
-                HypermediaTemplateHelper.templateReplace("Id eq {ArrOd}", properties));
+                HypermediaTemplateHelper.templateReplace("Id eq '{ArrOd}'", properties));
     }
 
 	private OComplexObject create(OProperty<?>... properties) {

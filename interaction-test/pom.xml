@@ -3,7 +3,7 @@
   <parent>
     <artifactId>interaction-parent</artifactId>
     <groupId>com.temenos.interaction</groupId>
-    <version>0.15.11</version>
+    <version>0.15.12</version>
     <relativePath>../interaction-parent/pom.xml</relativePath>
   </parent>
 

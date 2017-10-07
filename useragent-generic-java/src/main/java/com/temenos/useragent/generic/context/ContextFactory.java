@@ -24,6 +24,7 @@ package com.temenos.useragent.generic.context;
 
 import com.temenos.useragent.generic.mediatype.AtomPayloadHandler;
 import com.temenos.useragent.generic.mediatype.HalJsonPayloadHandler;
+import com.temenos.useragent.generic.mediatype.JsonPayloadHandler;
 import com.temenos.useragent.generic.mediatype.PlainTextPayloadHandler;
 
 /**
@@ -94,12 +95,13 @@ public class ContextFactory {
 		@Override
 		public ContentTypeHandlers entityHandlersRegistry() {
 
-			registry.registerForPayload("application/atom+xml",
+			registry.registerForPayloadifMissing("application/atom+xml",
 					AtomPayloadHandler.class);
-			registry.registerForPayload("text/plain", PlainTextPayloadHandler.class);
-			registry.registerForPayload("text/html", PlainTextPayloadHandler.class);
-			registry.registerForPayload("", PlainTextPayloadHandler.class);
-			registry.registerForPayload("application/hal+json", HalJsonPayloadHandler.class);
+			registry.registerForPayloadifMissing("text/plain", PlainTextPayloadHandler.class);
+			registry.registerForPayloadifMissing("text/html", PlainTextPayloadHandler.class);
+			registry.registerForPayloadifMissing("", PlainTextPayloadHandler.class);
+			registry.registerForPayloadifMissing("application/hal+json", HalJsonPayloadHandler.class);
+			registry.registerForPayloadifMissing("application/json", JsonPayloadHandler.class);
 			return registry;
 		}
 

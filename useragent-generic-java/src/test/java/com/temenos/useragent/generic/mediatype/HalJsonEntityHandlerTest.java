@@ -1,5 +1,6 @@
 package com.temenos.useragent.generic.mediatype;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 /*
  * #%L
  * useragent-generic-java
@@ -20,9 +21,13 @@ package com.temenos.useragent.generic.mediatype;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.matchers.JUnitMatchers.containsString;
 
 import java.io.IOException;
 import java.util.List;
@@ -33,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.internal.EntityWrapper;
 import com.temenos.useragent.generic.internal.Payload;
 
 public class HalJsonEntityHandlerTest {
@@ -356,6 +362,31 @@ public class HalJsonEntityHandlerTest {
 		}
 	}
 
+    @Test
+    public void testSetPrimitiveValueForProperty() throws IOException {
+        entityHandler.setPrimitiveValue("AccountOfficer", 2003L);
+        assertEquals("2003", entityHandler.getValue("AccountOfficer"));
+        entityHandler.setPrimitiveValue("CoCode", 'D');
+        assertEquals("D", entityHandler.getValue("CoCode"));
+        entityHandler.setPrimitiveValue("AllowBulkProcess", true);
+        assertEquals("true", entityHandler.getValue("AllowBulkProcess"));
+        entityHandler.setValue("Foo", "Bar");
+        assertEquals("Bar", entityHandler.getValue("Foo"));
+        entityHandler.setPrimitiveValue("Balance", 12345789.87654321);
+        assertEquals("1.234578987654321E7", entityHandler.getValue("Balance"));
+        entityHandler.setPrimitiveValue("Credit", -10203.50f);
+        assertEquals("-10203.5", entityHandler.getValue("Credit"));
+        entityHandler.setPrimitiveValue("Baz", null);
+        assertEquals(null, entityHandler.getValue("Baz"));
+
+        String content = IOUtils.toString(entityHandler.getContent());
+        assertThat(content, containsString("\"AccountOfficer\" : 2003"));
+        assertThat(content, containsString("\"CoCode\" : \"D\""));
+        assertThat(content, containsString("\"AllowBulkProcess\" : true"));
+        assertThat(content, containsString("\"Balance\" : 1.234578987654321E7"));
+        assertThat(content, containsString("\"Credit\" : -10203.5"));
+    }
+	 
 	@Test
 	public void testRemovePropertyAtTheTop() {
 		entityHandler.remove("AccountOfficer");
@@ -501,7 +532,20 @@ public class HalJsonEntityHandlerTest {
 		initEntityHandler("/haljson_item_with_inline_item.json");
 		Payload embeddedPayload = entityHandler.embedded();
 		assertNotNull(embeddedPayload);
-		assertEquals("Duplicate", embeddedPayload.entity().get("Errors(0)/Text"));
+		assertThat(embeddedPayload.links().size(), equalTo(2));
+		
+		List<Link> links = embeddedPayload.links();
+		assertThat(links.get(0).embedded().isCollection(), equalTo(true));
+		assertThat(links.get(1).embedded().isCollection(), equalTo(false));
+
+		List<EntityWrapper> metadata = links.get(0).embedded().entities();
+		assertThat(metadata.size(), equalTo(2));
+		assertThat(metadata.get(0).get("Id"), equalTo("BankService.AccountOfficer"));
+		assertThat(metadata.get(1).get("Id"), equalTo("BankService.CoCode"));
+
+		EntityWrapper error = links.get(1).embedded().entity();
+        assertThat(error.get("Errors(0)/Text"), equalTo("Duplicate"));
+        assertThat(error.get("Errors(0)/Code"), equalTo("DUPLICATE"));
 	}
 
 	private void initEntityHandler(String jsonFileName) {

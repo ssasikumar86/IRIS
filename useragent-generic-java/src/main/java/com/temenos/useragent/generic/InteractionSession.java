@@ -99,6 +99,17 @@ public interface InteractionSession {
 	 */
 	InteractionSession set(String propertyName, String propertyValue);
 
+    /**
+     * Sets the primitive value to the property in the {@link Entity entity} associated to this session.
+     * 
+     * @param propertyName
+     * @param propertyValue
+     * @return this session
+     */
+    default <T> InteractionSession setPrimitive(String propertyName, T propertyValue){
+        return set(propertyName, propertyValue != null ? String.valueOf(propertyValue) : null);
+    }
+
 	/**
 	 * Removes the value for the property in the {@link Entity entity}
 	 * associated to this session.

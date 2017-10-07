@@ -48,6 +48,12 @@ public class ContentTypeHandlers {
 				PayloadHandlerFactory.createFactory(transformerClass));
 	}
 
+    public void registerForPayloadifMissing(String contentType, final Class<? extends PayloadHandler> transformerClass) {
+        if(!payloadHandlersFactory.containsKey(contentType)){
+            registerForPayload(contentType, transformerClass);
+        }
+    }
+
 	public PayloadHandlerFactory<? extends PayloadHandler> getPayloadHandlerFactory(
 			String contentType) {
 		return payloadHandlersFactory.get(contentType);

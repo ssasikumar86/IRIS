@@ -38,7 +38,6 @@ import com.temenos.useragent.generic.Entity;
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.internal.DefaultEntityWrapper;
 import com.temenos.useragent.generic.internal.EntityWrapper;
-import com.temenos.useragent.generic.internal.NullEntityWrapper;
 
 public class HalJsonPayloadHandlerTest {
 

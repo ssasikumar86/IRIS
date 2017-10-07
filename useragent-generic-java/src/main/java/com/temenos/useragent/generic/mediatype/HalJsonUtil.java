@@ -29,7 +29,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.temenos.useragent.generic.Link;
+import com.temenos.useragent.generic.PayloadHandler;
+import com.temenos.useragent.generic.context.ContextFactory;
+import com.temenos.useragent.generic.internal.DefaultPayloadWrapper;
 import com.temenos.useragent.generic.internal.LinkImpl;
+import com.temenos.useragent.generic.internal.Payload;
+import com.temenos.useragent.generic.internal.PayloadHandlerFactory;
+import com.temenos.useragent.generic.internal.PayloadWrapper;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 import com.theoryinpractise.halbuilder.json.JsonRepresentationReader;
@@ -63,6 +69,27 @@ public class HalJsonUtil {
 		}
 		return links;
 	}
+
+    /**
+     * Extracts embedded content from {@link ReadableRepresentation representation} 
+     * and creates collection of {@link Link link}.
+     * 
+     * @param representation
+     * @return links
+     */
+    public static List<Link> extractEmbeddedLinks(ReadableRepresentation representation) {
+        if (representation == null) {
+            throw new IllegalArgumentException("Invalid representation 'null'");
+        }
+        List<Link> links = new ArrayList<Link>();
+        representation.getResources().forEach(entry -> {
+           Link link = getEmbeddedSelfLink(entry.getKey(), entry.getValue());
+           if(link != null){
+               links.add(link);
+           }
+        });
+        return links;
+    }
 
 	/**
 	 * Initialises {@link RepresentationFactory representation factory} for
@@ -131,4 +158,28 @@ public class HalJsonUtil {
 		}
 		return newArr;
 	}
+
+    private static Link getEmbeddedSelfLink(String parentRel, ReadableRepresentation embeddedContent) {
+        if (embeddedContent != null
+                && embeddedContent.getLinks().size() > 0
+                && "self".equals(embeddedContent.getLinks().get(0).getRel())) {
+
+            com.theoryinpractise.halbuilder.api.Link halLink = embeddedContent.getLinks().get(0);
+            return new LinkImpl.Builder(halLink.getHref())
+                    .title(halLink.getTitle())
+                    .rel(parentRel)
+                    .payload(buildEmbeddedPayload(embeddedContent.toString(RepresentationFactory.HAL_JSON)))
+                    .build();
+        }
+        return null;
+    }
+
+    private static Payload buildEmbeddedPayload(String content) {
+        PayloadHandlerFactory<? extends PayloadHandler> factory = ContextFactory.get().getContext().entityHandlersRegistry().getPayloadHandlerFactory(
+                RepresentationFactory.HAL_JSON);
+        PayloadHandler handler = factory.createHandler(content);
+        PayloadWrapper wrapper = new DefaultPayloadWrapper();
+        wrapper.setHandler(handler);
+        return wrapper;
+    }
 }

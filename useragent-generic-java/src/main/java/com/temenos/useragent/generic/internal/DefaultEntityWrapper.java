@@ -1,5 +1,7 @@
 package com.temenos.useragent.generic.internal;
 
+import static com.temenos.useragent.generic.internal.EntityWrapper.checkValueforPrimitiveorString;
+
 /*
  * #%L
  * useragent-generic-java
@@ -91,6 +93,12 @@ public class DefaultEntityWrapper implements EntityWrapper {
 	public void set(String fqPropertyName, String value) {
 		entityHandler.setValue(fqPropertyName, value);
 	}
+
+    @Override
+    public <T> void setPrimitive(String fqPropertyName, T value) {
+        checkValueforPrimitiveorString(value);
+        entityHandler.setPrimitiveValue(fqPropertyName, value);
+    }
 
 	@Override
 	public void remove(String fqPropertyName) {

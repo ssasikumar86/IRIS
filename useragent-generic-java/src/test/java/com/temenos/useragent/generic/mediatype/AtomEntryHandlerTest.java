@@ -23,11 +23,15 @@ package com.temenos.useragent.generic.mediatype;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.matchers.JUnitMatchers.containsString;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -189,6 +193,32 @@ public class AtomEntryHandlerTest {
 		checkForValueWithException("Customer_AddressGroup(1)/Customer_AddressSubGroup{1}/Address");
 		checkForValueWithException("Customer_AddressGroup(1)/Customer_AddressSubGroup{0}/Address");
 	}
+	
+    @Test
+    public void testSetPrimitiveValueForProperty() throws IOException {
+        handler.setPrimitiveValue("AccountOfficer", 2003L);
+        assertEquals("2003", handler.getValue("AccountOfficer"));
+        handler.setPrimitiveValue("CoCode", 'D');
+        assertEquals("D", handler.getValue("CoCode"));
+        handler.setPrimitiveValue("AllowBulkProcess", true);
+        assertEquals("true", handler.getValue("AllowBulkProcess"));
+        handler.setValue("Foo", "Bar");
+        assertEquals("Bar", handler.getValue("Foo"));
+        handler.setPrimitiveValue("Balance", 12345789.87654321);
+        assertEquals("1.234578987654321E7", handler.getValue("Balance"));
+        handler.setPrimitiveValue("Credit", -10203.50f);
+        assertEquals("-10203.5", handler.getValue("Credit"));
+        handler.setPrimitiveValue("Baz", null);
+        assertEquals("", handler.getValue("Baz"));
+        
+        String content = IOUtils.toString(handler.getContent());
+        assertThat(content, containsString("<d:AccountOfficer>2003</d:AccountOfficer>"));
+        assertThat(content, containsString("<d:CoCode>D</d:CoCode>"));
+        assertThat(content, containsString("<d:AllowBulkProcess>true</d:AllowBulkProcess>"));
+        assertThat(content, containsString("<d:Balance>1.234578987654321E7</d:Balance>"));
+        assertThat(content, containsString("<d:Credit>-10203.5</d:Credit>"));
+        assertThat(content, containsString("<d:Baz />"));
+    }
 	
 	
 

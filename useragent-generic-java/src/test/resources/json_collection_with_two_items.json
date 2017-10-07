@@ -1,0 +1,41 @@
+[{
+    "_links": {
+        "self": {
+            "href": "http://mybank/restservice/BankService/Customers('66052')"
+        },
+        "http://temenostech.temenos.com/rels/input":{
+            "href": "http://mybank/restservice/BankService/Customers('66052')",
+            "name": "Input Customer",
+            "title": "input deal"
+        }
+    },
+    "AccountOfficer": "2002",
+    "OverrideGroup": [{
+        "Override": "FORM XTP NOT RECEIVED"
+    },
+    {
+        "Override": "MEMORANDUM NOT RECEIVED"
+    }]
+},
+{
+    "_links": {
+        "self": {
+            "href": "http://mybank/restservice/BankService/Customers('66053')"
+        },
+        "http://temenostech.temenos.com/rels/input": {
+            "href": "http://mybank/restservice/BankService/Customers('66053')",
+            "name": "Input Customer",
+            "title": "input deal"
+        }
+    },
+    "AccountOfficer": "2001",
+    "OverrideGroup": [{
+            "Override": "PASSPORT NOT VERIFIED"
+        },
+        {
+            "Override": "FORM NOT RECEIVED"
+        },
+        {
+            "Override": "MEMORANDUM NOT RECEIVED"
+        }]
+}]

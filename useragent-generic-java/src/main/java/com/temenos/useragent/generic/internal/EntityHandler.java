@@ -76,6 +76,19 @@ public interface EntityHandler {
 	 */
 	void setValue(String fqPropertyName, String value);
 
+    /**
+     * Sets the primitive data-type value for the fully qualified property name in the underlying entity.
+     * <p>
+     * Default implementation calls {@link #setValue(String, String)}
+     * </p>
+     * 
+     * @param fqPropertyName
+     * @param value
+     */
+    default <T> void setPrimitiveValue(String fqPropertyName, T value) {
+        setValue(fqPropertyName, value != null ? String.valueOf(value) : null);
+    }
+
 	/**
 	 * Returns the count for the fully qualified property name which is part of
 	 * the underlying entity content.

@@ -34,7 +34,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
@@ -43,12 +42,9 @@ import org.json.JSONObject;
 
 import com.temenos.useragent.generic.Link;
 import com.temenos.useragent.generic.PayloadHandler;
-import com.temenos.useragent.generic.context.ContextFactory;
-import com.temenos.useragent.generic.http.DefaultHttpClientHelper;
 import com.temenos.useragent.generic.internal.DefaultPayloadWrapper;
 import com.temenos.useragent.generic.internal.EntityHandler;
 import com.temenos.useragent.generic.internal.Payload;
-import com.temenos.useragent.generic.internal.PayloadHandlerFactory;
 import com.temenos.useragent.generic.internal.PayloadWrapper;
 import com.theoryinpractise.halbuilder.api.ReadableRepresentation;
 import com.theoryinpractise.halbuilder.api.Representation;
@@ -95,14 +91,19 @@ public class HalJsonEntityHandler implements EntityHandler {
 
 	@Override
 	public void setValue(String fqPropertyName, String value) {
-		checkAndInitialiseEntity();
-		String[] pathParts = flattenPropertyName(fqPropertyName);
-		JSONObject parent = checkAndCreateParent(fqPropertyName, pathParts);
-		if (parent != null) {
-			String parentPropertyName = pathParts[pathParts.length - 1];
-			parent.put(parentPropertyName, value);
-		}
+	    setPrimitiveValue(fqPropertyName, value);
 	}
+
+	@Override
+    public <T> void setPrimitiveValue(String fqPropertyName, T value) {
+        checkAndInitialiseEntity();
+        String[] pathParts = flattenPropertyName(fqPropertyName);
+        JSONObject parent = checkAndCreateParent(fqPropertyName, pathParts);
+        if (parent != null) {
+            String parentPropertyName = pathParts[pathParts.length - 1];
+            parent.put(parentPropertyName, value);
+        }
+    }
 
 	@Override
 	public int getCount(String fqPropertyName) {
@@ -135,18 +136,18 @@ public class HalJsonEntityHandler implements EntityHandler {
 			parent.remove(childName);
 		}
 	}
-	
-	@Override
-	public Payload embedded() {
-		if (embeddedPayload == null) {
-			ReadableRepresentation firstEmbedded = getFirstEmbedded();
-			if (firstEmbedded != null) {
-				buildEmbeddedPayload(firstEmbedded.toString(RepresentationFactory.HAL_JSON));
-			}
-			
-		}
-		return embeddedPayload;
-	}
+
+    @Override
+    public Payload embedded() {
+        if (embeddedPayload == null && !representation.getResources().isEmpty()) {
+            PayloadHandler handler = new HalJsonEmbeddedPayloadHandler();
+            handler.setPayload(representation.toString(RepresentationFactory.HAL_JSON));
+            PayloadWrapper wrapper = new DefaultPayloadWrapper();
+            wrapper.setHandler(handler);
+            embeddedPayload = wrapper;
+        }
+        return embeddedPayload;
+    }
 		
 	@Override
 	public void setContent(InputStream stream) {
@@ -321,24 +322,5 @@ public class HalJsonEntityHandler implements EntityHandler {
 		if (jsonObject == null) {
 			jsonObject = new JSONObject();
 		}
-	}
-	
-	private ReadableRepresentation getFirstEmbedded() {
-		if (!representation.getResources().isEmpty()) {
-			return new ArrayList<Entry<String, ReadableRepresentation>>(
-					representation.getResources()).get(0).getValue();
-		} else {
-			return null;
-		}
-	}
-	
-	private void buildEmbeddedPayload(String content) {
-		PayloadHandlerFactory<? extends PayloadHandler> factory = ContextFactory
-				.get().getContext().entityHandlersRegistry()
-				.getPayloadHandlerFactory(RepresentationFactory.HAL_JSON);
-		PayloadHandler handler = factory.createHandler(content);
-		PayloadWrapper wrapper = new DefaultPayloadWrapper();
-		wrapper.setHandler(handler);
-		embeddedPayload = wrapper;
 	}
 }

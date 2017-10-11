@@ -23,6 +23,7 @@ package com.temenos.useragent.generic.internal;
 
 import java.io.InputStream;
 
+import com.google.common.primitives.Primitives;
 import com.temenos.useragent.generic.Entity;
 
 /**
@@ -40,8 +41,19 @@ public interface EntityWrapper extends Entity {
 	void setSessionContext(SessionContext sessionContext);
 
 	void set(String fqPropertyName, String value);
-	
+
+    default <T> void setPrimitive(String fqPropertyName, T value) {
+        checkValueforPrimitiveorString(value);
+        set(fqPropertyName, (String) value);
+    }
+
 	void remove(String fqPropertyName);
 	
 	InputStream getContent();
+
+    static <T> void checkValueforPrimitiveorString(T value) {
+        if (null == value || !(Primitives.isWrapperType(value.getClass()) || value instanceof String)) {
+            throw new IllegalArgumentException("Invalid value passed. Only string value or primitive value allowed.");
+        }
+    }
 }

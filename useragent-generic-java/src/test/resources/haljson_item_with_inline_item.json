@@ -2,7 +2,24 @@
   "AccountOfficer" : "2002",
   "AllowBulkProcess" : "",
   "CoCode" : "GB0010001",
-  "_embedded": {"http://temenostech.temenos.com/rels/errors": [{
+  "_embedded": {
+    "http://temenostech.temenos.com/rels/metadata": [{
+    "_links": {"self": {"href": "http://mybank/restservice/BankService/metadata"}},
+        "_embedded": {"item": [
+                {
+                    "ReadOnly": false,
+                    "Id": "BankService.AccountOfficer",
+                    "Property": "AccountOfficer",
+                    "Mandatory": true
+                },
+                {
+                    "ReadOnly": false,
+                    "Id": "BankService.CoCode",
+                    "Property": "CoCode",
+                    "Mandatory": true
+                }]}
+    }],
+    "http://temenostech.temenos.com/rels/errors": [{
     "_links": {"self": {"href": "http://mybank/restservice/BankService/errors"}},
         "Errors": [{
             "Type": "Error",

@@ -106,7 +106,11 @@ public class UrlWrapper implements Url {
 	
 	@Override
 	public void delete() {
-	    HttpMethodExecutor executor = getExecutor(null);
+	    EntityWrapper entity = sessionContext.getRequestEntity();
+        if (noBody) {
+            entity = null; // TODO remove null
+        }
+	    HttpMethodExecutor executor = getExecutor(entity);
 	    ResponseData output = executor.execute(HttpMethod.DELETE);
 	    sessionContext.setResponse(output);
 	}

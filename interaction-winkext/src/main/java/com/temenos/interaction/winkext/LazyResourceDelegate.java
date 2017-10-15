@@ -330,5 +330,20 @@ public class LazyResourceDelegate implements HTTPResourceInteractionModel, Dynam
 	@Override
 	public Collection<ResourceInteractionModel> getChildren() {
 		return null;
-	}    
+	}
+
+    @Override
+    public Response delete(HttpHeaders headers, String id, UriInfo uriInfo, EntityResource<?> resource) {
+        try {
+            HTTPHypermediaRIM rim = getResource(uriInfo, "DELETE");
+            
+            if(rim == null) {
+                return Response.status(404).build();
+            }
+            
+            return rim.delete(headers, id, uriInfo, resource);
+        } catch (MethodNotAllowedException e) {
+            return handleMethodNotAllowedException(e);          
+        }
+    }    
 }

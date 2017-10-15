@@ -172,7 +172,7 @@ public class UrlWrapperTest {
         
         //then
         verify(mockExecutor).execute(eq(HttpMethod.DELETE));
-        verify(mockSessionContext, times(0)).getRequestEntity();
+        verify(mockSessionContext, times(1)).getRequestEntity();
     }
 
 	@Test

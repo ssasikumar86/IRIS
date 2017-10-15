@@ -28,7 +28,6 @@ import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -116,8 +115,10 @@ public class DefaultHttpClient implements HttpClient {
                 .setDefaultCredentialsProvider(
                         DefaultHttpClientHelper.getBasicCredentialProvider())
                 .build();
-        HttpDelete deleteRequest = new HttpDelete(url);
+        HttpDeleteWithBody deleteRequest = new HttpDeleteWithBody(url);
         DefaultHttpClientHelper.buildRequestHeaders(request, deleteRequest);
+        deleteRequest.setEntity(new StringEntity(request.payload(), "UTF-8"));
+        
         try {
             CloseableHttpResponse httpResponse = client.execute(deleteRequest);
             HttpEntity responseEntity = httpResponse.getEntity();

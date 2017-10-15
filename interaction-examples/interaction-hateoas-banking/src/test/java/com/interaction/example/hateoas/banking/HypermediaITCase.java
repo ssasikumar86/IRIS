@@ -134,7 +134,7 @@ public class HypermediaITCase extends JerseyTest {
 	 */
 	@Test
 	public void deleteFundTransferMethodNotAllowed() throws Exception {
-		ClientResponse response = webResource.path("/fundtransfers").delete(ClientResponse.class);
+		ClientResponse response = webResource.path("/fundtransfers").type(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
         assertEquals(3, response.getAllow().size());

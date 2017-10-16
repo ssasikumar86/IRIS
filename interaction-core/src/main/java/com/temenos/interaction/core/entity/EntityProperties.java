@@ -23,6 +23,7 @@ package com.temenos.interaction.core.entity;
 
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -31,7 +32,7 @@ import java.util.Map;
 public class EntityProperties implements EntityTreeNode {
 	
 	private EntityTreeNode parent;
-	private Map<String, EntityProperty> properties = new HashMap<String, EntityProperty>();
+	private Map<String, EntityProperty> properties = new LinkedHashMap<String, EntityProperty>();
 
 	/**
 	 * Gets the specified entity property.

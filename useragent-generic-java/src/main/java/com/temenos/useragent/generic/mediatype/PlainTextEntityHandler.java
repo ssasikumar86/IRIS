@@ -62,7 +62,7 @@ public class PlainTextEntityHandler implements EntityHandler {
 	}
 
 	@Override
-	public void setValue(String fqPropertyName, String value) {
+	public <T> void setValue(String fqPropertyName, T value) {
 		// do nothing
 	}
 	

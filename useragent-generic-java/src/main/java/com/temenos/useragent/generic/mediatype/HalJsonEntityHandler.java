@@ -90,12 +90,7 @@ public class HalJsonEntityHandler implements EntityHandler {
 	}
 
 	@Override
-	public void setValue(String fqPropertyName, String value) {
-	    setPrimitiveValue(fqPropertyName, value);
-	}
-
-	@Override
-    public <T> void setPrimitiveValue(String fqPropertyName, T value) {
+    public <T> void setValue(String fqPropertyName, T value) {
         checkAndInitialiseEntity();
         String[] pathParts = flattenPropertyName(fqPropertyName);
         JSONObject parent = checkAndCreateParent(fqPropertyName, pathParts);

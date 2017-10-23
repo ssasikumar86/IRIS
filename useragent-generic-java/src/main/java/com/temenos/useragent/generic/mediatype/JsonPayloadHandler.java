@@ -82,6 +82,9 @@ public class JsonPayloadHandler implements PayloadHandler {
         if (payload == null) {
             throw new IllegalArgumentException("Payload is null");
         }
+        if(payload.isEmpty()){
+            return;
+        }
         jsonResponse = Optional.ofNullable((Object) new JSONTokener(payload).nextValue());
     }
 

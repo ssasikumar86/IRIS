@@ -364,19 +364,19 @@ public class HalJsonEntityHandlerTest {
 
     @Test
     public void testSetPrimitiveValueForProperty() throws IOException {
-        entityHandler.setPrimitiveValue("AccountOfficer", 2003L);
+        entityHandler.setValue("AccountOfficer", 2003L);
         assertEquals("2003", entityHandler.getValue("AccountOfficer"));
-        entityHandler.setPrimitiveValue("CoCode", 'D');
+        entityHandler.setValue("CoCode", 'D');
         assertEquals("D", entityHandler.getValue("CoCode"));
-        entityHandler.setPrimitiveValue("AllowBulkProcess", true);
+        entityHandler.setValue("AllowBulkProcess", true);
         assertEquals("true", entityHandler.getValue("AllowBulkProcess"));
         entityHandler.setValue("Foo", "Bar");
         assertEquals("Bar", entityHandler.getValue("Foo"));
-        entityHandler.setPrimitiveValue("Balance", 12345789.87654321);
+        entityHandler.setValue("Balance", 12345789.87654321);
         assertEquals("1.234578987654321E7", entityHandler.getValue("Balance"));
-        entityHandler.setPrimitiveValue("Credit", -10203.50f);
+        entityHandler.setValue("Credit", -10203.50f);
         assertEquals("-10203.5", entityHandler.getValue("Credit"));
-        entityHandler.setPrimitiveValue("Baz", null);
+        entityHandler.setValue("Baz", null);
         assertEquals(null, entityHandler.getValue("Baz"));
 
         String content = IOUtils.toString(entityHandler.getContent());

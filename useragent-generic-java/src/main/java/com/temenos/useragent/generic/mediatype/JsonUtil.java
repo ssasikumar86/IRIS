@@ -29,12 +29,10 @@ import static java.text.MessageFormat.format;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -188,41 +186,6 @@ public final class JsonUtil {
                 THROW_INVALID_PATH_EXCEPTION.accept(index, propertyName);
             }
         }
-    }
-
-    public static String prettyString(JSONObject jsonObject, String propertyName) {
-        StringBuilder prettyString = new StringBuilder();
-        StringJoiner itemJoiner = new StringJoiner(",\n", "[\n", "\n]");
-        Object json = jsonObject.opt(propertyName);
-        if (json == null) {
-            return null;
-        }
-
-        if (json instanceof JSONArray) {
-            ((JSONArray) json).forEach(item -> itemJoiner.add(getIndentedStringforArray(item)));
-            return itemJoiner.toString();
-        } else if (json instanceof JSONObject) {
-            return ((JSONObject) json).toString(4);
-        } else {
-            prettyString.append(json);
-        }
-        return prettyString.toString();
-    }
-
-    private static String getIndentedStringforArray(Object obj) {
-        StringBuilder jsonBuilder = new StringBuilder();
-        if (obj instanceof JSONObject) {
-            try {
-                @SuppressWarnings("unchecked")
-                List<String> lines = IOUtils.readLines(IOUtils.toInputStream(((JSONObject) obj).toString(4)));
-                lines.forEach(line -> jsonBuilder.append("    ").append(line).append("\n"));
-                jsonBuilder.deleteCharAt(jsonBuilder.length() - 1);
-                return jsonBuilder.toString();
-            } catch (Exception e) {
-                return ((JSONObject) obj).toString(4);
-            }
-        }
-        return jsonBuilder.append("    ").append(obj).toString();
     }
 
     private static String getValueorEmptyString(JSONObject jsonObject, String key) {

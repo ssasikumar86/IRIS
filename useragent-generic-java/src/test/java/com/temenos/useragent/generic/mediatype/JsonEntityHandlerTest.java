@@ -72,7 +72,6 @@ public class JsonEntityHandlerTest {
         assertEquals("en", entityHandler.getValue("AddressGroup(0)/AddressSubGroup(0)/LanguageCode"));
         assertEquals("94086 Rue principale", entityHandler.getValue("AddressGroup(0)/AddressSubGroup(1)/Address"));
         assertEquals("fr", entityHandler.getValue("AddressGroup(0)/AddressSubGroup(1)/LanguageCode"));
-
     }
 
     @Test
@@ -86,6 +85,16 @@ public class JsonEntityHandlerTest {
                 entityHandler.getValue("EmploymentStatusGroup(1)/EmployersAddSubGroup(1)/EmployersAdd"));
         assertEquals("GBP", entityHandler.getValue("EmploymentStatusGroup(1)/CustomerCurrency"));
 
+    }
+
+    @Test
+    public void testGetValueForPropertyWithIndex() {
+        assertEquals("{\"Override\":\"INCORP/CUS*200 FROM 66052 NOT RECEIVED\"}", entityHandler.getValue("OverrideGroup(0)"));
+        assertEquals("{\"Override\":\"MEMORANDUM/CUS*200 FROM 66052 NOT RECEIVED\"}", entityHandler.getValue("OverrideGroup(1)"));
+        assertEquals("{\"LanguageCode\":\"en\",\"Address\":\"94086 Main street\"}", entityHandler.getValue("AddressGroup(0)/AddressSubGroup(0)"));
+        assertEquals("{\"LanguageCode\":\"fr\",\"Address\":\"94086 Rue principale\"}", entityHandler.getValue("AddressGroup(0)/AddressSubGroup(1)"));
+        assertEquals("{\"LanguageCode\":\"en\",\"Address\":\"94086 Main street\"}", entityHandler.getValue("AddressGroup(0)/AddressSubGroup(0)"));
+        assertEquals(null, entityHandler.getValue("AddressGroup(0)/invalid(1)"));
     }
 
     @Test
@@ -269,19 +278,19 @@ public class JsonEntityHandlerTest {
 
     @Test
     public void testSetPrimitiveValueForProperty() throws IOException {
-        entityHandler.setPrimitiveValue("AccountOfficer", 2003L);
+        entityHandler.setValue("AccountOfficer", 2003L);
         assertEquals("2003", entityHandler.getValue("AccountOfficer"));
-        entityHandler.setPrimitiveValue("CoCode", 'D');
+        entityHandler.setValue("CoCode", 'D');
         assertEquals("D", entityHandler.getValue("CoCode"));
-        entityHandler.setPrimitiveValue("AllowBulkProcess", true);
+        entityHandler.setValue("AllowBulkProcess", true);
         assertEquals("true", entityHandler.getValue("AllowBulkProcess"));
         entityHandler.setValue("Foo", "Bar");
         assertEquals("Bar", entityHandler.getValue("Foo"));
-        entityHandler.setPrimitiveValue("Balance", 12345789.87654321);
+        entityHandler.setValue("Balance", 12345789.87654321);
         assertEquals("1.234578987654321E7", entityHandler.getValue("Balance"));
-        entityHandler.setPrimitiveValue("Credit", -10203.50f);
+        entityHandler.setValue("Credit", -10203.50f);
         assertEquals("-10203.5", entityHandler.getValue("Credit"));
-        entityHandler.setPrimitiveValue("Baz", null);
+        entityHandler.setValue("Baz", null);
         assertEquals(null, entityHandler.getValue("Baz"));
         
         String content = IOUtils.toString(entityHandler.getContent());

@@ -142,5 +142,21 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
         MediaType.APPLICATION_XML, 
         MediaType.APPLICATION_JSON, 
         MediaType.WILDCARD})
-	public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo);
+    public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo);
+	
+	/**
+     * DELETE a resource by sending entity back.
+     */
+    @DELETE
+    @Consumes({
+        MediaType.APPLICATION_ATOM_XML,
+        MediaType.APPLICATION_XML, 
+        MediaType.APPLICATION_JSON, 
+        MediaType.WILDCARD})
+    @Produces({
+        MediaType.APPLICATION_ATOM_XML,
+        MediaType.APPLICATION_XML, 
+        MediaType.APPLICATION_JSON, 
+        MediaType.WILDCARD})
+    public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource);
 }

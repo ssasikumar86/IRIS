@@ -94,7 +94,8 @@ public class DefaultHttpExecutor implements HttpMethodExecutor {
 	}
 	
 	private ResponseData delete(){
-	    HttpRequest request = new HttpRequestImpl(input.header());
+	    HttpRequest request = new HttpRequestImpl(input.header(),
+                getPayload(input));
 	    HttpResponse response = httpClient.delete(url, request);
 	    return buildResponse(response);
 	}

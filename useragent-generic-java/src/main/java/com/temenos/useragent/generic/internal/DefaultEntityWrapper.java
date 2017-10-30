@@ -90,15 +90,10 @@ public class DefaultEntityWrapper implements EntityWrapper {
 	}
 
 	@Override
-	public void set(String fqPropertyName, String value) {
+	public <T> void set(String fqPropertyName, T value) {
+	    checkValueforPrimitiveorString(value);
 		entityHandler.setValue(fqPropertyName, value);
 	}
-
-    @Override
-    public <T> void setPrimitive(String fqPropertyName, T value) {
-        checkValueforPrimitiveorString(value);
-        entityHandler.setPrimitiveValue(fqPropertyName, value);
-    }
 
 	@Override
 	public void remove(String fqPropertyName) {

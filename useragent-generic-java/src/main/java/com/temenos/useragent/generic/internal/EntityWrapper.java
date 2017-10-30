@@ -40,12 +40,7 @@ public interface EntityWrapper extends Entity {
 
 	void setSessionContext(SessionContext sessionContext);
 
-	void set(String fqPropertyName, String value);
-
-    default <T> void setPrimitive(String fqPropertyName, T value) {
-        checkValueforPrimitiveorString(value);
-        set(fqPropertyName, (String) value);
-    }
+	<T> void set(String fqPropertyName, T value);
 
 	void remove(String fqPropertyName);
 	

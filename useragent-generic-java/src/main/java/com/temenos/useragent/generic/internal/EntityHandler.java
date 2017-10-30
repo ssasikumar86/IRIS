@@ -63,7 +63,7 @@ public interface EntityHandler {
 	String getValue(String fqPropertyName);
 
 	/**
-	 * Sets the text value for the fully qualified property name in the
+	 * Sets the value for the fully qualified property name in the
 	 * underlying entity.
 	 * <p>
 	 * This method on entity types which do not have structured contents such as
@@ -74,20 +74,7 @@ public interface EntityHandler {
 	 * @param fqPropertyName
 	 * @param value
 	 */
-	void setValue(String fqPropertyName, String value);
-
-    /**
-     * Sets the primitive data-type value for the fully qualified property name in the underlying entity.
-     * <p>
-     * Default implementation calls {@link #setValue(String, String)}
-     * </p>
-     * 
-     * @param fqPropertyName
-     * @param value
-     */
-    default <T> void setPrimitiveValue(String fqPropertyName, T value) {
-        setValue(fqPropertyName, value != null ? String.valueOf(value) : null);
-    }
+	<T> void setValue(String fqPropertyName, T value);
 
 	/**
 	 * Returns the count for the fully qualified property name which is part of

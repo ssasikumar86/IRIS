@@ -53,7 +53,6 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		assert(ctx != null);
 		assert(ctx.getCurrentState() != null);
 		assert(ctx.getCurrentState().getEntityName() != null && !ctx.getCurrentState().getEntityName().equals(""));
-		assert(ctx.getResource() == null);
 		
 		String entity = getEntityName(ctx);
 		logger.debug("Deleting entity for " + entity);

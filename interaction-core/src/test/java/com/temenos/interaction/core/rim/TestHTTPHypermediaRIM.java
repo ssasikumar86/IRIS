@@ -481,7 +481,7 @@ public class TestHTTPHypermediaRIM {
      * successful DELETE command should not return a new resource and we test
      * this with an assertion.
      */
-    @Test(expected = AssertionError.class)
+    @Test
     public void testDeleteCommandReturnsResourceShouldFail() throws Exception {
         ResourceState initialState = new ResourceState("entity", "state", mockActions(), "/path");
         initialState.addTransition(new Transition.Builder().method("DELETE").target(initialState).build());

@@ -130,8 +130,8 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		String noteUri = NOTES_RESOURCE + "(3)";
 
         // delete Note number 3 (which should now exists see initTest)
-		ClientResponse response = webResource.path(noteUri).type(MediaType.APPLICATION_ATOM_XML).delete(ClientResponse.class);
-        assertEquals(204, response.getStatus()); 
+		ClientResponse response = webResource.path(noteUri).accept(MediaType.APPLICATION_ATOM_XML).type(MediaType.APPLICATION_ATOM_XML).delete(ClientResponse.class);
+        assertEquals(200, response.getStatus()); 
 
 		// make sure Note number 3 is really gone
 		ClientResponse deletedResponse = webResource.path(noteUri).get(ClientResponse.class);

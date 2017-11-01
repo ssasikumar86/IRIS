@@ -216,7 +216,7 @@ public class SimpleAssociationsITCase extends JerseyTest {
 	@Test
 	public void deletePersonMethodNotAllowed() throws Exception {
 		// attempt to delete the Person root, rather than an individual
-		ClientResponse response = webResource.path("/Persons").type(MediaType.APPLICATION_ATOM_XML).delete(ClientResponse.class);
+		ClientResponse response = webResource.path("/Persons").delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
 
         assertEquals(4, response.getAllow().size());

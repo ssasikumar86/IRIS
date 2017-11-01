@@ -561,7 +561,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
                     if (result == Result.SUCCESS) {
                         // We do not support a delete command that returns a
                         // resource (HTTP does permit this)
-                        // assert (ctx.getResource() == null);
+                        assert (ctx.getResource() == null);
                         ResourceState targetState = ctx.getTargetState();
                         Link linkUsed = ctx.getLinkUsed();
                         if (targetState.isTransientState()) {

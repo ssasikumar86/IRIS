@@ -32,7 +32,6 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Arrays;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -130,7 +129,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		String noteUri = NOTES_RESOURCE + "(3)";
 
         // delete Note number 3 (which should now exists see initTest)
-		ClientResponse response = webResource.path(noteUri).type(MediaType.APPLICATION_ATOM_XML).delete(ClientResponse.class);
+		ClientResponse response = webResource.path(noteUri).delete(ClientResponse.class);
         assertEquals(204, response.getStatus()); 
 
 		// make sure Note number 3 is really gone
@@ -139,7 +138,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 
 		// delete Note number 56 (which does not exist)
 		String notFoundNoteUri = NOTES_RESOURCE + "(56)";
-		ClientResponse nresponse = webResource.path(notFoundNoteUri).type(MediaType.APPLICATION_ATOM_XML).delete(ClientResponse.class);
+		ClientResponse nresponse = webResource.path(notFoundNoteUri).delete(ClientResponse.class);
         assertEquals(404, nresponse.getStatus());
     }
 
@@ -147,7 +146,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 	public void testDeletePerson() {
 		// delete Person number 1 (which exists), but we have bound a NoopDELETECommand
 		String noteUri = PERSONS_RESOURCE + "(1)";
-		ClientResponse response = webResource.path(noteUri).type(MediaType.APPLICATION_ATOM_XML).delete(ClientResponse.class);
+		ClientResponse response = webResource.path(noteUri).delete(ClientResponse.class);
         assertEquals(405, response.getStatus());
     }
 
@@ -219,6 +218,55 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		assertTrue(person != null);
 		assertEquals("RonOnForm", person.getProperty("name").getValue());
     }
+    
+    @Test       
+    public void testDelete() {      
+        ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();       
+                
+        // find a person        
+        OEntity person = null;      
+        try {       
+            person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();        
+        } catch (Exception e) {     
+            // Ignore as Odata4j client 0.7 is expecting incorrect result       
+        }       
+        if (person == null) {       
+            person = consumer       
+                        .createEntity(PERSON_ENTITYSET_NAME)        
+                        .properties(OProperties.string("name", "Ron"))      
+                        .execute();     
+        }       
+            
+        // create a note        
+        OEntity note = null;        
+        try {       
+            note = consumer.getEntity(NOTE_ENTITYSET_NAME, 6).execute();        
+        } catch (Exception e) {     
+            // Ignore as Odata4j client 0.7 is expecting incorrect result       
+        }       
+        if (note == null) {     
+            note = consumer     
+                    .createEntity(NOTE_ENTITYSET_NAME)      
+                    .properties(OProperties.string("body", "test"))     
+                    .link("NotePerson", person)     
+                    .execute();     
+        }               
+                
+        // delete one note      
+        consumer.deleteEntity(note).execute();      
+        
+        // check its deleted        
+        OEntity afterDelete = null;     
+        boolean exceptionThrown = false;        
+        try {       
+            afterDelete = consumer.getEntity(note).execute();       
+        } catch (Exception e) {     
+            exceptionThrown = true;     
+        }       
+        assertEquals(true, exceptionThrown);        
+        assertEquals(null, afterDelete);        
+                
+     }
     
     // TODO AtomXMLProvider needs better support for matching of URIs to resources
     @Test

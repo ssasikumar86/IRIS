@@ -339,7 +339,7 @@ public class HypermediaITCase extends JerseyTest {
 			// execute delete without custom link relation, will find the only
 			// DELETE transition from entity
 			ClientResponse deleteResponse = client.resource(deleteLink.getHref())
-					.accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+					.accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
 			// 303 "See Other" instructs user agent to fetch another resource as
 			// specified by the 'Location' header
 			assertEquals(303, deleteResponse.getStatus());
@@ -384,7 +384,7 @@ public class HypermediaITCase extends JerseyTest {
 			ClientResponse deleteResponse = client
 					.resource(deleteLink.getHref())
 					.header("Link", "<" + deleteLink.getHref() + ">; rel=\"" + deleteLink.getName() + "\"")
-					.accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+					.accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
 			// 205 "Reset Content" instructs user agent to reload the resource
 			// that contained this link
 			assertEquals(205, deleteResponse.getStatus());
@@ -457,7 +457,7 @@ public class HypermediaITCase extends JerseyTest {
 			// execute delete with custom link relation (see rfc5988)
 			ClientResponse deleteResponse = client.resource(uri)
 					.header("Link", "<" + uri + ">; rel=\"" + deleteLink.getName() + "\"")
-					.accept(MediaType.APPLICATION_HAL_JSON).type(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+					.accept(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
 			// 303 "See Other" instructs user agent to fetch another resource as
 			// specified by the 'Location' header
 			assertEquals(303, deleteResponse.getStatus());
@@ -471,7 +471,7 @@ public class HypermediaITCase extends JerseyTest {
 	@Test
 	public void deletePersonMethodNotAllowed() throws Exception {
 		// attempt to delete the Person root, rather than an individual
-		ClientResponse response = webResource.path("/notes").type(MediaType.APPLICATION_HAL_JSON).delete(ClientResponse.class);
+		ClientResponse response = webResource.path("/notes").delete(ClientResponse.class);
 		assertEquals(405, response.getStatus());
 
 		assertEquals(4, response.getAllow().size());

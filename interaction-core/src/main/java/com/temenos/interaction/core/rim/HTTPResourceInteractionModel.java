@@ -39,6 +39,7 @@ import javax.ws.rs.core.UriInfo;
 import org.apache.wink.common.model.multipart.InMultiPart;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
+import com.temenos.interaction.core.media.hal.HALMediaType;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
@@ -132,11 +133,6 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
 	 * DELETE a resource.
 	 */
 	@DELETE
-	@Consumes({
-        MediaType.APPLICATION_ATOM_XML,
-        MediaType.APPLICATION_XML, 
-        MediaType.APPLICATION_JSON, 
-        MediaType.WILDCARD})
     @Produces({
         MediaType.APPLICATION_ATOM_XML,
         MediaType.APPLICATION_XML, 
@@ -151,8 +147,9 @@ public interface HTTPResourceInteractionModel extends ResourceInteractionModel {
     @Consumes({
         MediaType.APPLICATION_ATOM_XML,
         MediaType.APPLICATION_XML, 
-        MediaType.APPLICATION_JSON, 
-        MediaType.WILDCARD})
+        MediaType.APPLICATION_JSON,
+        HALMediaType.APPLICATION_HAL_XML,
+        HALMediaType.APPLICATION_HAL_JSON})
     @Produces({
         MediaType.APPLICATION_ATOM_XML,
         MediaType.APPLICATION_XML, 

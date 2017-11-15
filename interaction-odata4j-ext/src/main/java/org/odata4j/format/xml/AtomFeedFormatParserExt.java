@@ -26,6 +26,8 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 import javax.xml.stream.XMLInputFactory;
@@ -72,6 +74,7 @@ import com.temenos.interaction.odataext.entity.MetadataOData4j;
 public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
     
     private static MetadataOData4j metadataOData4j;
+    private static Pattern actionPath = Pattern.compile("(\\/\\w+)$"); 
 
 	public AtomFeedFormatParserExt(MetadataOData4j metadataOData, String entitySetName, OEntityKey entityKey, FeedCustomizationMapping fcMapping) {
 		super(metadataOData.getMetadata(), entitySetName, entityKey, fcMapping);
@@ -352,11 +355,17 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		    }
 		    // favor the key we just parsed.
 
-		    OEntityKey key = dsae.id != null
-		        ? (dsae.id.endsWith(")")
-		            ? parseEntityKey(dsae.id)
-		            : OEntityKey.infer(entitySet, props))
-		        : null;
+        OEntityKey key = null;
+        if (dsae.id != null) {
+            Matcher actionMatcher = actionPath.matcher(dsae.id);
+            if (dsae.id.endsWith(")")) {
+                key = parseEntityKey(dsae.id);
+            } else if (actionMatcher.find() && !dsae.id.substring(0, actionMatcher.start()).endsWith("()")) {
+                key = parseEntityKey(dsae.id.substring(0, actionMatcher.start()));
+            } else {
+                key = OEntityKey.infer(entitySet, props);
+            }
+        }
 
 		    if (key == null) {
 		      key = entityKey;

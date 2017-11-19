@@ -24,6 +24,7 @@ package com.temenos.interaction.core.workflow;
 
 import javax.ws.rs.core.Response.Status.Family;
 
+import com.temenos.interaction.core.command.TransitionCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,8 @@ public class RetryWorkflowStrategyCommand implements WorkflowCommand {
 	private InteractionCommand command;
 	private int maxRetryCount;
 	private long maxRetryInterval;
-	
+	protected InteractionCommand lastExecutedCommand;
+
 	/**
 	 * Construct with a list of commands to execute.
 	 * @param commands
@@ -68,6 +70,7 @@ public class RetryWorkflowStrategyCommand implements WorkflowCommand {
 		int retryCount = -1;
 		while ( ( maxRetryCount - retryCount++ ) > -1 ) {
 			try {
+				lastExecutedCommand = command;
 				result = command.execute(ctx);
 				break;
 			} catch (InteractionException ex) {
@@ -91,6 +94,14 @@ public class RetryWorkflowStrategyCommand implements WorkflowCommand {
 	@Override
 	public boolean isEmpty() {
 		return command == null;
+	}
+
+	@Override
+	public ExecutionType getExecutionType() {
+		if (lastExecutedCommand instanceof WorkflowCommand) {
+			return ((WorkflowCommand)lastExecutedCommand).getExecutionType();
+		}
+		return lastExecutedCommand instanceof TransitionCommand ? ExecutionType.TRANSITION : ExecutionType.INTERACTION;
 	}
 
 	/**

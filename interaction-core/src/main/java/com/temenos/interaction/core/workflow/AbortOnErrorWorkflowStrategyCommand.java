@@ -28,6 +28,7 @@ import java.util.List;
 import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
+import com.temenos.interaction.core.command.TransitionCommand;
 
 
 /**
@@ -39,7 +40,8 @@ import com.temenos.interaction.core.command.InteractionException;
 public class AbortOnErrorWorkflowStrategyCommand implements WorkflowCommand {
 
 	protected List<InteractionCommand> commands = new ArrayList<InteractionCommand>();
-	
+	protected InteractionCommand lastExecutedCommand = null;
+
 	public AbortOnErrorWorkflowStrategyCommand() {}
 
 	/**
@@ -56,6 +58,14 @@ public class AbortOnErrorWorkflowStrategyCommand implements WorkflowCommand {
 	@Override
 	public boolean isEmpty() {
 		return commands.isEmpty();
+	}
+
+	@Override
+	public ExecutionType getExecutionType() {
+		if (lastExecutedCommand instanceof WorkflowCommand) {
+			return ((WorkflowCommand)lastExecutedCommand).getExecutionType();
+		}
+		return lastExecutedCommand instanceof TransitionCommand ? ExecutionType.TRANSITION : ExecutionType.INTERACTION;
 	}
 
 	public void addCommand(InteractionCommand command) {
@@ -80,6 +90,7 @@ public class AbortOnErrorWorkflowStrategyCommand implements WorkflowCommand {
 
 		Result result = null;
 		for (InteractionCommand command : commands) {
+			lastExecutedCommand = command;
 			result = command.execute(ctx);
 			if (result != Result.SUCCESS)
 				break;

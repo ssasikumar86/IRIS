@@ -47,6 +47,7 @@ public class TransitionWorkflowStrategyCommand extends AbortOnErrorWorkflowStrat
         }
         Result result = null;
         for (InteractionCommand command : commands) {
+            lastExecutedCommand = command;
             result = command.execute(ctx);
             if (result != null && !result.equals(Result.SUCCESS)) {
                 break;

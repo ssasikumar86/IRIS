@@ -28,7 +28,9 @@ import com.temenos.interaction.core.hypermedia.*;
 import com.temenos.interaction.core.hypermedia.expression.Expression;
 import com.temenos.interaction.core.hypermedia.expression.ExpressionEvaluator;
 import com.temenos.interaction.core.resource.RESTResource;
+import com.temenos.interaction.core.workflow.TransitionWorkflowStrategyCommand;
 import com.temenos.interaction.core.workflow.TransitionWorkflowStrategyCommandBuilder;
+import com.temenos.interaction.core.workflow.WorkflowCommand;
 import com.temenos.interaction.core.workflow.WorkflowCommandBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.*;
 
 import static com.temenos.interaction.core.command.InteractionCommand.*;
+import static com.temenos.interaction.core.workflow.WorkflowCommand.*;
 
 
 /**
@@ -158,6 +161,7 @@ public class AutoTransitioner {
         currentOutcome.addCommand(currentOutcome.buildCommand());
         InteractionContext ctx = currentOutcome.getInteractionContext();
         currentOutcome.evaluate(ctx);
+        outcome.setLastOutcome(currentOutcome);
         if (currentOutcome.isSuccessful() || currentOutcome.isInterim()) {
             currentOutcome.setRestResource(ctx.getResource());
             currentOutcome.addOutQueryParameters(ctx.getOutQueryParameters());
@@ -221,13 +225,14 @@ public class AutoTransitioner {
         private Map<String, Object> ctxAttributes = new HashMap<>();
         private RESTResource restResource = null;
         private Boolean isSuccessful = null;
+        private Result result = null;
         private ResourceState state = null;
         private Set<VisitedState> visitedStates = new HashSet<>();
         private Expression expression = null;
-        private InteractionCommand command = null;
-        private InteractionCommand delayedCommand = null;
+        private WorkflowCommand command = null;
+        private WorkflowCommand delayedCommand = null;
         private Outcome interimOutcome = null;
-
+        private Outcome lastOutcome = null;
 
         private Outcome() {}
 
@@ -248,6 +253,19 @@ public class AutoTransitioner {
          */
         public boolean isSuccessful() {
             return isSuccessful != null && isSuccessful;
+        }
+
+        /**
+         * Returns auto transition {@link Result}.
+         *
+         * @return {@link Result}
+         *
+         */
+        public Result getResult() {
+            if (result != null) {
+                return result;
+            }
+            return lastOutcome != null ? lastOutcome.result : null;
         }
 
         /**
@@ -342,10 +360,25 @@ public class AutoTransitioner {
             }
         }
 
-        private void addResult(Result result) {
+        private void addSuccess(Result result) {
             if (!isInterim()) {
-                this.isSuccessful = result == null || result.equals(Result.SUCCESS) || result.equals(Result.CREATED);
+                setSuccessful(result == null || result.equals(Result.SUCCESS) || result.equals(Result.CREATED));
             }
+        }
+
+        private void setResult(Result result) {
+            this.result = result;
+        }
+
+        private void addResult(Result result) {
+            addSuccess(result);
+            if (isInterim()) {
+                return;
+            }
+            if (command instanceof TransitionWorkflowStrategyCommand || !ExecutionType.INTERACTION.equals(command.getExecutionType())) {
+                return;
+            }
+            this.result = result;
         }
 
         private boolean isInterim() {
@@ -368,15 +401,15 @@ public class AutoTransitioner {
             this.expression = expression;
         }
 
-        private InteractionCommand getDelayedCommand() {
+        private WorkflowCommand getDelayedCommand() {
             return delayedCommand;
         }
 
-        private void setCommand(InteractionCommand command) {
+        private void setCommand(WorkflowCommand command) {
             this.command = command;
         }
 
-        private void addCommand(InteractionCommand command) {
+        private void addCommand(WorkflowCommand command) {
             if (command == null) {
                 return;
             }
@@ -387,16 +420,18 @@ public class AutoTransitioner {
             }
         }
 
-        private InteractionCommand buildCommand() {
+        private WorkflowCommand buildCommand() {
             return workflowCommandBuilder.build(state.getActions());
         }
 
         private void evaluate(InteractionContext ctx) {
             try {
                 if (expressionEvaluator != null && expression != null && !expressionEvaluator.evaluate(expression, ctx, null)) {
-                    addResult(Result.FAILURE);
+                    addSuccess(Result.FAILURE);
+                } else if (command == null) {
+                    addSuccess(Result.SUCCESS);
                 } else {
-                    addResult((command == null) ? Result.SUCCESS : command.execute(ctx));
+                    addResult(command.execute(ctx));
                 }
             } catch (InteractionException ie) {
                 LOGGER.error("Transition command on state [{}] failed with error [{} - {}]: ",
@@ -405,7 +440,7 @@ public class AutoTransitioner {
             }
         }
 
-        private VisitedState visitState(ResourceState state) throws ResourceStateRevisitedException {
+        private VisitedState visitState(ResourceState state) {
             for (VisitedState visitedState : visitedStates) {
                 if (visitedState.visit(state)) {
                     return visitedState;
@@ -432,6 +467,12 @@ public class AutoTransitioner {
             this.interimOutcome = interimOutcome;
         }
 
+        private void setLastOutcome(Outcome lastOutcome) {
+            if (!lastOutcome.isInterim()) {
+                this.lastOutcome = lastOutcome;
+            }
+        }
+
         private void add(Outcome other) throws ResourceStateRevisitedException {
             if (other == null) {
                 return;
@@ -441,6 +482,7 @@ public class AutoTransitioner {
             } else {
                 apply(other);
                 setSuccessful(other.isSuccessful());
+                setResult(other.getResult());
                 if (visitState(other.getState()).getCount() > stateRevisitLimit) {
                     throw new ResourceStateRevisitedException("Resource state "+state+" has been revisited more than "+stateRevisitLimit+" times");
                 }

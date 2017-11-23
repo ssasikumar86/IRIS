@@ -2290,7 +2290,129 @@ public class TestResponseHTTPHypermediaRIM {
 		assertEquals("machine2", links.get(0).getTitle());
 		assertEquals("/baseuri/machines/individualMachine2/123", links.get(0).getHref());
 	}
-	
+
+    @Test
+    public void testPOSTWithAutoTransitionsEndFailure() {
+
+        ResourceState newState = new ResourceState("home", "newState",
+                mockActions(new Action("POST", Action.TYPE.ENTRY, new Properties(), "POST")), "/new");
+        ResourceState modifyState = new ResourceState(newState, "modifyState",
+                mockActions(new Action("PUT", Action.TYPE.ENTRY, new Properties(), "PUT")), "/modify/{id}");
+        ResourceState getState = new ResourceState(modifyState, "getState",
+                mockActions(new Action("GET", Action.TYPE.ENTRY, new Properties(), "get")), "/get/{id}");
+
+        // an auto transition to the new resource
+        Map<String, String> uriLinkageMap = new HashMap<String, String>();
+        uriLinkageMap.put("id", "{id}");
+        newState.addTransition(new Transition.Builder().target(modifyState).flags(Transition.AUTO)
+                .uriParameters(uriLinkageMap).build());
+        modifyState.addTransition(
+                new Transition.Builder().target(getState).flags(Transition.AUTO).uriParameters(uriLinkageMap).build());
+
+        MapBasedCommandController commandController = new MapBasedCommandController();
+        commandController.getCommandMap().put("POST", createCommand("entity", null, Result.SUCCESS));
+        commandController.getCommandMap().put("PUT", createCommand("entity", null, Result.FAILURE));
+        commandController.getCommandMap().put("GET", createCommand("entity", null, Result.FAILURE));
+
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController,
+                new ResourceStateMachine(newState, new BeanTransformer()), createMockMetadata());
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(),
+                mockEntityResourceWithId("123"));
+
+        // then {the response must be HTTP 500 }
+        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testPOSTWithAutoTransitionsEndInvalidRequest() {
+
+        ResourceState newState = new ResourceState("home", "newState",
+                mockActions(new Action("POST", Action.TYPE.ENTRY, new Properties(), "POST")), "/new");
+        ResourceState modifyState = new ResourceState(newState, "modifyState",
+                mockActions(new Action("PUT", Action.TYPE.ENTRY, new Properties(), "PUT")), "/modify/{id}");
+        ResourceState getState = new ResourceState(modifyState, "getState",
+                mockActions(new Action("GET", Action.TYPE.ENTRY, new Properties(), "get")), "/get/{id}");
+
+        // an auto transition to the new resource
+        Map<String, String> uriLinkageMap = new HashMap<String, String>();
+        uriLinkageMap.put("id", "{id}");
+        newState.addTransition(new Transition.Builder().target(modifyState).flags(Transition.AUTO)
+                .uriParameters(uriLinkageMap).build());
+        modifyState.addTransition(
+                new Transition.Builder().target(getState).flags(Transition.AUTO).uriParameters(uriLinkageMap).build());
+
+        MapBasedCommandController commandController = new MapBasedCommandController();
+        commandController.getCommandMap().put("POST", createCommand("entity", null, Result.SUCCESS));
+        commandController.getCommandMap().put("PUT", createCommand("entity", null, Result.INVALID_REQUEST));
+        commandController.getCommandMap().put("GET", createCommand("entity", null, null));
+
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController,
+                new ResourceStateMachine(newState, new BeanTransformer()), createMockMetadata());
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(),
+                mockEntityResourceWithId("123"));
+
+        // then {the response must be HTTP 400 }
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testPOSTWithAutoTransitionsCreationSuccess() {
+
+        ResourceState newState = new ResourceState("home", "newState",
+                mockActions(new Action("POST", Action.TYPE.ENTRY, new Properties(), "POST")), "/new");
+        ResourceState modifyState = new ResourceState(newState, "modifyState",
+                mockActions(new Action("PUT", Action.TYPE.ENTRY, new Properties(), "PUT")), "/modify/{id}");
+        ResourceState getState = new ResourceState(modifyState, "getState",
+                mockActions(new Action("GET", Action.TYPE.ENTRY, new Properties(), "get")), "/get/{id}");
+
+        // an auto transition to the new resource
+        Map<String, String> uriLinkageMap = new HashMap<String, String>();
+        uriLinkageMap.put("id", "{id}");
+        newState.addTransition(new Transition.Builder().target(modifyState).flags(Transition.AUTO)
+                .uriParameters(uriLinkageMap).build());
+        modifyState.addTransition(
+                new Transition.Builder().target(getState).flags(Transition.AUTO).uriParameters(uriLinkageMap).build());
+
+        MapBasedCommandController commandController = new MapBasedCommandController();
+        commandController.getCommandMap().put("POST", createTransitionCommand("entity", null, Result.CREATED));
+        commandController.getCommandMap().put("PUT", createTransitionCommand("entity", null, Result.SUCCESS));
+        commandController.getCommandMap().put("GET", createCommand("entity", null, Result.SUCCESS));
+
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController,
+                new ResourceStateMachine(newState, new BeanTransformer()), createMockMetadata());
+        Response response = rim.post(mock(HttpHeaders.class), "id", mockEmptyUriInfo(),
+                mockEntityResourceWithId("123"));
+
+        // then {the response must be HTTP 201 }
+        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testPOSTWithAutoTransitionsAmendSuccess() {
+
+        ResourceState modifyState = new ResourceState("home", "modifyState",
+                mockActions(new Action("PUT", Action.TYPE.ENTRY, new Properties(), "PUT")), "/modify/{id}");
+        ResourceState getState = new ResourceState(modifyState, "getState",
+                mockActions(new Action("GET", Action.TYPE.ENTRY, new Properties(), "get")), "/get/{id}");
+
+        // an auto transition to the new resource
+        Map<String, String> uriLinkageMap = new HashMap<String, String>();
+        uriLinkageMap.put("id", "{id}");
+        modifyState.addTransition(
+                new Transition.Builder().target(getState).flags(Transition.AUTO).uriParameters(uriLinkageMap).build());
+
+        MapBasedCommandController commandController = new MapBasedCommandController();
+        commandController.getCommandMap().put("PUT", createTransitionCommand("entity", null, Result.SUCCESS));
+        commandController.getCommandMap().put("GET", createCommand("entity", null, Result.SUCCESS));
+
+        HTTPHypermediaRIM rim = new HTTPHypermediaRIM(commandController,
+                new ResourceStateMachine(modifyState, new BeanTransformer()), createMockMetadata());
+        Response response = rim.put(mock(HttpHeaders.class), "id", mockEmptyUriInfo(), mockEntityResourceWithId("123"));
+
+        // then {the response must be HTTP 200 }
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    }
+
 	protected Response getMockResponse(InteractionCommand mockCommand) {
 		return this.getMockResponse(mockCommand, null);
 	}

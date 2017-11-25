@@ -130,7 +130,7 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 
         // delete Note number 3 (which should now exists see initTest)
 		ClientResponse response = webResource.path(noteUri).delete(ClientResponse.class);
-        assertEquals(204, response.getStatus());
+        assertEquals(204, response.getStatus()); 
 
 		// make sure Note number 3 is really gone
 		ClientResponse deletedResponse = webResource.path(noteUri).get(ClientResponse.class);
@@ -219,55 +219,55 @@ public class CreateReadUpdateDeleteITCase extends JerseyTest {
 		assertEquals("RonOnForm", person.getProperty("name").getValue());
     }
     
-    @Test
-	public void testDelete() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();
-		
-		// find a person
-		OEntity person = null;
-		try {
-			person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();
-		} catch (Exception e) {
-			// Ignore as Odata4j client 0.7 is expecting incorrect result
-		}
-		if (person == null) {
-			person = consumer
-						.createEntity(PERSON_ENTITYSET_NAME)
-						.properties(OProperties.string("name", "Ron"))
-						.execute();
-		}
-	
-		// create a note
-		OEntity note = null;
-		try {
-			note = consumer.getEntity(NOTE_ENTITYSET_NAME, 6).execute();
-		} catch (Exception e) {
-			// Ignore as Odata4j client 0.7 is expecting incorrect result
-		}
-		if (note == null) {
-			note = consumer
-					.createEntity(NOTE_ENTITYSET_NAME)
-					.properties(OProperties.string("body", "test"))
-					.link("NotePerson", person)
-					.execute();
-		}		
-		
-		// delete one note
-		consumer.deleteEntity(note).execute();
-
-		// check its deleted
-		OEntity afterDelete = null;
-		boolean exceptionThrown = false;
-		try {
-			afterDelete = consumer.getEntity(note).execute();
-		} catch (Exception e) {
-			exceptionThrown = true;
-		}
-		assertEquals(true, exceptionThrown);
-		assertEquals(null, afterDelete);
-		
-    }
-
+    @Test       
+    public void testDelete() {      
+        ODataConsumer consumer = ODataJerseyConsumer.newBuilder(Configuration.TEST_ENDPOINT_URI).build();       
+                
+        // find a person        
+        OEntity person = null;      
+        try {       
+            person = consumer.getEntity(PERSON_ENTITYSET_NAME, 2).execute();        
+        } catch (Exception e) {     
+            // Ignore as Odata4j client 0.7 is expecting incorrect result       
+        }       
+        if (person == null) {       
+            person = consumer       
+                        .createEntity(PERSON_ENTITYSET_NAME)        
+                        .properties(OProperties.string("name", "Ron"))      
+                        .execute();     
+        }       
+            
+        // create a note        
+        OEntity note = null;        
+        try {       
+            note = consumer.getEntity(NOTE_ENTITYSET_NAME, 6).execute();        
+        } catch (Exception e) {     
+            // Ignore as Odata4j client 0.7 is expecting incorrect result       
+        }       
+        if (note == null) {     
+            note = consumer     
+                    .createEntity(NOTE_ENTITYSET_NAME)      
+                    .properties(OProperties.string("body", "test"))     
+                    .link("NotePerson", person)     
+                    .execute();     
+        }               
+                
+        // delete one note      
+        consumer.deleteEntity(note).execute();      
+        
+        // check its deleted        
+        OEntity afterDelete = null;     
+        boolean exceptionThrown = false;        
+        try {       
+            afterDelete = consumer.getEntity(note).execute();       
+        } catch (Exception e) {     
+            exceptionThrown = true;     
+        }       
+        assertEquals(true, exceptionThrown);        
+        assertEquals(null, afterDelete);        
+                
+     }
+    
     // TODO AtomXMLProvider needs better support for matching of URIs to resources
     @Test
     public void testUpdate() {

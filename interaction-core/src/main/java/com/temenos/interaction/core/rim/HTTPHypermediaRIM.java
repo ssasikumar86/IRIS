@@ -1059,12 +1059,27 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel, Expressi
      */
     @Override
     public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo) {
+        return delete(headers, id, uriInfo, null);
+    }
+    
+    /**
+     * DELETE a resource by sending back the entity
+     *
+     * @precondition a valid DELETE command for this resourcePath + id must be
+     *               registered with the command controller
+     * @postcondition a Response with non null Status must be returned
+     * @invariant resourcePath not null
+     * @see com.temenos.interaction.core.rim.HTTPResourceInteractionModel#delete(javax.ws.rs.core.HttpHeaders,
+     *      java.lang.String)
+     */
+    @Override
+    public Response delete(@Context HttpHeaders headers, @PathParam("id") String id, @Context UriInfo uriInfo, EntityResource<?> resource) {
         LOGGER.info("[{}] DELETE {}", RequestContext.getRequestContext().getRequestId(), getFQResourcePath());
         assert (getResourcePath() != null);
         Event event = new Event("DELETE", HttpMethod.DELETE);
 
         // handle request
-        return handleRequest(headers, uriInfo, event, null);
+        return handleRequest(headers, uriInfo, event, resource);
     }
 
     /**

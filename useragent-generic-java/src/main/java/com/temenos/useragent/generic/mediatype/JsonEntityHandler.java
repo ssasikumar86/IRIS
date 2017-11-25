@@ -23,7 +23,6 @@ package com.temenos.useragent.generic.mediatype;
 
 import static com.temenos.useragent.generic.mediatype.JsonUtil.extractLinks;
 import static com.temenos.useragent.generic.mediatype.JsonUtil.navigateJsonObjectforPropertyPath;
-import static com.temenos.useragent.generic.mediatype.JsonUtil.prettyString;
 import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.extractIndex;
 import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.extractPropertyName;
 import static com.temenos.useragent.generic.mediatype.PropertyNameUtil.flattenPropertyName;
@@ -63,16 +62,23 @@ public class JsonEntityHandler implements EntityHandler {
         List<String> pathParts = Arrays.asList(flattenPropertyName(fqPropertyName));
         Optional<JSONObject> parent = navigateJsonObjectforPropertyPath(Optional.ofNullable(jsonObject),
                 pathParts.subList(0, pathParts.size() - 1), fqPropertyName, false);
-        return parent.isPresent() ? prettyString(parent.get(), pathParts.get(pathParts.size() - 1)) : null;
+        String lastPathPart = pathParts.get(pathParts.size() - 1);
+        if (parent.isPresent()) {
+            if (isPropertyNameWithIndex(lastPathPart)) {
+                JSONArray jsonArr = parent.get().optJSONArray(extractPropertyName(lastPathPart));
+                if (jsonArr != null) {
+                    return jsonArr.opt(extractIndex(lastPathPart)) != null
+                            ? String.valueOf(jsonArr.opt(extractIndex(lastPathPart))) : null;
+                }
+            } else {
+                return parent.get().opt(lastPathPart) != null ? String.valueOf(parent.get().opt(lastPathPart)) : null;
+            }
+        }
+        return null;
     }
 
     @Override
-    public void setValue(String fqPropertyName, String value) {
-        setPrimitiveValue(fqPropertyName, value);
-    }
-
-    @Override
-    public <T> void setPrimitiveValue(String fqPropertyName, T value) {
+    public <T> void setValue(String fqPropertyName, T value) {
         List<String> pathParts = Arrays.asList(flattenPropertyName(fqPropertyName));
         Optional<JSONObject> parent = navigateJsonObjectforPropertyPath(Optional.ofNullable(jsonObject),
                 pathParts.subList(0, pathParts.size() - 1), fqPropertyName, true);

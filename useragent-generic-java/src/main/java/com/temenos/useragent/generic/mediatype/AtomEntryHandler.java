@@ -20,8 +20,7 @@ package com.temenos.useragent.generic.mediatype;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
-import static com.temenos.useragent.generic.mediatype.AtomUtil.*;
+import static com.temenos.useragent.generic.mediatype.AtomUtil.MEDIA_TYPE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -86,9 +85,9 @@ public class AtomEntryHandler implements EntityHandler {
     }
 
     @Override
-    public void setValue(String fqPropertyName, String value) {
+    public <T> void setValue(String fqPropertyName, T value) {
         validateHandler();
-        xmlContentHandler.setValue(fqPropertyName, value);
+        xmlContentHandler.setValue(fqPropertyName, value != null ? String.valueOf(value) : null);
     }
     
     @Override

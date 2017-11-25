@@ -67,15 +67,9 @@ public class DefaultInteractionSession implements InteractionSession {
 		return this;
 	}
 
-	@Override
-	public InteractionSession set(String propertyName, String propertyValue) {
-		entity.set(propertyName, propertyValue);
-		return this;
-	}
-
     @Override
-    public <T> InteractionSession setPrimitive(String propertyName, T propertyValue) {
-        entity.setPrimitive(propertyName, propertyValue);
+    public <T> InteractionSession set(String propertyName, T propertyValue) {
+        entity.set(propertyName, propertyValue);
         return this;
     }
 

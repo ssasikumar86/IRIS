@@ -61,7 +61,7 @@ public class NullEntityWrapper implements EntityWrapper {
 	}
 
 	@Override
-	public void set(String fqPropertyName, String value) {
+	public <T> void set(String fqPropertyName, T value) {
 		throw new IllegalStateException("Unexpected method call");
 	}
 

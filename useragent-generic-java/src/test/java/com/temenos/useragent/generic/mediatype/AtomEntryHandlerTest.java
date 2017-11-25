@@ -196,19 +196,19 @@ public class AtomEntryHandlerTest {
 	
     @Test
     public void testSetPrimitiveValueForProperty() throws IOException {
-        handler.setPrimitiveValue("AccountOfficer", 2003L);
+        handler.setValue("AccountOfficer", 2003L);
         assertEquals("2003", handler.getValue("AccountOfficer"));
-        handler.setPrimitiveValue("CoCode", 'D');
+        handler.setValue("CoCode", 'D');
         assertEquals("D", handler.getValue("CoCode"));
-        handler.setPrimitiveValue("AllowBulkProcess", true);
+        handler.setValue("AllowBulkProcess", true);
         assertEquals("true", handler.getValue("AllowBulkProcess"));
         handler.setValue("Foo", "Bar");
         assertEquals("Bar", handler.getValue("Foo"));
-        handler.setPrimitiveValue("Balance", 12345789.87654321);
+        handler.setValue("Balance", 12345789.87654321);
         assertEquals("1.234578987654321E7", handler.getValue("Balance"));
-        handler.setPrimitiveValue("Credit", -10203.50f);
+        handler.setValue("Credit", -10203.50f);
         assertEquals("-10203.5", handler.getValue("Credit"));
-        handler.setPrimitiveValue("Baz", null);
+        handler.setValue("Baz", null);
         assertEquals("", handler.getValue("Baz"));
         
         String content = IOUtils.toString(handler.getContent());

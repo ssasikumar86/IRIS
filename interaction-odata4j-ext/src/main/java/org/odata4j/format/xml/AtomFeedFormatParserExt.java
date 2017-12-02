@@ -356,16 +356,17 @@ public class AtomFeedFormatParserExt extends AtomFeedFormatParser {
 		    // favor the key we just parsed.
 
 	        OEntityKey key = null;
-	        if (dsae.id != null) {
-	            Matcher actionMatcher = actionPath.matcher(dsae.id);
-	            if (dsae.id.endsWith(")")) {
-	                key = parseEntityKey(dsae.id);
-	            } else if (actionMatcher.find() && !dsae.id.substring(0, actionMatcher.start()).endsWith("()")) {
-	                key = parseEntityKey(dsae.id.substring(0, actionMatcher.start()));
-	            } else {
-	                key = OEntityKey.infer(entitySet, props);
-	            }
-	        }
+        if (dsae.id != null) {
+            Matcher actionMatcher = actionPath.matcher(dsae.id);
+            if (dsae.id.endsWith(")")) {
+                key = parseEntityKey(dsae.id);
+            } else if (actionMatcher.find() && dsae.id.endsWith("/aapopulate")) {
+                // TODO: Hard Coded "/aapopulate" needs to be revisited
+                key = parseEntityKey(dsae.id.substring(0, actionMatcher.start()));
+            } else {
+                key = OEntityKey.infer(entitySet, props);
+            }
+        }
 
 		    if (key == null) {
 		      key = entityKey;

@@ -34,6 +34,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -137,7 +138,7 @@ public class TestHALProvider {
 		assertEquals("noah", entity.getProperties().getProperty("name").getValue());
 		// long type
 		// TODO handle non string entity properties
-		assertEquals(new Long(2), entity.getProperties().getProperty("age").getValue());
+		assertEquals(new BigDecimal(2), entity.getProperties().getProperty("age").getValue());
 	}
 	
 
@@ -230,7 +231,7 @@ public class TestHALProvider {
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("students", entity.getName());
-		assertEquals(2L, PropertyUtils.getProperty(entity, "properties.properties.age.value"));
+		assertEquals(new BigDecimal(2), PropertyUtils.getProperty(entity, "properties.properties.age.value"));
 		assertEquals("noah", PropertyUtils.getProperty(entity, "properties.properties.name.value"));
 		assertEquals("2.5", PropertyUtils.getProperty(entity, "properties.properties.tuitions.value[0].properties.Duration.value"));
 	}
@@ -256,7 +257,7 @@ public class TestHALProvider {
 		assertNotNull(er.getEntity());
 		Entity entity = er.getEntity();
 		assertEquals("students", entity.getName());
-		assertEquals(2L, PropertyUtils.getProperty(entity, "properties.properties(age).value"));
+		assertEquals(new BigDecimal(2), PropertyUtils.getProperty(entity, "properties.properties(age).value"));
 		assertEquals("noah", PropertyUtils.getProperty(entity, "properties.properties(name).value"));
 		assertEquals("123", PropertyUtils.getProperty(entity, "properties.properties(address).value.properties(houseNumber).value"));
 		assertEquals("Fenchurch Street", PropertyUtils.getProperty(entity, "properties.properties(address).value.properties(roadName).value"));

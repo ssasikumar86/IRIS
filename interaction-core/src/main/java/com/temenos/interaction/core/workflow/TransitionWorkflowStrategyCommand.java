@@ -78,14 +78,12 @@ public class TransitionWorkflowStrategyCommand extends AbortOnErrorWorkflowStrat
     }
 
     @Override
-    public void addCommand(InteractionCommand command) {
-        if (command instanceof TransitionCommand) {
+    public void addCommand(InteractionCommand command) {        
             if (command instanceof TransitionWorkflowStrategyCommand) {
                 addTransitionWorkflowCommand((TransitionWorkflowStrategyCommand) command);
             } else if (!contains(command)) {
                 commands.add(command);
             }
-        }
     }
 
     private boolean isInterim(InteractionCommand command) {

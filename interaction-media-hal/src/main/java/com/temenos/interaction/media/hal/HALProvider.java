@@ -34,6 +34,7 @@ import java.io.PushbackInputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -823,7 +824,7 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		}
 		else if ( entityMetadata.isPropertyNumber( propertyName ) )
 		{
-			typedValue = Long.parseLong( stringValue );
+			typedValue = new BigDecimal(stringValue);
 		}
 		else
 		{

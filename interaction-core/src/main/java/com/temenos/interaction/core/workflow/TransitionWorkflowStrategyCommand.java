@@ -46,6 +46,7 @@ public class TransitionWorkflowStrategyCommand extends AbortOnErrorWorkflowStrat
         }
         Result result = null;
         for (InteractionCommand command : commands) {
+            lastExecutedCommand = command;
             result = command.execute(ctx);
             if (result != null && !result.equals(Result.SUCCESS)) {
                 break;
@@ -77,14 +78,12 @@ public class TransitionWorkflowStrategyCommand extends AbortOnErrorWorkflowStrat
     }
 
     @Override
-    public void addCommand(InteractionCommand command) {
-        if (command instanceof TransitionCommand) {
+    public void addCommand(InteractionCommand command) {        
             if (command instanceof TransitionWorkflowStrategyCommand) {
                 addTransitionWorkflowCommand((TransitionWorkflowStrategyCommand) command);
             } else if (!contains(command)) {
                 commands.add(command);
             }
-        }
     }
 
     private boolean isInterim(InteractionCommand command) {

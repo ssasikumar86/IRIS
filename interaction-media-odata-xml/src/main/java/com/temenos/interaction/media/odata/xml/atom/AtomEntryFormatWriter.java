@@ -68,6 +68,16 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	public AtomEntryFormatWriter(ResourceState serviceDocument) {
 		this.serviceDocument = serviceDocument;
 	}
+	
+    private Collection<Link> embedLinkId;
+
+    /**
+     * @param embedLinkId
+     *            collection for embedded resource
+     */
+    public void setEmbedLinkId(Collection<Link> embedLinkId) {
+        this.embedLinkId = embedLinkId;
+    }
 
   @Override
   public String getContentType() {
@@ -101,6 +111,10 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
 	      String baseUri, String updated,
 	      EdmEntitySet ees, boolean isResponse) {
+        if (embedLinkId != null & !embedLinkId.isEmpty()) {
+            return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse,
+                    embedLinkId);
+        }
 	  return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse, null);
   }
   

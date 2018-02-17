@@ -51,6 +51,7 @@ import org.odata4j.producer.EntityResponse;
 import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
+import org.springframework.util.CollectionUtils;
 
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -111,7 +112,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
 	      String baseUri, String updated,
 	      EdmEntitySet ees, boolean isResponse) {
-        if (embedLinkId != null & !embedLinkId.isEmpty()) {
+        if (!CollectionUtils.isEmpty(embedLinkId)) {
             return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse,
                     embedLinkId);
         }

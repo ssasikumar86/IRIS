@@ -215,8 +215,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
                         }
                     }
                 }
+                entryWriter = new AtomEntryFormatWriter(serviceDocument,links);
             }
-            entryWriter.setEmbedLinkId(links);
             
             //Write entry
             // create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20

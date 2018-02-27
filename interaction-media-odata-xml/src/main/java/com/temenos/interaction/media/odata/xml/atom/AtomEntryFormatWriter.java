@@ -51,7 +51,6 @@ import org.odata4j.producer.EntityResponse;
 import org.odata4j.stax2.QName2;
 import org.odata4j.stax2.XMLFactoryProvider2;
 import org.odata4j.stax2.XMLWriter2;
-import org.springframework.util.CollectionUtils;
 
 import com.temenos.interaction.core.hypermedia.Link;
 import com.temenos.interaction.core.hypermedia.ResourceState;
@@ -65,18 +64,15 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWriter<EntityResponse> {
 
 	private ResourceState serviceDocument;
-	
+
+    private Collection<Link> embedLinkId;
+
 	public AtomEntryFormatWriter(ResourceState serviceDocument) {
 		this.serviceDocument = serviceDocument;
 	}
 
-    private Collection<Link> embedLinkId;
-
-    /**
-     * @param embedLinkId
-     *            collection for embedded resource
-     */
-    public void setEmbedLinkId(Collection<Link> embedLinkId) {
+    public AtomEntryFormatWriter(ResourceState serviceDocument, Collection<Link> embedLinkId) {
+        this.serviceDocument = serviceDocument;
         this.embedLinkId = embedLinkId;
     }
     
@@ -112,11 +108,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
 	      String baseUri, String updated,
 	      EdmEntitySet ees, boolean isResponse) {
-        if (!CollectionUtils.isEmpty(embedLinkId)) {
-            return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse,
-                    embedLinkId);
-        }
-	  return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse, null);
+        return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse, embedLinkId);
   }
   
   //OData olink doesn't have option to provide linkid, so writing linkid explicitly 

@@ -64,11 +64,18 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWriter<EntityResponse> {
 
 	private ResourceState serviceDocument;
-	
+
+    private Collection<Link> embedLinkId;
+
 	public AtomEntryFormatWriter(ResourceState serviceDocument) {
 		this.serviceDocument = serviceDocument;
 	}
 
+    public AtomEntryFormatWriter(ResourceState serviceDocument, Collection<Link> embedLinkId) {
+        this.serviceDocument = serviceDocument;
+        this.embedLinkId = embedLinkId;
+    }
+    
   @Override
   public String getContentType() {
     return ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8;
@@ -101,7 +108,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	      List<OProperty<?>> entityProperties, List<OLink> entityLinks,
 	      String baseUri, String updated,
 	      EdmEntitySet ees, boolean isResponse) {
-	  return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse, null);
+        return writeEntry(writer, oe, entityProperties, entityLinks, baseUri, updated, ees, isResponse, embedLinkId);
   }
   
   //OData olink doesn't have option to provide linkid, so writing linkid explicitly 

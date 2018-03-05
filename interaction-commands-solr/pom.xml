@@ -13,7 +13,18 @@
     <packaging>jar</packaging>
     <name>interaction-commands-solr</name>
     <description>IRIS interaction commands for Apache Solr</description>
-
+    
+    <!-- zookeeper has been upgraded from 3.4.5 to 3.4.6 to resolve weblogic warning https://issues.apache.org/jira/browse/ZOOKEEPER-1696-->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>3.4.6</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
     <dependencies>
    	    <!-- IRIS dependencies -->
 

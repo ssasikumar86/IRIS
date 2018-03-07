@@ -45,7 +45,7 @@ public enum HttpStatusTypes implements StatusType {
     /**
      * 408 Request Timeout
      */
-    REQUEST_TIMEOUT(408,"Request_Timeout"),
+    REQUEST_TIMEOUT(408,"Request Timeout"),
 
     /**
      * 504 Gateway timeout

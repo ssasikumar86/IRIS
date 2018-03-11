@@ -35,6 +35,7 @@ import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 
+
 /**
  * This class provides EDM metadata for the current service.
  */
@@ -42,11 +43,9 @@ public class ResourceMetadataManager {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceMetadataManager.class);
 	
-	private static final String METADATA_XML_FILE = "metadata.xml";
-
 	private Metadata metadata;
 	private TermFactory termFactory;
-	private ConfigLoader configLoader = new ConfigLoader();
+	private AbstractConfigLoaders configLoader = new ConfigLoader();
 	
 	/**
 	 * Construct the metadata object
@@ -79,20 +78,28 @@ public class ResourceMetadataManager {
 	 */
 	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine, TermFactory termFactory)
 	{
-		metadata = parseMetadataXML(termFactory);
+		metadata = configLoader.parseMetadataXML(termFactory);
 		this.termFactory = termFactory;
 	}
 	
 	/*
-	 * construct termFactory & Metadata
+	 * construct termFactory & abstractConfigLoader
 	 */
-	public ResourceMetadataManager(TermFactory termFactory, Metadata entityMetadata)
+	public ResourceMetadataManager(TermFactory termFactory, AbstractConfigLoaders configLoader)
 	{
 		this.termFactory = termFactory;
-		this.metadata = entityMetadata;
+		this.configLoader = configLoader;
 	}
 	
-
+	/*
+     * construct termFactory & Metadata
+     */
+    public ResourceMetadataManager(TermFactory termFactory, Metadata entityMetadata)
+    {
+        this.termFactory = termFactory;
+        this.metadata = entityMetadata;
+    }
+	
 	/*
 	 * construct only term factory
 	 */
@@ -108,7 +115,7 @@ public class ResourceMetadataManager {
 	{
 		this.termFactory = termFactory;
 	} 	
-	
+ 	
 	/**
 	 * Return the entity model metadata
 	 * @return metadata
@@ -131,26 +138,16 @@ public class ResourceMetadataManager {
 	protected Metadata parseMetadataXML() {
 		return parseMetadataXML(new TermFactory());
 	}
-
-	/*
-	 * Parse the XML metadata file
-	 */
-	protected Metadata parseMetadataXML(TermFactory termFactory) {
-        if (!configLoader.isExist(METADATA_XML_FILE)) {
-            LOGGER.error("Unable to load " + METADATA_XML_FILE + " from classpath.");
-            
-            throw new RuntimeException("Unable to load " + METADATA_XML_FILE + " from classpath.");            
-        }	    
-	    
-		try(InputStream is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE)) {
-			return new MetadataParser(termFactory).parse(is);
-		} catch(Exception e) {
-			LOGGER.error("Failed to parse " + METADATA_XML_FILE + ": ", e);
-			
-			throw new RuntimeException("Failed to parse " + METADATA_XML_FILE + ": ", e);
-		}
-	}
 	
+	
+	 /*
+     * Parse the XML metadata file
+     */
+	 public Metadata parseMetadataXML(TermFactory termFactory) {
+	     
+	     return configLoader.parseMetadataXML(termFactory);
+	 }
+
 	/*
 	 * Parse the XML metadata string
 	 */
@@ -174,34 +171,9 @@ public class ResourceMetadataManager {
 			LOGGER.error("TermFactory Missing");
 			throw new RuntimeException("TermFactory Missing");
 		}
-		return parseMetadataXML(entityName, termFactory);
+		return configLoader.parseMetadataXML(entityName, termFactory);
 	}
 
-	
-	/*
-	 * Parse the XML entity metadata file
-	 */
-	protected Metadata parseMetadataXML(String entityName, TermFactory termFactory) {
-		String metadataFilename;
-		
-		if(entityName == null ) {
-			LOGGER.warn("null entity name received, using: " + METADATA_XML_FILE);
-			metadataFilename = METADATA_XML_FILE;
-		} else {
-			metadataFilename = "metadata-" + entityName + ".xml";
-		}
-		
-        if (!configLoader.isExist(metadataFilename) && !METADATA_XML_FILE.equals(metadataFilename)) {
-            LOGGER.warn("Unabled to load metadata from ["+metadataFilename+"], dropping back to "+METADATA_XML_FILE);
-            // Try to load default metadata file
-            metadataFilename = METADATA_XML_FILE;
-        }
-		
-		try(InputStream is = configLoader.load(metadataFilename)) {			
-			return new MetadataParser(termFactory).parse(is);
-		} catch(Exception e) {
-			LOGGER.debug("Failed to parse " + metadataFilename + ": ", e);
-			throw new RuntimeException("Failed to parse " + metadataFilename + ": ", e);
-		}
-	}
+
+   
 }

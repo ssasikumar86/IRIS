@@ -43,7 +43,9 @@
 	<bean id="cacheDefault" class="com.temenos.interaction.core.cache.CacheConcurrentImpl"/>
 
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider" scope="prototype">
-		<property name="resourceMap" ref="resourceMap" />		
+		<property name="resourceMap" ref="resourceMap" />	
+		<property name="resourceLoader" ref="fileSystem"/>
+        <property name="configLoader" ref="configLoader"/>	
 	</bean>
 
 	<bean id="springDSLResourceStateProvider"
@@ -53,5 +55,9 @@
 		<constructor-arg name="cache" ref="cacheDefault"/>
 		<constructor-arg name="beanMap" ref="resourceMap"/>
 	</bean>
+	
+	<bean id="fileSystem" class="com.temenos.interaction.springdsl.FileSystemResourceStateLoader" />
+	
+	<bean id="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader" />
 
 </beans>

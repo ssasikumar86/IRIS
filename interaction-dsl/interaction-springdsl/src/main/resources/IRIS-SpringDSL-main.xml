@@ -49,8 +49,9 @@
 	<bean id="lazyStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider"
 		  lazy-init="true">
 		<property name="resourceMap" ref="defaultResources"/>
+		<property name="resourceLoader" ref="fileSystem"/>
 	</bean>
-
+	
 	<bean id="eagerStateProvider" class="com.temenos.interaction.springdsl.EagerSpringDSLResourceStateProvider"
 		  lazy-init="true">
 		<constructor-arg name="antStylePattern" value="classpath*:/**/IRIS-*-PRD.xml"/>
@@ -60,4 +61,9 @@
 	</bean>
 
 	<bean id="resourceStateProvider" parent="lazyStateProvider"/>
+
+	<bean id="fileSystem" class="com.temenos.interaction.springdsl.FileSystemResourceStateLoader">
+	   <property name="irisConfigDirPath" value="${com.temenos.interaction.config.dir}" />
+	</bean>
+   
 </beans>

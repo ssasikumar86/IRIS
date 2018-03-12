@@ -35,5 +35,7 @@ public interface MetadataResourceProvider {
     public InputStream readFile(String fileName) throws Exception;
     
     public List<InputStream> readListOfFiles(String fileName);
+    
+    public InputStream loadResourceStateFromDatabase(String url);
 
 }

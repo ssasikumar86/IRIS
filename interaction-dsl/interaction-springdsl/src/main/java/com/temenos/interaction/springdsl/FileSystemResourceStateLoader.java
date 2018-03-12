@@ -30,6 +30,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.AbstractConfigLoaders;
 import com.temenos.interaction.core.resource.ConfigLoader;
 
 /*
@@ -62,8 +63,8 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
     private List<String> attempts = new ArrayList<String>(2);
     private String foundFile;
     protected ConcurrentMap<String, ResourceState> resources;
-    
-    private ConfigLoader configLoader = new ConfigLoader();
+
+    private AbstractConfigLoaders configLoader;
 
     @Override
     public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result) {
@@ -156,7 +157,6 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
         }
     }
 
-
     private ResourceState loadAllResourceStatesFromFile(ApplicationContext context, String resourceState) {
         Map<String, ResourceState> tmpResources = context.getBeansOfType(ResourceState.class);
 
@@ -200,25 +200,27 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
 
     private List<String> getTimestampedResourceStateFileLists(String tmpResourceName) {
         List<String> filename = new ArrayList<String>();
-        for (String pathToDirectory : configLoader.getIrisConfigDirPaths()) {
+        if (configLoader != null) {
+            for (String pathToDirectory : ((ConfigLoader) configLoader).getIrisConfigDirPaths()) {
 
-            Path dir = FileSystems.getDefault().getPath(pathToDirectory);
-            final PathMatcher matcher = dir.getFileSystem()
-                    .getPathMatcher("regex:" + "IRIS-" + tmpResourceName + "_(\\d+)-PRD.xml");
-            DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
+                Path dir = FileSystems.getDefault().getPath(pathToDirectory);
+                final PathMatcher matcher = dir.getFileSystem()
+                        .getPathMatcher("regex:" + "IRIS-" + tmpResourceName + "_(\\d+)-PRD.xml");
+                DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
 
-                @Override
-                public boolean accept(Path entry) {
-                    return matcher.matches(entry.getFileName());
+                    @Override
+                    public boolean accept(Path entry) {
+                        return matcher.matches(entry.getFileName());
+                    }
+                };
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, filter)) {
+
+                    for (Path streamEntry : stream) {
+                        filename.add(streamEntry.toFile().getName());
+                    }
+                } catch (IOException e) {
+                    logger.error("Failed to load timestamped file from" + dir);
                 }
-            };
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, filter)) {
-
-                for (Path streamEntry : stream) {
-                    filename.add(streamEntry.toFile().getName());
-                }
-            } catch (IOException e) {
-                logger.error("Failed to load timestamped file from" + dir);
             }
         }
         return filename;
@@ -231,8 +233,8 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
      */
     public ApplicationContext createApplicationContext(String beanXml) {
         ApplicationContext result = null;
-        
-        if (configLoader.getIrisConfigDirPaths().isEmpty()) {
+
+        if (configLoader == null || ((ConfigLoader) configLoader).getIrisConfigDirPaths().isEmpty()) {
             // Try and load the resource from the classpath
             String description = "classpath:" + beanXml;
             attempts.add(description);
@@ -244,7 +246,7 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
         } else {
             // Try and load the resource from the file system as a resource
             // directories has been specified
-            for (String directoryPath : configLoader.getIrisConfigDirPaths()) {
+            for (String directoryPath : ((ConfigLoader) configLoader).getIrisConfigDirPaths()) {
                 Path filePath = Paths.get(directoryPath, beanXml);
                 result = createApplicationContext(new File(filePath.toString()));
                 if (result != null) {
@@ -255,102 +257,119 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
         return result;
     }
 
-   
-        /** Was the load operation successful?
-         */
-        public boolean isLoaded() {
-            return ( result != null );
+    /**
+     * Was the load operation successful?
+     */
+    public boolean isLoaded() {
+        return (result != null);
+    }
+
+    /**
+     * Get the Resource State from a successful load
+     */
+    public ResourceState loaded() {
+        return result;
+    }
+
+    /**
+     * Description of the state of this load, intended for logging
+     */
+    public String toString() {
+        if (isLoaded()) {
+            return "Loaded Resource State " + state + " from " + foundFile;
+        } else if (attempts.size() == 0) {
+            return "Not-loaded Resource State " + state;
+        } else if (foundFile != null) {
+            return "State " + state + " not found in " + foundFile;
         }
 
-        /** Get the Resource State from a successful load
-         */
-        public ResourceState loaded() {
-            return result;
+        StringBuilder msg = new StringBuilder("Failed to load resource state ");
+        msg.append(state);
+        msg.append(". Attempted to load from ");
+        for (int i = 0; i < attempts.size(); ++i) {
+            if (i > 0)
+                msg.append(", ");
+            msg.append("[");
+            msg.append(attempts.get(i));
+            msg.append("]");
+        }
+        return msg.toString();
+    }
+
+    /**
+     * Load the configured resource state. Use this method only once. call
+     * isLoaded() to discover success or failure
+     */
+    @Override
+    public void load(String state) {
+
+        String tmpResourceStateName = state;
+        String tmpResourceName = tmpResourceStateName;
+
+        if (tmpResourceName.contains("-")) {
+            tmpResourceName = tmpResourceName.substring(0, tmpResourceName.indexOf("-"));
         }
 
-        /** Description of the state of this load, intended for logging
-         */
-        public String toString() {
-            if ( isLoaded() ) {
-                return "Loaded Resource State " + state + " from " + foundFile;
-            } else if (attempts.size()==0) {
-                return "Not-loaded Resource State " + state;
-            } else if (foundFile != null ) {
-                return "State " + state + " not found in " + foundFile;
-            }
+        String beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
 
-            StringBuilder msg = new StringBuilder( "Failed to load resource state " );
-            msg.append( state );
-            msg.append( ". Attempted to load from " );
-            for ( int i = 0 ; i < attempts.size() ; ++i ) {
-                if ( i > 0 ) msg.append(", ");
-                msg.append("[");
-                msg.append(attempts.get(i));
-                msg.append("]");
-            }
-            return msg.toString();
-        }
+        // Attempt to create Spring context based on current resource filename
+        // pattern
+        ApplicationContext context = createApplicationContext(beanXml);
 
-        /** Load the configured resource state.
-         *  Use this method only once.
-         *  call isLoaded() to discover success or failure
-         */
-        @Override
-        public void load(String state) {
+        if (context == null) {
+            // Failed to create Spring context using current resource filename
+            // pattern so use old pattern
+            int pos = tmpResourceName.lastIndexOf("_");
 
-            String tmpResourceStateName = state;
-            String tmpResourceName = tmpResourceStateName;
+            if (pos > 3) {
+                tmpResourceName = tmpResourceName.substring(0, pos);
+                beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
 
-            if(tmpResourceName.contains("-")) {
-                tmpResourceName = tmpResourceName.substring(0, tmpResourceName.indexOf("-"));
-            }
+                context = createApplicationContext(beanXml);
 
-            String beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
+                if (context != null) {
+                    // Successfully created Spring context using old resource
+                    // filename pattern
 
-            // Attempt to create Spring context based on current resource filename pattern
-            ApplicationContext context = createApplicationContext(beanXml);
-            
-            if (context == null) {
-                // Failed to create Spring context using current resource filename pattern so use old pattern
-                int pos = tmpResourceName.lastIndexOf("_");
+                    // Convert resource state name to old resource name format
+                    pos = tmpResourceStateName.lastIndexOf("-");
 
-                if (pos > 3){
-                    tmpResourceName = tmpResourceName.substring(0, pos);
-                    beanXml = "IRIS-" + tmpResourceName + "-PRD.xml";
+                    if (pos < 0) {
+                        pos = tmpResourceStateName.lastIndexOf("_");
 
-                    context = createApplicationContext(beanXml);
-
-                    if (context != null) {
-                        // Successfully created Spring context using old resource filename pattern
-
-                        // Convert resource state name to old resource name format
-                        pos = tmpResourceStateName.lastIndexOf("-");
-
-                        if (pos < 0){
-                            pos = tmpResourceStateName.lastIndexOf("_");
-
-                            if (pos > 0){
-                                tmpResourceStateName = tmpResourceStateName.substring(0, pos) + "-" + tmpResourceStateName.substring(pos+1);
-                            }
+                        if (pos > 0) {
+                            tmpResourceStateName = tmpResourceStateName.substring(0, pos) + "-"
+                                    + tmpResourceStateName.substring(pos + 1);
                         }
                     }
                 }
             }
+        }
 
-            if(context != null) {
-                result = loadAllResourceStatesFromFile(context, tmpResourceStateName);
-                }
-            if (result == null) {
-                List<String> timestampedFiles = getTimestampedResourceStateFileLists(tmpResourceName);
-                if (!timestampedFiles.isEmpty()) {
-                    result = loadAllResourceStatesFromTimeStampedResourceState(tmpResourceStateName, timestampedFiles);
-                }
+        if (context != null) {
+            result = loadAllResourceStatesFromFile(context, tmpResourceStateName);
+        }
+        if (result == null) {
+            List<String> timestampedFiles = getTimestampedResourceStateFileLists(tmpResourceName);
+            if (!timestampedFiles.isEmpty()) {
+                result = loadAllResourceStatesFromTimeStampedResourceState(tmpResourceStateName, timestampedFiles);
             }
         }
+    }
 
-        @Override
-        public void setIrisConfigDirPath(String location) {
-            this.configLoader.setIrisConfigDirPath(location);
+    @Override
+    public void setIrisConfigDirPath(String location) {
+        if (this.configLoader == null) {
+            this.configLoader = new ConfigLoader();
         }
+        this.configLoader.setIrisConfigDirPath(location);
+    }
 
+    /**
+     * @param configLoader
+     *            the configLoader to set
+     */
+    public void setConfigLoader(AbstractConfigLoaders configLoader) {
+        this.configLoader = configLoader;
+    }
 }

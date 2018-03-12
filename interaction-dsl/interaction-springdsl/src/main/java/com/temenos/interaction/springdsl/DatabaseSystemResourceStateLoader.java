@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -45,12 +44,6 @@ import com.temenos.interaction.metadata.resource.MetadataResourceProvider;
  */
 
 public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStateProvider implements ResourceLoader {
-
-    private static final String PROPERTY_FILE_EXT = ".properties";
-
-    private static final String IRIS_T24_PREFIX = "IRIS-T24_";
-
-    private static final String IRIS_COMMON_PREFIX = "IRIS-common_";
 
     private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
 
@@ -142,9 +135,9 @@ public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStatePro
             logger.debug("Loading file [{}] from Database", filename);
 
             inputStreamList = metadataResourceProvider.readListOfFiles(filename);
-            if (!inputStreamList.isEmpty()) {
+            if (inputStreamList != null && !inputStreamList.isEmpty()) {
                 for (InputStream inputStream : inputStreamList) {
-                    loadandStoreResourceState(inputStream, filename);
+                    loadandStoreResourceState(inputStream);
                 }
             }
         }
@@ -272,9 +265,8 @@ public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStatePro
         return result;
     }
 
-    private void loadandStoreResourceState(InputStream inputStream, String fname) throws IOException {
+    private void loadandStoreResourceState(InputStream inputStream) throws IOException {
 
-        logger.debug("Loading resource State from databse file :", fname);
         Properties property = new Properties();
         property.load(inputStream);
         super.initialised = false;
@@ -299,44 +291,14 @@ public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStatePro
     private void loadResourceStateFromDatabase(String url) {
 
         // EDP load the .properties file form Database and check
-        InputStream inputStream;
-        String applicationName = url;
 
-        if (applicationName.contains("(")) {
-            // EG: IRIS-T24_verSector('123') ==> verSector
-            applicationName = applicationName.substring(applicationName.indexOf("/") + 1,
-                    applicationName.indexOf("(") - 1);
-        }
-        if (applicationName.contains("/")) {
-            // EG: /GB0001/IRIS-T24_verSector('123') ==> verSector
-            applicationName = applicationName.substring(applicationName.lastIndexOf("/") + 1, applicationName.length());
-        }
-        String fname = IRIS_T24_PREFIX + applicationName + PROPERTY_FILE_EXT;
         try {
-            inputStream = metadataResourceProvider.readFile(fname);
-            if (inputStream == null && StringUtils.containsIgnoreCase(applicationName, "entry")) {
-                // There are cases where the request contains some "Entry"
-                // string appended to the request,
-                // EG , verCustomerEntry, for which we don't have a property
-                // file as "verCustomerEntry" so remove this entry and try to
-                // process
-                applicationName = applicationName.replaceAll("(?i)Entry", "");
-                fname = IRIS_T24_PREFIX + applicationName + PROPERTY_FILE_EXT;
-                inputStream = metadataResourceProvider.readFile(fname);
+            InputStream in = metadataResourceProvider.loadResourceStateFromDatabase(url);
+            if (in != null) {
+                loadandStoreResourceState(in);
             }
-            if (inputStream == null) {
-                // only for those files that have "IRIS-common_*.properties"
-                // in it's name
-                applicationName = applicationName.substring(0, 1).toUpperCase() + applicationName.substring(1);
-                fname = IRIS_COMMON_PREFIX + applicationName + PROPERTY_FILE_EXT;
-                inputStream = metadataResourceProvider.readFile(fname);
-            }
-            if (inputStream != null) {
-                loadandStoreResourceState(inputStream, fname);
-            }
-
-        } catch (Exception e) {
-            logger.error("Error loading file [{}] form database", fname, e.getCause());
+        } catch (IOException e) {
+          logger.error("Error while loading resource state from database", e);
         }
     }
 

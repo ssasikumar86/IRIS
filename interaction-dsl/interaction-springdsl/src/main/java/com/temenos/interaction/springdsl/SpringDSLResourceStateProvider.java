@@ -151,7 +151,7 @@ public class SpringDSLResourceStateProvider  implements ResourceStateProvider, D
             logger.debug("Binding ["+stateName+"] to ["+request+"]");
             String found = resourceStatesByRequest.get(request);
             if (found != null) {
-                logger.warn("Multiple states bound to the same request ["+request+"], overriding ["+found+"] with ["+stateName+"]");
+                logger.debug("Multiple states bound to the same request ["+request+"], overriding ["+found+"] with ["+stateName+"]");
             }
             resourceStatesByRequest.put(request, stateName);
         }

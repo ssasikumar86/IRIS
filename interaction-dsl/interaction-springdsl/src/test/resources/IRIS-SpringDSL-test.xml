@@ -45,7 +45,6 @@
 	<bean id="resourceStateProvider" class="com.temenos.interaction.springdsl.SpringDSLResourceStateProvider" scope="prototype">
 		<property name="resourceMap" ref="resourceMap" />	
 		<property name="resourceLoader" ref="fileSystem"/>
-        <property name="configLoader" ref="configLoader"/>	
 	</bean>
 
 	<bean id="springDSLResourceStateProvider"

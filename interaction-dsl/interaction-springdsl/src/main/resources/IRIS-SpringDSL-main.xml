@@ -62,8 +62,9 @@
 
 	<bean id="resourceStateProvider" parent="lazyStateProvider"/>
 
+    <bean id ="configLoader" class="com.temenos.interaction.core.resource.ConfigLoader"/>
+    
 	<bean id="fileSystem" class="com.temenos.interaction.springdsl.FileSystemResourceStateLoader">
-	   <property name="irisConfigDirPath" value="${com.temenos.interaction.config.dir}" />
+	   <property name="configLoader" ref ="configLoader"/>
 	</bean>
-   
 </beans>

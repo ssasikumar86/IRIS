@@ -43,6 +43,11 @@ public enum HttpStatusTypes implements StatusType {
     METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
 
     /**
+     * 408 Request Timeout
+     */
+    REQUEST_TIMEOUT(408, "Request Timeout"),
+
+    /**
      * 504 Gateway timeout
      */
     GATEWAY_TIMEOUT(504, "Gateway Timeout");

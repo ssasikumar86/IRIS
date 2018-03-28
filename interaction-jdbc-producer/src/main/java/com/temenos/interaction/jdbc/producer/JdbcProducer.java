@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.ws.rs.core.MultivaluedMap;
@@ -43,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.jndi.JndiTemplate;
 
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.entity.Entity;
@@ -76,9 +76,9 @@ public class JdbcProducer {
     /*
      * Constructor called when a DataSource object to be obtained from Jndi.
      */
-    public JdbcProducer(JndiTemplate jndiTemplate, String dataSourceName) throws ClassNotFoundException, JdbcException,
+    public JdbcProducer(InitialContext ctx,String dataSourceName) throws ClassNotFoundException, JdbcException,
             NamingException {
-        this((DataSource) jndiTemplate.lookup(dataSourceName));
+        this((DataSource) ctx.lookup(dataSourceName));
     }
 
     /*

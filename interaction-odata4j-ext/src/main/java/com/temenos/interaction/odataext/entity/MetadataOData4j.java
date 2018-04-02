@@ -75,6 +75,8 @@ import com.temenos.interaction.core.hypermedia.CollectionResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.AbstractConfigLoaders;
+import com.temenos.interaction.core.resource.DatabaseSystemConfigLoader;
 import com.temenos.interaction.odataext.ODataHelper;
 
 
@@ -107,6 +109,7 @@ public class MetadataOData4j {
 	private ODataVersion odataVersion = ODataVersion.V1;
 	private EdmDataServicesAdapter edmDataServicesAdapter;
 	private EdmDataServices edmDataServices;
+	private AbstractConfigLoaders configloader;
 
 	/**
 	 * Construct the odata metadata ({@link EdmDataServices}) by looking up a resource 
@@ -115,7 +118,7 @@ public class MetadataOData4j {
 	 * @param metadata metadata
 	 * @param hypermediaEngine containing ResourceStateMachine with ServiceDocument as initial state only
 	 */
-	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine, AbstractConfigLoaders configloader) {
 		serviceDocument = hypermediaEngine.getResourceStateByName(SERVICE_DOCUMENT);
 		if (serviceDocument == null)
 			throw new RuntimeException("No "+  SERVICE_DOCUMENT + " found.");
@@ -127,7 +130,23 @@ public class MetadataOData4j {
 		this.hypermediaEngine = hypermediaEngine;
 		this.nonSrvDocEdmEntitySetMap= new ConcurrentHashMap<String, EdmEntitySet>(); 
 		this.nonSrvDocEdmComplexTypeMap = new ConcurrentHashMap<String, EdmComplexType>();
+		this.configloader = configloader;
 	}
+	
+	public MetadataOData4j(Metadata metadata, ResourceStateMachine hypermediaEngine) {
+        serviceDocument = hypermediaEngine.getResourceStateByName(SERVICE_DOCUMENT);
+        if (serviceDocument == null)
+            throw new RuntimeException("No "+  SERVICE_DOCUMENT + " found.");
+
+        if (serviceDocument instanceof CollectionResourceState)
+            throw new RuntimeException("Initial state must be an individual resource state");
+
+        this.metadata = metadata;
+        this.hypermediaEngine = hypermediaEngine;
+        this.nonSrvDocEdmEntitySetMap= new ConcurrentHashMap<String, EdmEntitySet>(); 
+        this.nonSrvDocEdmComplexTypeMap = new ConcurrentHashMap<String, EdmComplexType>();
+    }
+	
 
 	/**
 	 * @return the odataVersion
@@ -412,13 +431,22 @@ public class MetadataOData4j {
 		Map<String, EdmFunctionImport.Builder> bFunctionImportMap = new HashMap<String, EdmFunctionImport.Builder>();
 		List<EdmAssociation.Builder> bAssociations = new ArrayList<EdmAssociation.Builder>();
 		
+		EntityMetadata entityMetadata = null;
+		
+		//EDP
+		if(configloader instanceof DatabaseSystemConfigLoader){
+		    // for database based file loading, we don't need to iterate over all the resource states, 
+		    // only load the metadata for the entity alone.
+		    entityMetadata = metadata.getEntityMetadata(serviceDocument.getEntityName());
+		    
+		}else{
 		// Process meta data present in the service document
 		for (ResourceState state : hypermediaEngine.getStates()) {
 			// Skip Service Document
 			if (serviceDocument.equals(state))
 				continue;
 			
-			EntityMetadata entityMetadata = null;
+			entityMetadata = null;
 			try {
 			    entityMetadata = metadata.getEntityMetadata(state.getEntityName());
 			} catch (Exception e) {
@@ -438,6 +466,7 @@ public class MetadataOData4j {
 			} else {
 				LOGGER.warn("Entity name '{}' does not have type. entityMetadata={}", state.getEntityName(), entityMetadata);
 			}
+		}
 		}
 		
 		//The model name is available after processing the states, i.e. the namespace should be created afterwards
@@ -497,6 +526,7 @@ public class MetadataOData4j {
 				// Index EntitySets by Entity name
 				EdmEntityType.Builder entityType = bEntityTypeMap.get(source.getEntityName());
 				
+				//EDP
 				if (entityType == null) { 
 					LOGGER.warn("Entity type not found for {}" + source.getEntityName());
 				    continue;
@@ -521,7 +551,7 @@ public class MetadataOData4j {
 				if (fromInitialState == null) {
 					EdmEntitySet.Builder bEntitySet = bEntitySetMap.get(state.getEntityName());
 					
-					if(bEntitySet == null) {
+					if(bEntitySet == null ) {
 					    LOGGER.warn("Failed to find entity set for entity {}", state.getEntityName());
 					} else {
     					// Add Function

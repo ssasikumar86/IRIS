@@ -45,6 +45,7 @@ import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
+import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class TestSpringDSLResourceStateProvider {
 
@@ -59,6 +60,7 @@ public class TestSpringDSLResourceStateProvider {
     @Before
     public void setUp() {
         resourceStateProvider = (ResourceStateProvider) ctx.getBean("resourceStateProvider");
+       
     }
 
     @Test

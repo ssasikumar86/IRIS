@@ -4,7 +4,7 @@ package com.temenos.interaction.springdsl;
  * #%L
  * interaction-springdsl
  * %%
- * Copyright (C) 2012 - 2017 Temenos Holdings N.V.
+ * Copyright (C) 2012 - 2018 Temenos Holdings N.V.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,12 +49,14 @@ public class TestLoadTimestampResourceStateFiles {
     private ConfigLoader configLoader = new ConfigLoader();
     private ResourceState resource;
     private ClassLoader classloader = this.getClass().getClassLoader();
+    private ResourceLoader resourceLoader= new FileSystemResourceStateLoader();
 
     @Before
     public void setUpClass() {
         dsl = new SpringDSLResourceStateProvider();
+        dsl.setResourceLoader(resourceLoader);
         String location = new File(classloader.getResource("PRDFiles").getPath()).getAbsolutePath();
-        configLoader.setIrisConfigDirPath(location);
+        resourceLoader.setIrisConfigDirPath(location);
         dsl.setConfigLoader(configLoader);
         resource = dsl.getResourceState("Tst_Twins-notes");
     }

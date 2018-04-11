@@ -1,5 +1,7 @@
 package com.temenos.interaction.example.hateoas.banking;
 
+import java.security.SecureRandom;
+
 /*
  * #%L
  * interaction-example-hateoas-banking
@@ -23,7 +25,6 @@ package com.temenos.interaction.example.hateoas.banking;
 
 
 import java.util.Date;
-import java.util.Random;
 
 import javax.ws.rs.HttpMethod;
 
@@ -47,7 +48,7 @@ public class POSTFundTransferCommand implements InteractionCommand {
 		assert(ctx != null);
 		assert(ctx.getId() == null || "".equals(ctx.getId()));
 
-		Long key = Math.abs(new Random().nextLong() % Long.MAX_VALUE);
+		Long key = Math.abs(new SecureRandom().nextLong() % Long.MAX_VALUE);
 		Date now = new Date();
 		String json = "";
 		json += "{";

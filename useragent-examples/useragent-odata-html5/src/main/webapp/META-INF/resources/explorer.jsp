@@ -19,6 +19,7 @@
   #L%
   --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page language="java" contentType="text/html; charset=UTF-8"%> 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>IRIS navigator</title>
@@ -26,12 +27,15 @@
     <link href="Styles/Site.css" rel="stylesheet" type="text/css" />
     <link type="text/css" rel="Stylesheet" href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.10/themes/redmond/jquery-ui.css" /> 
 
-	<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
-	<script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+	<script type="text/javascript" src="Scripts/jquery-1.8.2.js"></script>
+	<script type="text/javascript" src="Scripts/jquery-ui.js"></script>
 	<script type="text/javascript" src="Scripts/underscore-1.4.3-min.js"></script>
     <script type="text/javascript" src="Scripts/datajs-1.1.0-iris.js"></script>
 </head>
 <body>
+<% String odata_svc = request.getParameter("odata-svc") ;
+	odata_svc = odata_svc.replaceAll("[^a-zA-Z0-9-_\\s]", ""); 
+ %>
     
     <div class="page">
         <div class="header">
@@ -42,7 +46,7 @@
             <div class="clear hideSkiplink"></div>
             <div class="navBar">
                 <form>
-                    <input type="text" name="odata-svc" id="where" value="<%=request.getParameter("odata-svc")%>" style="width: 90%;" class="text ui-widget-content ui-corner-all" /><input type="button" name="load" value="Load" onclick="javascript: loadService();" />
+                    <input type="text" name="odata-svc" id="where" value="<%=odata_svc%>" style="width: 90%;" class="text ui-widget-content ui-corner-all" /><input type="button" name="load" value="Load" onclick="javascript: loadService();" />
                 </form>
             </div>
         </div>

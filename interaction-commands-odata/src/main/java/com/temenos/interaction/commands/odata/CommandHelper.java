@@ -327,6 +327,12 @@ public class CommandHelper {
 			}
 		}
 		
+        if (ctx.getUriInfo() != null && ctx.getUriInfo().getPath() != null && ctx.getUriInfo().getPath().contains("/Print")) {
+            customOptions.put("isPrint", "true");
+        } else {
+            customOptions.put("isPrint", "false");
+        }
+
 		return customOptions;
 	}
 	

@@ -24,6 +24,8 @@ package com.temenos.useragent.generic.context;
 
 import java.util.Properties;
 
+import org.apache.commons.codec.binary.Base64;
+
 /**
  * This class contains base connection configuration parameters.
  * 
@@ -50,7 +52,7 @@ public class BaseConnectionConfig implements ConnectionConfig {
 						"http://localhost:9089/t24interactiontests-iris/t24interactiontests.svc");
 		baseConnprops.setProperty(ConnectionConfig.SERVICE_ROOT, "GB0010001");
 		baseConnprops.setProperty(ConnectionConfig.USER_NAME, "INPUTT");
-		baseConnprops.setProperty(ConnectionConfig.PASS_WORD, "123456");
+		baseConnprops.setProperty(ConnectionConfig.PASS_WORD, Base64.decodeBase64("MTIzNDU2").toString());
 		return baseConnprops;
 	}
 }

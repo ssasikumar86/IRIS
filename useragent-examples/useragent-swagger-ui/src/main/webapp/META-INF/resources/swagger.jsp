@@ -22,7 +22,8 @@
 <%@page import="java.util.Set"%>
 <%@page import="java.io.*"%>
 <%
-    response.setHeader("Access-Control-Allow-Origin", "*");
+    response.setHeader("Access-Control-Allow-Origin", "http://*/*-iris/*.svc");
+    response.setHeader("Access-Control-Allow-Credentials", "false");
     response.setHeader("Access-Control-Allow-Headers","Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
     response.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
     request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");

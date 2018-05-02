@@ -99,6 +99,7 @@ public class AtomUtil {
 			return null;
 		}
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setValidating(true);
 		factory.setNamespaceAware(true);
 		factory.setIgnoringElementContentWhitespace(true);
 		factory.setIgnoringComments(true);

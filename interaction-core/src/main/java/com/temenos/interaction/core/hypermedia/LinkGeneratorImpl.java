@@ -54,6 +54,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
     private static final Logger logger = LoggerFactory.getLogger(LinkGeneratorImpl.class);
     private static final String NEW_REL_SUFFIX = "/new";
     private static final String POPULATE_REL_SUFFIX = "/populate";
+    private static final String ENQUIRY_REPORT_REL_SUFFIX = "/enquiryReport";
     private ResourceStateMachine resourceStateMachine;
     private Transition transition;
     private InteractionContext interactionContext;
@@ -221,7 +222,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
                 if ("id".equalsIgnoreCase(param)) {
                     linkPropertiesMap.put(param, value);
-                    if(rel.contains(POPULATE_REL_SUFFIX) && (uriParameters == null || !uriParameters.containsKey(param))) {
+                    if((rel.contains(POPULATE_REL_SUFFIX) || rel.contains(ENQUIRY_REPORT_REL_SUFFIX)) && (uriParameters == null || !uriParameters.containsKey(param))) {
                         linkTemplate.queryParam(param, value);
                     }
                 } else if(uriParameters == null || !uriParameters.containsKey(param)) { //Add query param only if it's not already present in the path

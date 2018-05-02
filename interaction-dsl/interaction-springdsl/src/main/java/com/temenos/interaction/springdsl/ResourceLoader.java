@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 
 import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
+import com.temenos.interaction.core.hypermedia.PathTree;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 
 /**
@@ -38,7 +39,7 @@ public interface ResourceLoader {
     
     public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException;
 
-    public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result);
+    public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result, PathTree pathTree);
     
     public void load(String state);
 

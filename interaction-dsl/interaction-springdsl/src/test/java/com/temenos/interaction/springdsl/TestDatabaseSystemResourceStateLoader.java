@@ -72,14 +72,12 @@ public class TestDatabaseSystemResourceStateLoader {
     public static void setUpClass() {
         configLoader.setIrisConfigDirPath("");
         loader.setConfigLoader(configLoader);
-        inputStream = TestDatabaseSystemResourceStateLoader.class.getResourceAsStream("/com/temenos/interaction/springdsl/TestSpringDSLResourceStateProvider-context.xml");
-        ctx = loader.createApplicationContext(inputStream);
-        assertNotNull(ctx);
     }
-    
     
     @Before
     public void setup(){
+        inputStream = TestDatabaseSystemResourceStateLoader.class.getResourceAsStream("/com/temenos/interaction/springdsl/TestSpringDSLResourceStateProvider-context.xml");
+        ctx = loader.createApplicationContext(inputStream);
         resourceStateProvider = (ResourceStateProvider) ctx.getBean("resourceStateProvider");
         
     }

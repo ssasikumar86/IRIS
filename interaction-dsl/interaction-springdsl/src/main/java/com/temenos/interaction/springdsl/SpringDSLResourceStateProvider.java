@@ -218,7 +218,7 @@ public class SpringDSLResourceStateProvider  implements ResourceStateProvider, D
 
                 if (result == null) {
                     // Resource state has not already been loaded so attempt to load it
-                    resourceLoader.initialise(beanMap, resources, result);
+                    resourceLoader.initialise(beanMap, resources, result, pathTree);
                     resourceLoader.load(resourceStateName);
                     if ( resourceLoader.isLoaded() ) {
                         result = resourceLoader.loaded();                     
@@ -290,7 +290,7 @@ public class SpringDSLResourceStateProvider  implements ResourceStateProvider, D
     
     public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {
         
-       resourceLoader.initialise(beanMap, resources, null);
+       resourceLoader.initialise(beanMap, resources, null, pathTree);
        return resourceLoader.getResourceStateId(httpMethod, url);
     }
     

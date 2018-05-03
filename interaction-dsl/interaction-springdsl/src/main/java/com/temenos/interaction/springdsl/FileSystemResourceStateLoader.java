@@ -28,6 +28,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
+import com.temenos.interaction.core.hypermedia.PathTree;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.AbstractConfigLoaders;
@@ -56,7 +57,7 @@ import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvider implements ResourceLoader {
 
-    private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(FileSystemResourceStateLoader.class);
 
     private ResourceState result;
     private String state;
@@ -67,10 +68,11 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
     private AbstractConfigLoaders configLoader;
 
     @Override
-    public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result) {
+    public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result, PathTree pathTree) {
         this.beanMap = beanMap;
         this.resources = resources;
         this.result = result;
+        this.pathTree = pathTree;
     }
 
     public String getResourceStateId(String httpMethod, String url) throws MethodNotAllowedException {

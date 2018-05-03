@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
+import com.temenos.interaction.core.hypermedia.PathTree;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.Transition;
 import com.temenos.interaction.core.resource.AbstractConfigLoaders;
@@ -45,7 +46,7 @@ import com.temenos.interaction.metadata.resource.MetadataResourceProvider;
 
 public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStateProvider implements ResourceLoader {
 
-    private final Logger logger = LoggerFactory.getLogger(SpringDSLResourceStateProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(DatabaseSystemResourceStateLoader.class);
 
     private List<String> supportingFiles;
 
@@ -144,11 +145,11 @@ public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStatePro
     }
 
     @Override
-    public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result) {
+    public void initialise(Properties beanMap, ConcurrentMap<String, ResourceState> resources, ResourceState result, PathTree pathTree) {
         this.beanMap = beanMap;
         this.resources = resources;
         this.result = result;
-
+        this.pathTree = pathTree;
     }
 
     /**

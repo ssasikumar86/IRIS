@@ -35,7 +35,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -45,20 +44,15 @@ import com.temenos.interaction.core.hypermedia.MethodNotAllowedException;
 import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.hypermedia.ResourceStateProvider;
 import com.temenos.interaction.core.hypermedia.Transition;
-import com.temenos.interaction.core.resource.ConfigLoader;
 
 public class TestSpringDSLResourceStateProvider {
 
     static ApplicationContext ctx;
     protected ResourceStateProvider resourceStateProvider;
     
-    @BeforeClass
-    public static void setUpClass() {
-        ctx = new ClassPathXmlApplicationContext("classpath:/com/temenos/interaction/springdsl/TestSpringDSLResourceStateProvider-context.xml");     
-    }
-    
     @Before
     public void setUp() {
+        ctx = new ClassPathXmlApplicationContext("classpath:/com/temenos/interaction/springdsl/TestSpringDSLResourceStateProvider-context.xml");
         resourceStateProvider = (ResourceStateProvider) ctx.getBean("resourceStateProvider");
        
     }

@@ -32,7 +32,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -48,13 +47,9 @@ import com.temenos.interaction.core.loader.SpringResourceStateLoadingStrategy;
  */
 public class TestEagerSpringDSLResourceStateProvider extends TestSpringDSLResourceStateProvider {
 
-    @BeforeClass
-    public static void setUpClass() {
-        ctx = new ClassPathXmlApplicationContext("classpath:/com/temenos/interaction/springdsl/TestEagerSpringDSLResourceStateProvider-context.xml");     
-    }
-    
     @Before
     public void setUp() {
+        ctx = new ClassPathXmlApplicationContext("classpath:/com/temenos/interaction/springdsl/TestEagerSpringDSLResourceStateProvider-context.xml");    
         resourceStateProvider = (ResourceStateProvider) ctx.getBean("resourceStateProvider");
     }
 

@@ -136,6 +136,7 @@ public class EntityResource<T> implements RESTResource, Cloneable {
 	 */
 	@Override
 	public EntityResource<T> clone() throws CloneNotSupportedException {
+	    super.clone();
 		EntityResource<T> entityResourceClone = this.createNewEntityResource(this.entityName, this.entity);
 		entityResourceClone.setEmbedded(this.embedded);
 		entityResourceClone.setLinks(this.links);

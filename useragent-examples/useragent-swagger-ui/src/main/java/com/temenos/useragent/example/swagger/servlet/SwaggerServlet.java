@@ -60,12 +60,9 @@ public class SwaggerServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 		    
-		    String fileName = req.getParameter("file");
-		    if(StringUtils.isEmpty(fileName)){
-		        fileName = SWAGGER_FILE_NAME;
-		    }
-		    
-			// Parse the api-docs.json file to get a JsonReader object
+		    String fileName = SWAGGER_FILE_NAME;
+		   
+		    // Parse the api-docs.json file to get a JsonReader object
 			JsonReader jsonReader = Json.createReader(new InputStreamReader(getServletContext().getResourceAsStream("/" + fileName)));
 			JsonObject jsonSwaggerObject = jsonReader.readObject();
 			jsonReader.close();

@@ -149,7 +149,7 @@ public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStatePro
         this.beanMap = beanMap;
         this.resources = resources;
         this.result = result;
-        this.pathTree = pathTree;
+  //      this.pathTree = pathTree;  //this is applicable only for File based dynamic loading of the artifacts.
     }
 
     /**

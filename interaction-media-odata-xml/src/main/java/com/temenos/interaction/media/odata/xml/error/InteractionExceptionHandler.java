@@ -23,7 +23,6 @@ package com.temenos.interaction.media.odata.xml.error;
 
 
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +43,7 @@ public class InteractionExceptionHandler<T extends Exception> {
             .append(" ")
             .append(HttpStatus.getStatusText(code))
             .toString();
-        String stackTrace = getStackTraceAsString(exception);
-        logger.error(message, stackTrace);
-        return stackTrace;
-    }
-    
-    private String getStackTraceAsString(T exception){
-        String stackTrace = ExceptionUtils.getStackTrace(exception);
-        return stackTrace.replaceAll("\\r\\n", "\n");
+            logger.error(message, exception);
+            return message;
     }
 }

@@ -107,6 +107,8 @@ public class ReferentialConstraintParser extends DefaultHandler {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		try {
 			SAXParser saxParser = factory.newSAXParser();
+			factory.setValidating(true);
+			factory.setFeature("http://xml.org/sax/features/validation", true);
 			saxParser.parse(isEdmx, handler);
 		} catch (Exception e) {
 			LOGGER.warn("Failed to parse XML document", e);

@@ -75,6 +75,8 @@ public class MetadataParser extends DefaultHandler {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		try {
 			SAXParser saxParser = factory.newSAXParser();
+			factory.setValidating(true);
+			factory.setFeature("http://xml.org/sax/features/validation", true);
 			saxParser.parse(is, this);
 		} catch (Exception e) {
 			logger.debug("Failed to parse input stream content", e);

@@ -42,7 +42,7 @@ public class URLHelper {
         if(uriSegments==null || uriSegments.length==0) {
             return;
         }
-        CharSequence seq="%3A"; //handling done to decode colon in ID field
+        CharSequence colonChar="%3A"; //handling done to decode colon in ID field
         for (int i = 0; i < pathSegments.length; i++) {
             String pathSegment = pathSegments[i];
             String uriSegment = uriSegments[i];
@@ -83,7 +83,7 @@ public class URLHelper {
                     if(!uriSegment.isEmpty()) {
                         if (uriSegment.charAt(0) == '\'' && uriSegment.charAt(uriSegment.length() - 1) == '\'') {
                             uriSegment = uriSegment.substring(1, uriSegment.length() - 1);
-                            if(uriSegment.contains(seq))
+                            if(uriSegment.contains(colonChar))
                             {
                                 uriSegment=URLDecoder.decode(uriSegment);
                             }

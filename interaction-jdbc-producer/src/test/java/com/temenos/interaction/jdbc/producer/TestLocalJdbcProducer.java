@@ -27,11 +27,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import java.io.File;
-import java.net.URL;
-import java.util.Properties;
+import java.sql.Connection;
 
-import javax.naming.Context;
+import javax.sql.DataSource;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
@@ -40,7 +38,6 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Test;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.jndi.JndiTemplate;
 
 import com.temenos.interaction.core.MultivaluedMapImpl;
 import com.temenos.interaction.core.command.InteractionContext;
@@ -50,70 +47,38 @@ import com.temenos.interaction.core.hypermedia.ResourceState;
 import com.temenos.interaction.core.resource.CollectionResource;
 import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.jdbc.ServerMode;
+import com.temenos.interaction.jdbc.context.LocalContext;
+import com.temenos.interaction.jdbc.context.LocalContextFactory;
 import com.temenos.interaction.jdbc.exceptions.JdbcException;
 import com.temenos.interaction.odataext.odataparser.ODataParser;
 
 /**
  * Test JdbcProducer class.
  */
-public class TestJdbcProducer extends AbstractJdbcProducerTest {
+public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
 
-    // Somewhere to store Jndi context.
-    private JndiTemplate jndiTemplate = null;
 
     // Jndi name for the data source
     String DATA_SOURCE_JNDI_NAME = "H2Datasource";
-
-    /*
-     * Utility to set up Jndi context
+    private Connection con = null;
+    
+    private LocalContext ctx=null;
+    
+    /**
+     * Initiate a context to lookup the datasource
+     * @throws Exception 
      */
-    private void jndiSetUp() {
-        // Get working directory as a URL.
-        URL workingDir = null;
-        boolean threw = false;
-        try {
-            File file = new File(System.getProperty("user.dir"));
-            workingDir = file.toURI().toURL();
-        } catch (Exception e) {
-            threw = true;
-        }
-        assertFalse("Could not get working directory.", threw);
+    public void setupContext() 
+    {
+        try{
+            ctx = LocalContextFactory.createLocalContext("org.h2.Driver");
+            ctx.addDataSource(DATA_SOURCE_JNDI_NAME,"jdbc:h2:mem:JdbcProducertest", "user", "password");
 
-        // Create a jndiTemplate. This will contain a Jndi context.
-        threw = false;
-        try {
-            Properties env = new Properties();
-
-            // Uses the local file system for Jndi storage,
-            env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.fscontext.RefFSContextFactory");
-
-            // Store Jndi information in a .bindings file in the working
-            // directory.
-            env.put(Context.PROVIDER_URL, workingDir.toString());
-
-            jndiTemplate = new JndiTemplate(env);
-
-        } catch (Exception e) {
-            threw = true;
-        }
-        assertFalse("Could not open JndiTemplate", threw);
-    }
-
-    /*
-     * Utility to shut down Jndi context
-     */
-    private void jndiShutDown() {
-        try {
-            // Remove object. If .bindings file becomes empty this should also
-            // delete it. If not then we have left it as we found it.
-            jndiTemplate.unbind(DATA_SOURCE_JNDI_NAME);
-
-            // Don't think we have to close JndiTemplate
-        } catch (Exception e) {
-            fail();
+        }catch(Exception e){
+            e.printStackTrace();
         }
     }
-
+    
     /**
      * Test constructor
      */
@@ -164,45 +129,21 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
         assertEquals(TEST_ROW_COUNT, rowCount);
     }
 
-    /**
-     * Check that Jndi itself is working
-     */
-    @Test
-    public void testJndiWorking() {
-        // Start up Jndi
-        jndiSetUp();
-
-        // Write reference to the data source into Jndi
-        boolean threw = false;
-        try {
-            // Remove any existing objects with same name
-            jndiTemplate.unbind(DATA_SOURCE_JNDI_NAME);
-
-            jndiTemplate.bind(DATA_SOURCE_JNDI_NAME, dataSource);
-        } catch (Exception e) {
-            threw = true;
-        }
-        assertFalse("Could not bind object to JndiTemplate", threw);
-
-        // Test Jndi by reading the object.
-        threw = false;
-        JdbcDataSource actualSource = null;
-        try {
-            actualSource = (JdbcDataSource) jndiTemplate.lookup(DATA_SOURCE_JNDI_NAME);
-        } catch (Exception e) {
-            threw = true;
-        }
-        assertFalse("Could not read object from JndiTemplate", threw);
-
+   
+    @Test    
+    public void testLocalContext(){
         // Check returned data.
-        assertEquals(dataSource.getUrl(), actualSource.getUrl());
-        assertEquals(dataSource.getUser(), actualSource.getUser());
-        assertEquals(dataSource.getPassword(), actualSource.getPassword());
-
-        // Tidy
-        jndiShutDown();
+        try{
+        DataSource ds = (DataSource) ctx.lookup(DATA_SOURCE_JNDI_NAME);
+        con = ds.getConnection();
+        assertEquals(dataSource.getUrl(), con.getMetaData().getURL());
+        assertEquals(dataSource.getUser(), con.getMetaData().getUserName());
+        }catch(Exception e){
+            fail();
+        }
     }
-
+    
+   
     /**
      * Test access to database with Jndi lookup of datasource
      */
@@ -210,24 +151,11 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
     public void testJndiQuery() {
         // Populate the jdbc database.
         populateTestTable();
-
-        // Start up Jndi
-        jndiSetUp();
-
-        // Write reference to the data source into Jndi
-        try {
-            // Remove any existing objects with same name
-            jndiTemplate.unbind(DATA_SOURCE_JNDI_NAME);
-
-            jndiTemplate.bind(DATA_SOURCE_JNDI_NAME, dataSource);
-        } catch (Exception e) {
-            fail("Could not bind object to JndiTemplate");
-        }
-
-        // Create the jdbc producer
+        setupContext(); 
+       // Create the jdbc producer
         JdbcProducer producer = null;
         try {
-            producer = new JdbcProducer(jndiTemplate, DATA_SOURCE_JNDI_NAME);
+            producer = new JdbcProducer(ctx,DATA_SOURCE_JNDI_NAME);
         } catch (Exception e) {
             fail();
         }
@@ -246,9 +174,8 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
         }
         assertEquals(TEST_ROW_COUNT, rowCount);
 
-        // Tidy
-        jndiShutDown();
     }
+
 
     /**
      * Test access to database using Iris parameter passing.
@@ -257,7 +184,7 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
     public void testIrisQuery() {
         // Populate the database.
         populateTestTable();
-
+        
         // Create the producer
         JdbcProducer producer = null;
         try {
@@ -323,6 +250,7 @@ public class TestJdbcProducer extends AbstractJdbcProducerTest {
         try {
             entityResource = producer.queryEntity(TEST_TABLE_NAME, key, ctx, expectedType);
         } catch (Exception e) {
+            e.printStackTrace();
             fail();
         }
 

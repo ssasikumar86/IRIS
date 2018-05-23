@@ -131,6 +131,12 @@ public class DatabaseSystemResourceStateLoader extends SpringDSLResourceStatePro
     @PostConstruct
     private void init() throws Exception {
         logger.debug("Loading Mandatory files from Database");
+
+        List<String> preloadFileNameList = metadataResourceProvider.getPreloadFileNames();
+        if(preloadFileNameList != null) {
+            supportingFiles.addAll(preloadFileNameList);
+        }
+
         List<InputStream> inputStreamList = new ArrayList<>();
         for (String filename : supportingFiles) {
             logger.debug("Loading file [{}] from Database", filename);

@@ -62,7 +62,7 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
     String DATA_SOURCE_JNDI_NAME = "H2Datasource";
     private Connection con = null;
     
-    private LocalContext ctx=null;
+    public static LocalContext ctx=null;
     
     /**
      * Initiate a context to lookup the datasource
@@ -71,8 +71,10 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
     public void setupContext() 
     {
         try{
-            ctx = LocalContextFactory.createLocalContext("org.h2.Driver");
-            ctx.addDataSource(DATA_SOURCE_JNDI_NAME,"jdbc:h2:mem:JdbcProducertest", "user", "password");
+            if(ctx == null){
+                ctx = LocalContextFactory.createLocalContext("org.h2.Driver");
+                ctx.addDataSource(DATA_SOURCE_JNDI_NAME,"jdbc:h2:mem:JdbcProducertest", "user", "password");
+            }
 
         }catch(Exception e){
             e.printStackTrace();
@@ -100,11 +102,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test
     public void testQuery() {
-
-        // Populate the database.
-        populateTestTable();
-
-        // Create data source for target
 
         // Create the producer
         JdbcProducer producer = null;
@@ -134,10 +131,11 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
     public void testLocalContext(){
         // Check returned data.
         try{
-        DataSource ds = (DataSource) ctx.lookup(DATA_SOURCE_JNDI_NAME);
-        con = ds.getConnection();
-        assertEquals(dataSource.getUrl(), con.getMetaData().getURL());
-        assertEquals(dataSource.getUser(), con.getMetaData().getUserName());
+            setupContext();
+            DataSource ds = (DataSource) ctx.lookup(DATA_SOURCE_JNDI_NAME);
+            con = ds.getConnection();
+            assertEquals(dataSource.getUrl(), con.getMetaData().getURL());
+            assertEquals(dataSource.getUser(), con.getMetaData().getUserName());
         }catch(Exception e){
             fail();
         }
@@ -149,8 +147,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test
     public void testJndiQuery() {
-        // Populate the jdbc database.
-        populateTestTable();
         setupContext(); 
        // Create the jdbc producer
         JdbcProducer producer = null;
@@ -182,9 +178,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisQuery() {
-        // Populate the database.
-        populateTestTable();
-        
         // Create the producer
         JdbcProducer producer = null;
         try {
@@ -226,9 +219,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisQueryEntity() {
-        // Populate the database.
-        populateTestTable();
-
         // Create the producer
         JdbcProducer producer = null;
         try {
@@ -272,8 +262,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test(expected = JdbcException.class)
     public void testIrisQueryEntityMissing() throws Exception {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -301,8 +289,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisQueryEntities() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -351,8 +337,6 @@ public class TestLocalJdbcProducer extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisSelectQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;

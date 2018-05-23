@@ -39,7 +39,7 @@ import org.junit.Before;
 public class AbstractJdbcProducerTest {
     // H2 data source details
     protected static String H2_URL = "jdbc:h2:mem:JdbcProducertest";
-    protected static String H2_USER = "user";
+    protected static String H2_USER = "USER";
     protected static String H2_PASSWORD = "password";
 
     // Number of rows in test table
@@ -84,6 +84,9 @@ public class AbstractJdbcProducerTest {
     private static String preparedInsert = "INSERT INTO \"" + TEST_TABLE_NAME + "\" (\"" + KEY_FIELD_NAME + "\", \""
             + VARCHAR_FIELD_NAME + "\", \"" + INTEGER_FIELD_NAME + "\") VALUES (?, ?, ?)";
 
+    //SQL Query Command to delete table
+    private static String deleteTableQuery = "DROP TABLE \"" + TEST_TABLE_NAME +"\"";
+
     // Commands for setting H2 into different server emulation modes,
     private static String setMSSQLMode = "SET MODE MSSQLServer";
     private static String setOracleMode = "SET MODE Oracle";
@@ -109,10 +112,12 @@ public class AbstractJdbcProducerTest {
         dataSource.setUrl(H2_URL);
         dataSource.setUser(H2_USER);
         dataSource.setPassword(H2_PASSWORD);
+        populateTestTable();
     }
 
     @After
     public void stopH2() throws SQLException {
+        dropTestTable();
         // Forget data source.
         dataSource = null;
 
@@ -122,6 +127,24 @@ public class AbstractJdbcProducerTest {
         pool.dispose();
     }
 
+    /*
+     * Drop Test Table
+     */
+    protected void dropTestTable(){
+        // Drop a SQL table in the database.
+        try {
+               conn.createStatement().executeUpdate(deleteTableQuery);
+        }catch (Throwable ex) {
+            fail("Drop table threw exception " + ex);
+        }
+
+        try {
+            conn.commit();
+        } catch (SQLException ex) {
+            fail("Commit threw " + ex);
+        }
+
+    }
     /*
      * Populate a test table with the default number of rows.
      */

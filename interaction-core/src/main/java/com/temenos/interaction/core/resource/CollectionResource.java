@@ -56,6 +56,8 @@ public class CollectionResource<T> implements RESTResource {
     private String entityTag = null;
 	@XmlTransient
 	private Integer inlineCount;
+	@XmlTransient
+	private String skipToken;
 	
 	public CollectionResource() {}
 
@@ -158,5 +160,13 @@ public class CollectionResource<T> implements RESTResource {
 	 */
 	public Integer getInlineCount() {
 		return this.inlineCount;
+	}
+
+	public void setSkipToken(String skipToken) {
+	    this.skipToken = skipToken;
+	}
+
+	public String getSkipToken() {
+	    return this.skipToken;
 	}
 }

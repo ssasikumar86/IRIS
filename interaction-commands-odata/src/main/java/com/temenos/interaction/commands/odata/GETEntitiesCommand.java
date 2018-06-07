@@ -24,7 +24,6 @@ package com.temenos.interaction.commands.odata;
 
 import java.util.Map;
 
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
@@ -75,6 +74,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 			    
 			CollectionResource<OEntity> cr = CommandHelper.createCollectionResource(entitySetName, response.getEntities());
 			cr.setInlineCount(response.getInlineCount());
+			cr.setSkipToken(response.getSkipToken());
 			ctx.setResource(cr);
 		} catch (InteractionProducerException ipe) {
 			if (logger.isDebugEnabled()) {

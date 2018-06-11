@@ -67,14 +67,6 @@
 			<version>1.2.1</version>
 			<type>pom</type>
 		</dependency>
-		<!-- following library uses GPL license which is not acceptable. We need to remove the use of this library from this project 
-		As this is only used in unit testing, updating the scope as 'test' -->
-		<dependency>
-			<groupId>com.sun.messaging.mq</groupId>
-			<artifactId>fscontext</artifactId>
-			<version>4.4.2</version>
-			<scope>test</scope>
-		</dependency>
 		     
 		<!-- Logging -->
 		<dependency>

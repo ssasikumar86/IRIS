@@ -49,8 +49,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -96,8 +94,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisNumericFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -143,8 +139,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIrisBadNumericFilterQuery() throws Exception {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -185,8 +179,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testConcatFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -233,8 +225,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testSubstrFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -282,8 +272,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testSubstr3ArgFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -331,8 +319,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testReplaceFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -385,8 +371,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
     // SQL server.
     @Ignore
     public void testFloorFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -434,8 +418,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testTrimFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -482,8 +464,6 @@ public class TestIrisFilter extends AbstractJdbcProducerTest {
      */
     @Test
     public void testIndexOfFilterQuery() {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;

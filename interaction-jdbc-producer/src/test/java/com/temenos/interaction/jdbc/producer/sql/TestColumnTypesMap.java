@@ -33,7 +33,6 @@ import org.junit.Test;
 
 import com.temenos.interaction.jdbc.producer.AbstractJdbcProducerTest;
 import com.temenos.interaction.jdbc.producer.JdbcProducer;
-import com.temenos.interaction.jdbc.producer.sql.ColumnTypesMap;
 
 /**
  * Test ColumnTypesMap class.
@@ -45,8 +44,6 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testConstructor() {
-		// Set up a queryable environment.
-		populateTestTable();
 
 		// Create the producer
 		JdbcProducer producer = null;
@@ -69,8 +66,6 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testGetPrimaryKeyName() {
-		// Set up a queryable environment.
-		populateTestTable();
 
 		// Create the producer
 		JdbcProducer producer = null;
@@ -96,6 +91,10 @@ public class TestColumnTypesMap extends AbstractJdbcProducerTest {
 	 */
 	@Test
 	public void testGetPrimaryKeyNameDefaultKey() {
+
+      //drop default table created
+       dropTestTable();
+
 		// Set up a queryable environment.
 		populateTestTable(TEST_ROW_COUNT, false);
 

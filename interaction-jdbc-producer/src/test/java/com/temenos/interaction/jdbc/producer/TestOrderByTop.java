@@ -78,8 +78,6 @@ public class TestOrderByTop extends AbstractJdbcProducerTest {
     }
 
     private void testOrderedQuery(ServerMode serverMode, String direction) {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;

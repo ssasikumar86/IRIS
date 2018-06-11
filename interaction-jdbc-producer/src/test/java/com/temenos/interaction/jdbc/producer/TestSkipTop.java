@@ -66,8 +66,6 @@ public class TestSkipTop extends AbstractJdbcProducerTest {
     }
 
     private void testTopQuery(ServerMode serverMode) {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -125,8 +123,6 @@ public class TestSkipTop extends AbstractJdbcProducerTest {
     }
 
     private void testSkipQuery(ServerMode serverMode) {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;
@@ -184,8 +180,6 @@ public class TestSkipTop extends AbstractJdbcProducerTest {
     }
 
     private void testTopSkipQuery(ServerMode serverMode) {
-        // Populate the database.
-        populateTestTable();
 
         // Create the producer
         JdbcProducer producer = null;

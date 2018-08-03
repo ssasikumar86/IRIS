@@ -38,4 +38,6 @@ public interface MetadataResourceProvider {
     
     public InputStream loadResourceStateFromDatabase(String url);
 
+    public List<String> getPreloadFileNames();
+
 }

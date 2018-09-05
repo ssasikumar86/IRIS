@@ -100,7 +100,7 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
 
     /**
      * Checks if the provided xml file name is available in class-path else
-     * scans for time-stamp included files
+     * scans for time-stamp included files and the folder name included files
      * 
      * @param resourceName
      * @return array of class-path file names
@@ -124,7 +124,7 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
                         .getResources("classpath*:META-INF/" + resourceProperty);
                 if (patternResources != null) {
                     for (Resource patternResource : patternResources) {
-                        if (Pattern.matches(resource.concat("_(\\d+).properties"), patternResource.getFilename())) {
+                        if (Pattern.matches(resource.concat(".*_(\\d+).properties"), patternResource.getFilename())) {
                             resources.add(patternResource.getFilename().replace(".properties", "-PRD.xml"));
                         }
                     }
@@ -207,7 +207,7 @@ public class FileSystemResourceStateLoader extends SpringDSLResourceStateProvide
 
                 Path dir = FileSystems.getDefault().getPath(pathToDirectory);
                 final PathMatcher matcher = dir.getFileSystem()
-                        .getPathMatcher("regex:" + "IRIS-" + tmpResourceName + "_(\\d+)-PRD.xml");
+                        .getPathMatcher("regex:" + "IRIS-" + tmpResourceName + ".*_(\\d+)-PRD.xml");
                 DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
 
                     @Override

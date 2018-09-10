@@ -126,7 +126,7 @@ public class AtomEntityFeedFormatWriter {
 	    }
 		
 	    if (queryToken != null) {
-	      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("queryToken", queryToken).build().toString();
+	      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24queryToken", queryToken).build().toString();
 	      writeElement(writer, "link", null, "rel", "next", "href", nextHref);
 	    }
 		writer.endFeed();

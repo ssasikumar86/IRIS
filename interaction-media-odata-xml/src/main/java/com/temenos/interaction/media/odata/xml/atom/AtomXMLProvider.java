@@ -261,20 +261,22 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
             }
             // TODO implement collection properties and get transient value for skiptoken
             Integer inlineCount = collectionResource.getInlineCount();
-            String skipToken = collectionResource.getSkipToken();
+            String skipToken = null;
+            String queryToken = collectionResource.getQueryToken();
             feedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), 
                     processedLinks, 
                     Responses.entities(entities, entitySet, inlineCount, skipToken), 
-                    metadata.getModelName(), linkId);
+                    metadata.getModelName(), linkId, queryToken);
         } else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class)) {
             CollectionResource<Entity> collectionResource = ((CollectionResource<Entity>) resource);
             
             // TODO implement collection properties and get transient value for skiptoken
             Integer inlineCount = collectionResource.getInlineCount();
-            String skipToken = collectionResource.getSkipToken();
+            String skipToken = null;
+            String queryToken = collectionResource.getQueryToken();
             //Write feed
             AtomEntityFeedFormatWriter entityFeedWriter = new AtomEntityFeedFormatWriter(serviceDocument, metadata);
-            entityFeedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName());
+            entityFeedWriter.write(uriInfo, new OutputStreamWriter(buffer, UTF_8), collectionResource, inlineCount, skipToken, metadata.getModelName(), queryToken);
         } else {
             LOGGER.error("Accepted object for writing in isWriteable, but type not supported in writeTo method");
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

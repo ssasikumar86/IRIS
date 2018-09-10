@@ -57,7 +57,9 @@ public class CollectionResource<T> implements RESTResource {
 	@XmlTransient
 	private Integer inlineCount;
 	@XmlTransient
-	private String skipToken;
+	private String queryToken = null;
+	@XmlTransient
+	private String skipToken = null;
 	
 	public CollectionResource() {}
 
@@ -161,12 +163,27 @@ public class CollectionResource<T> implements RESTResource {
 	public Integer getInlineCount() {
 		return this.inlineCount;
 	}
+	/* it have been considered the second position will be the skip token value */
+    public void setSkipToken(String token) {
+        String[] skipToken = token.split("&");
+        if(skipToken.length > 1){
+            this.skipToken = skipToken[1];
+        }
+    }
 
-	public void setSkipToken(String skipToken) {
-	    this.skipToken = skipToken;
+    public String getSkipToken() {
+        return this.skipToken;
+    }
+
+    /* it have been considered the first position will be the query token value */
+	public void setQueryToken(String token) {
+	    String[] queryToken = token.split("&");
+	    if(queryToken.length > 0){
+	        this.queryToken = queryToken[0];
+	    }
 	}
 
-	public String getSkipToken() {
-	    return this.skipToken;
+	public String getQueryToken() {
+	    return this.queryToken;
 	}
 }

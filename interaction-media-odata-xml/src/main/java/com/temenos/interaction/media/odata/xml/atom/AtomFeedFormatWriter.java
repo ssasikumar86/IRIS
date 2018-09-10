@@ -68,10 +68,10 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 	  String entitySetName = ees.getName();
 	  List<Link> links = new ArrayList<Link>();
 	  links.add(new Link(entitySetName, "self", entitySetName, null, null));
-	  write(uriInfo, w, links, response, null, null);
+	  write(uriInfo, w, links, response, null, null, null);
   }
   
-  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName, Map<OEntity, Collection<Link>> linkId) {
+  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName, Map<OEntity, Collection<Link>> linkId, String queryToken) {
 	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 	String absolutePath = AtomXMLProvider.getAbsolutePath(uriInfo);
 
@@ -126,6 +126,11 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
       String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24skiptoken", response.getSkipToken()).build().toString();
       writeElement(writer, "link", null, "rel", "next", "href", nextHref);
     }
+
+    if (queryToken != null) {
+        String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("querytoken", queryToken).build().toString();
+        writeElement(writer, "link", null, "rel", "next", "href", nextHref);
+      }
 
     writer.endDocument();
 

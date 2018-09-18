@@ -123,12 +123,18 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 
     if (response.getSkipToken() != null) {
       //<link rel="next" href="https://odata.sqlazurelabs.com/OData.svc/v0.1/rp1uiewita/StackOverflow/Tags/?$filter=TagName%20gt%20'a'&amp;$skiptoken=52" />
-      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24skiptoken", response.getSkipToken()).build().toString();
+      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("$skiptoken", response.getSkipToken()).build().toString();
       writeElement(writer, "link", null, "rel", "next", "href", nextHref);
     }
 
     if (queryToken != null) {
-        String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24queryToken", queryToken).build().toString();
+        String searchString = "$queryToken";
+
+        Boolean isPresent = uriInfo.getRequestUriBuilder().build().toString().contains("%24queryToken");
+        if(isPresent){
+            searchString = "%24queryToken";
+        }
+        String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam(searchString, queryToken).build().toString();
         writeElement(writer, "link", null, "rel", "next", "href", nextHref);
       }
 

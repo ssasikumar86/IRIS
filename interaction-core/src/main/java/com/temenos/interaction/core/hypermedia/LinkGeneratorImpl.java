@@ -229,6 +229,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
                     linkTemplate.queryParam(param, value);
                 } else if("t24Intent".equals(param) && uriParameters.containsKey("t24Intent")){
                     linkTemplate.replaceQueryParam(param, value);
+                }
             }
         }
         // Links in the transition properties are already encoded so

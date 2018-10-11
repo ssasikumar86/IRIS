@@ -227,8 +227,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
                     }
                 } else if(uriParameters == null || !uriParameters.containsKey(param)) { //Add query param only if it's not already present in the path
                     linkTemplate.queryParam(param, value);
-                } else if("t24Intent".equals(param) && uriParameters.containsKey("t24Intent")){
-                    linkTemplate.replaceQueryParam(param, value);
                 }
             }
         }

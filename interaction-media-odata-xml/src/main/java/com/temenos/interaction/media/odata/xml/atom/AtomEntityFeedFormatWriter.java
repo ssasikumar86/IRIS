@@ -126,7 +126,13 @@ public class AtomEntityFeedFormatWriter {
 	    }
 		
 	    if (queryToken != null) {
-	      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24queryToken", queryToken).build().toString();
+	      String searchString = "$queryToken";
+
+	      Boolean isPresent = uriInfo.getRequestUriBuilder().build().toString().contains("%24queryToken");
+	      if(isPresent){
+	          searchString = "%24queryToken";
+	      }
+	      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam(searchString, queryToken).build().toString();
 	      writeElement(writer, "link", null, "rel", "next", "href", nextHref);
 	    }
 		writer.endFeed();

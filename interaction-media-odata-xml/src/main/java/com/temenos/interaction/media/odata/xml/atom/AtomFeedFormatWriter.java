@@ -68,10 +68,10 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 	  String entitySetName = ees.getName();
 	  List<Link> links = new ArrayList<Link>();
 	  links.add(new Link(entitySetName, "self", entitySetName, null, null));
-	  write(uriInfo, w, links, response, null, null);
+	  write(uriInfo, w, links, response, null, null, null);
   }
   
-  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName, Map<OEntity, Collection<Link>> linkId) {
+  public void write(UriInfo uriInfo, Writer w, Collection<Link> links, EntitiesResponse response, String modelName, Map<OEntity, Collection<Link>> linkId, String queryToken) {
 	String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 	String absolutePath = AtomXMLProvider.getAbsolutePath(uriInfo);
 
@@ -123,9 +123,14 @@ public class AtomFeedFormatWriter extends XmlFormatWriter implements FormatWrite
 
     if (response.getSkipToken() != null) {
       //<link rel="next" href="https://odata.sqlazurelabs.com/OData.svc/v0.1/rp1uiewita/StackOverflow/Tags/?$filter=TagName%20gt%20'a'&amp;$skiptoken=52" />
-      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("$skiptoken", response.getSkipToken()).build().toString();
+      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24skiptoken", response.getSkipToken()).build().toString();
       writeElement(writer, "link", null, "rel", "next", "href", nextHref);
     }
+
+    if (queryToken != null) {
+        String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24queryToken", queryToken).build().toString();
+        writeElement(writer, "link", null, "rel", "next", "href", nextHref);
+      }
 
     writer.endDocument();
 

@@ -65,17 +65,18 @@ public class AtomEntityFeedFormatWriter {
 	 * @param uriInfo Current URI
 	 * @param w Java writer to stream to atom+xml output
 	 * @param collectionResource collection resource
-	 * @param entityMetadata Metadata of entity
 	 * @param inlineCount inline count
 	 * @param skipToken skip token
 	 * @param modelName Model name
+	 * @param queryToken query token value
+	 * @param entityMetadata Metadata of entity
 	 */
 	public void write(UriInfo uriInfo,
 			Writer w,
 			CollectionResource<Entity> collectionResource,
 			Integer inlineCount,
 			String skipToken,
-			String modelName) {
+			String modelName, String queryToken) {
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
 		String entitySetName = collectionResource.getEntitySetName();
 		Collection<Link> links = collectionResource.getLinks();
@@ -124,6 +125,10 @@ public class AtomEntityFeedFormatWriter {
 	      writeElement(writer, "link", null, "rel", "next", "href", nextHref);
 	    }
 		
+	    if (queryToken != null) {
+	      String nextHref = uriInfo.getRequestUriBuilder().replaceQueryParam("%24queryToken", queryToken).build().toString();
+	      writeElement(writer, "link", null, "rel", "next", "href", nextHref);
+	    }
 		writer.endFeed();
 		writer.endDocument();
 		writer.flush();

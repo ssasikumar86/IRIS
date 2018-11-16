@@ -125,7 +125,7 @@ public class AtomEntryFormatWriter extends XmlFormatWriter implements FormatWrit
 	      List<String> keys = oe.getEntityType().getKeys();
 	      if(keys.size() > 0) {
 		      EdmProperty keyProperty = oe.getEntityType().findDeclaredProperty(keys.get(0));
-		      if(keyProperty.getType().getFullyQualifiedTypeName().startsWith("Edm.Int") && relid.endsWith("L)")) {
+		      if(keyProperty != null && (keyProperty.getType().getFullyQualifiedTypeName().startsWith("Edm.Int") && relid.endsWith("L)"))) {
 		    	  relid = relid.substring(0, relid.length()-2) + ")";
 		      }
 	      }
